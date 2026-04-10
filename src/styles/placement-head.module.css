@@ -27,10 +27,10 @@
 }
 
 .subtitle {
-  color: #475569;
+  color: #000000;
   font-size: 1rem;
-  margin: 0;
   font-weight: 600;
+  margin: 0;
 }
 
 .headerStats {
@@ -61,7 +61,7 @@
 
 .statLabel {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #000000;
   font-weight: 500;
 }
 
@@ -81,7 +81,7 @@
   font-size: 1rem;
   font-weight: 600;
   background: #fff;
-  color: #1e293b;
+  color: #000000;
   transition: all 0.3s ease;
 }
 
@@ -98,7 +98,7 @@
   font-size: 1rem;
   font-weight: 600;
   background: #fff;
-  color: #1e293b;
+  color: #000000;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -148,8 +148,8 @@
   text-align: left;
   padding: 1rem;
   font-size: 0.875rem;
-  color: #3b82f6;
   font-weight: 700;
+  color: #000000;
   border-bottom: 2px solid rgba(59, 130, 246, 0.15);
   letter-spacing: 0.05em;
 }
@@ -157,9 +157,9 @@
 .resultsTable td {
   padding: 1rem;
   font-size: 0.95rem;
-  color: #475569;
-  border-bottom: 1px solid rgba(59, 130, 246, 0.08);
+  color: #000000;
   font-weight: 600;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.08);
 }
 
 .tableRow {
@@ -191,12 +191,12 @@
 
 .studentName {
   font-weight: 700;
-  color: #1e293b;
+  color: #000000;
 }
 
 .studentEmail {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -362,13 +362,13 @@
 }
 
 .detailLabel {
-  font-weight: 600;
-  color: #64748b;
+  font-weight: 700;
+  color: #000000;
 }
 
 .detailValue {
-  font-weight: 700;
-  color: #1e293b;
+  font-weight: 600;
+  color: #000000;
 }
 
 .detailScore {

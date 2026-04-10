@@ -1,6 +1,6 @@
 .container {
   background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  color: #1e293b;
+  color: #000000;
   min-height: 100vh;
   padding: 2rem 4rem;
   font-family: "Segoe UI", sans-serif;
@@ -18,7 +18,7 @@
 }
 
 .title {
-  color: #1e293b;
+  color: #000000;
   font-size: 3rem;
   font-weight: 900;
   margin-bottom: 1rem;
@@ -26,7 +26,7 @@
 }
 
 .subtitle {
-  color: #64748b;
+  color: #000000;
   font-size: 1.1rem;
   max-width: 600px;
   margin: 0 auto;
@@ -47,7 +47,7 @@
   cursor: pointer;
   font-weight: 700;
   transition: color 0.3s ease;
-  color: #475569;
+  color: #000000;
 }
 
 .navbar li:hover {
@@ -95,7 +95,7 @@
 /* Modules */
 .modules {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 2rem;
   margin-bottom: 3rem;
   margin-top: 2rem;
@@ -121,21 +121,22 @@
 }
 
 .moduleCard h2 {
-  color: #1e293b;
+  color: #000000;
   margin-bottom: 0.5rem;
   font-weight: 800;
+  font-size: 1.25rem;
 }
 
 /* Profile Card Styling */
 .profileCard h3 {
   font-size: 1.75rem;
   font-weight: 900;
-  color: #1e293b;
+  color: #000000;
   margin: 0 0 0.5rem 0;
 }
 
 .profileCard p {
-  color: #64748b;
+  color: #000000;
   font-size: 1rem;
   margin: 0 0 1rem 0;
   font-weight: 600;
@@ -224,7 +225,7 @@
 .footerBrand h3 {
   font-size: 1.5rem;
   font-weight: 900;
-  color: #1e293b;
+  color: #000000;
   margin: 0;
   background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
   -webkit-background-clip: text;
@@ -233,7 +234,7 @@
 }
 
 .footerBrand p {
-  color: #64748b;
+  color: #000000;
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
@@ -247,7 +248,7 @@
 }
 
 .socialLinks a {
-  color: #64748b;
+  color: #000000;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 700;
@@ -265,7 +266,7 @@
 }
 
 .footerColumn h4 {
-  color: #1e293b;
+  color: #000000;
   font-size: 1rem;
   font-weight: 800;
   margin: 0;
@@ -281,7 +282,7 @@
 }
 
 .footerColumn li a {
-  color: #64748b;
+  color: #000000;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -309,7 +310,7 @@
 }
 
 .footerBottom p {
-  color: #64748b;
+  color: #000000;
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.5;

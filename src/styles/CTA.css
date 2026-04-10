@@ -62,7 +62,7 @@
 
 .cta-subtitle {
   font-size: clamp(1.1rem, 2vw, 1.35rem);
-  color: #475569;
+  color: #000000;
   margin: 0 auto 2.5rem;
   max-width: 45rem;
   line-height: 1.7;

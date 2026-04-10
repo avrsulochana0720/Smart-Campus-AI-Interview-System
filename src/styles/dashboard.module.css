@@ -2,7 +2,7 @@
   display: flex;
   min-height: 100vh;
   background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  color: #1e293b;
+  color: #000000;
   font-family: "Segoe UI", sans-serif;
   padding-top: 80px;
 }
@@ -22,7 +22,7 @@
 .logo {
   font-size: 1.5rem;
   font-weight: 900;
-  color: #1e293b;
+  color: #000000;
   margin-bottom: 2rem;
 }
 
@@ -35,14 +35,14 @@
 .navItem {
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
-  color: #475569;
+  color: #000000;
   transition: background 0.2s;
   font-weight: 600;
 }
 
 .navItem:hover {
   background: rgba(59, 130, 246, 0.1);
-  color: #1e293b;
+  color: #000000;
 }
 
 .active {
@@ -66,7 +66,7 @@
 }
 
 .username {
-  color: #1e293b;
+  color: #000000;
   font-weight: 700;
 }
 
@@ -92,7 +92,7 @@
 
 .subtitle {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -149,7 +149,7 @@
 .cardTitle {
   font-weight: 800;
   margin-bottom: 1rem;
-  color: #1e293b;
+  color: #000000;
 }
 
 .progressCircle {
@@ -166,7 +166,7 @@
 .progressText {
   font-size: 1.25rem;
   font-weight: 900;
-  color: #1e293b;
+  color: #000000;
 }
 
 .accent {
@@ -193,7 +193,7 @@
   text-align: left;
   padding: 0.75rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: #000000;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   font-weight: 700;
 }
@@ -201,7 +201,7 @@
 .table td {
   padding: 0.75rem;
   font-size: 0.875rem;
-  color: #475569;
+  color: #000000;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   font-weight: 600;
 }
@@ -244,7 +244,7 @@
 .list {
   margin-top: 0.75rem;
   padding-left: 1.25rem;
-  color: #64748b;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -254,7 +254,7 @@
   padding: 0.75rem;
   border-radius: 0.75rem;
   margin-top: 0.75rem;
-  color: #475569;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -264,7 +264,7 @@
   justify-content: center;
   gap: 1.5rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: #000000;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   font-weight: 600;

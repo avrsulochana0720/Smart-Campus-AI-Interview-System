@@ -9,7 +9,7 @@ html, body {
   height: 100%;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  color: #1e293b;
+  color: #000000;
   line-height: 1.6;
   min-height: 100vh;
   font-weight: 600;
@@ -38,7 +38,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 1rem;
-  color: #0f172a;
+  color: #000000;
 }
 
 h1 {
@@ -65,7 +65,7 @@ h3 {
 /* Paragraphs */
 p {
   margin-bottom: 1rem;
-  color: #475569;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -98,7 +98,7 @@ input, textarea, select {
   border: 2px solid #e2e8f0;
   border-radius: 0.75rem;
   background: #fff;
-  color: #1e293b;
+  color: #000000;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.3s ease;

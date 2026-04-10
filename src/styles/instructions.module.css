@@ -63,7 +63,7 @@
 }
 
 .title {
-  color: #1e293b;
+  color: #000000;
   font-size: 1.25rem;
   font-weight: 900;
   margin-bottom: 1.5rem;
@@ -100,12 +100,12 @@
 }
 
 .itemTitle {
-  color: #1e293b;
+  color: #000000;
   font-weight: 800;
 }
 
 .itemDesc {
-  color: #64748b;
+  color: #000000;
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -115,7 +115,7 @@
   background: rgba(59, 130, 246, 0.1);
   border-radius: 0.75rem;
   padding: 1rem;
-  color: #475569;
+  color: #000000;
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -132,7 +132,7 @@
   align-items: center;
   border-bottom: 1px solid rgba(0,0,0,0.1);
   padding-bottom: 0.5rem;
-  color: #475569;
+  color: #000000;
   font-weight: 600;
 }
 
@@ -167,7 +167,7 @@
   align-items: center;
   border-bottom: 1px solid rgba(0,0,0,0.1);
   padding-bottom: 0.5rem;
-  color: #475569;
+  color: #000000;
   font-size: 0.95rem;
   font-weight: 700;
 }

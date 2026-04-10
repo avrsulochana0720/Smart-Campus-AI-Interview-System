@@ -22,7 +22,7 @@
 }
 
 .footer-copy {
-  color: #475569;
+  color: #000000;
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -53,7 +53,7 @@
 }
 
 .footer-icon-svg {
-  color: #475569;
+  color: #000000;
   transition: color 0.3s ease;
   font-weight: 700;
 }
