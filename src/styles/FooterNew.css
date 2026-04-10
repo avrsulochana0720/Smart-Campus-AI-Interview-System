@@ -1,0 +1,63 @@
+.footer {
+  padding: 2.5rem 2rem;
+  border-top: 2px solid rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  backdrop-filter: blur(20px);
+}
+
+.footer-container {
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+  .footer-container {
+    flex-direction: row;
+  }
+}
+
+.footer-copy {
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-icon:hover {
+  transform: scale(1.15) translateY(-2px);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.footer-icon-svg {
+  color: #475569;
+  transition: color 0.3s ease;
+  font-weight: 700;
+}
+
+.footer-icon:hover .footer-icon-svg {
+  color: #3b82f6;
+}

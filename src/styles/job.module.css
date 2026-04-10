@@ -1,0 +1,305 @@
+.jobContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  padding: 2rem;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.jobCard {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 1.5rem;
+  padding: 3rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.jobCardHeader {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.jobTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 1rem 0;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.jobHelper {
+  color: #64748b;
+  font-size: 1rem;
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.jobForm {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.formLabel {
+  color: #1e293b;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.selectWrapper {
+  position: relative;
+  z-index: 10;
+}
+
+.selectWrapper.active {
+  z-index: 20;
+}
+
+.selectButton {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: #1e293b;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.selectButton:hover {
+  background: #f8fafc;
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.selectButton:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.selectValue {
+  text-align: left;
+  flex: 1;
+  color: #475569;
+  font-weight: 600;
+}
+
+.selectButton:hover .selectValue {
+  color: #1e293b;
+}
+
+.selectIcon {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  margin-left: 0.5rem;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.selectIconOpen {
+  transform: rotate(180deg);
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: none;
+  border-radius: 0 0 0.75rem 0.75rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  margin-top: -1px;
+  overflow: hidden;
+  animation: dropdownSlide 0.2s ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.searchInput {
+  width: 100%;
+  background: #f8fafc;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1e293b;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.searchInput::placeholder {
+  color: #94a3b8;
+}
+
+.searchInput:focus {
+  outline: none;
+  background: #f1f5f9;
+}
+
+.dropdownList {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.dropdownList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdownList::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dropdownList::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.textInput {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.textInput::placeholder {
+  color: #94a3b8;
+}
+
+.textInput:hover {
+  background: #f8fafc;
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.8);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.toggleCustom {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #3B82F6;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+  text-decoration: underline;
+  margin-top: 0.5rem;
+}
+
+.toggleCustom:hover {
+  color: #8B5CF6;
+}
+
+.startButton {
+  width: 100%;
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  color: #fff;
+  padding: 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.startButton:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.35);
+}
+
+.startButton:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.startButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loadingText {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
