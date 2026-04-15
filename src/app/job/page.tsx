@@ -11,6 +11,7 @@ const JOB_ROLES = [
   "Product Manager",
   "Mobile Developer",
   "UI/UX Designer",
+  "HR Professional",
 ];
 
 const COMPANIES = [
@@ -29,8 +30,8 @@ export default function JobPage() {
   const navigate = useNavigate();
   const [jobRole, setJobRole] = useState("");
   const [company, setCompany] = useState("");
-  const [customJobRole, setCustomJobRole] = useState(false);
   const [customCompany, setCustomCompany] = useState(false);
+  const [customJobRole, setCustomJobRole] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [jobRoleOpen, setJobRoleOpen] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
@@ -128,16 +129,6 @@ export default function JobPage() {
                           {role}
                         </button>
                       ))}
-                      <button
-                        className={`${styles.dropdownItem} ${styles.dropdownItemOthers}`}
-                        onClick={() => {
-                          setCustomJobRole(true);
-                          setJobRoleOpen(false);
-                          setSearchJobRole("");
-                        }}
-                      >
-                        Others...
-                      </button>
                     </div>
                   </div>
                 )}
@@ -159,7 +150,7 @@ export default function JobPage() {
                 setSearchJobRole("");
               }}
             >
-              {customJobRole ? "Choose from list" : "Enter custom role"}
+              {customJobRole ? "Choose from list" : "Enter custom job role"}
             </button>
           </div>
 
@@ -220,16 +211,6 @@ export default function JobPage() {
                           {c}
                         </button>
                       ))}
-                      <button
-                        className={`${styles.dropdownItem} ${styles.dropdownItemOthers}`}
-                        onClick={() => {
-                          setCustomCompany(true);
-                          setCompanyOpen(false);
-                          setSearchCompany("");
-                        }}
-                      >
-                        Others...
-                      </button>
                     </div>
                   </div>
                 )}

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../../../styles/interview.module.css";
 
 const questions = [
@@ -33,43 +34,14 @@ export default function InterviewPage() {
   const [transcript, setTranscript] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
-  const [cameraOn, setCameraOn] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const navigate = useNavigate();
 
-  const toggleCamera = async (on: boolean) => {
-    setCameraOn(on);
-    
-    if (on) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        alert("Unable to access camera. Please ensure camera permissions are granted.");
-      }
-    } else {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    }
+  // Calculate score based on answers answered
+  const calculateScore = () => {
+    const answeredCount = answers.filter(a => a && a.trim().length > 0).length;
+    const score = Math.round((answeredCount / questions.length) * 100);
+    return score;
   };
-
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
 
   const startListening = () => {
     const SpeechRecognition =
@@ -100,16 +72,17 @@ export default function InterviewPage() {
       newAnswers[currentQuestionIndex] = transcript;
       setAnswers(newAnswers);
     }
-    
+
     // Clear transcript for next question
     setTranscript("");
-    
+
     // Move to next question
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Interview completed
-      alert("Interview completed! Thank you for your responses.");
+      // Interview completed - navigate to thank you page with score
+      const score = calculateScore();
+      navigate(`/thank?score=${score}`);
     }
   };
 
@@ -118,7 +91,9 @@ export default function InterviewPage() {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      alert("Interview completed! Thank you for your responses.");
+      // Interview completed - navigate to thank you page with score
+      const score = calculateScore();
+      navigate(`/thank?score=${score}`);
     }
   };
 
@@ -137,11 +112,51 @@ export default function InterviewPage() {
       <div className={styles.left}>
         <div className={styles.avatarSection}>
           <div className={styles.avatarContainer}>
-            <img
-              src="/Professional HR avat.png"
-              alt="AI Interviewer"
-              className={styles.avatarImage}
-            />
+            <svg
+              width="200"
+              height="200"
+              viewBox="0 0 200 200"
+              className={styles.avatar}
+            >
+              {/* Background circle */}
+              <circle cx="100" cy="100" r="90" fill="#1e293b" />
+              
+              {/* Head */}
+              <circle cx="100" cy="80" r="35" fill="#fdbcb4" />
+              
+              {/* Hair */}
+              <path
+                d="M 65 60 Q 100 40 135 60 Q 140 70 135 80 L 65 80 Q 60 70 65 60"
+                fill="#4a4a4a"
+              />
+              
+              {/* Eyes */}
+              <circle cx="85" cy="75" r="3" fill="#333" />
+              <circle cx="115" cy="75" r="3" fill="#333" />
+              
+              {/* Mouth */}
+              <path
+                d="M 90 90 Q 100 95 110 90"
+                stroke="#333"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+              />
+              
+              {/* Body/Shoulders */}
+              <path
+                d="M 50 120 Q 100 110 150 120 L 140 160 Q 100 150 60 160 Z"
+                fill="#1e40af"
+              />
+              
+              {/* Collar */}
+              <path
+                d="M 80 120 L 100 130 L 120 120"
+                stroke="#fff"
+                strokeWidth="2"
+                fill="none"
+              />
+            </svg>
           </div>
           <div className={styles.avatarLabel}>AI Interviewer</div>
         </div>
@@ -162,39 +177,6 @@ export default function InterviewPage() {
             <h2>{currentQuestion.category}</h2>
             <div className={styles.timer}>Session Timer: 24:45</div>
           </div>
-
-          {/* Camera Section */}
-          <div className={styles.cameraSection}>
-            <div className={styles.cameraIcon}>📷</div>
-            <div className={styles.cameraStatus}>{cameraOn ? "Camera Active" : "Camera Off"}</div>
-            <div className={styles.cameraButtons}>
-              <button
-                onClick={() => toggleCamera(true)}
-                className={`${styles.cameraButton} ${styles.cameraButtonOn} ${cameraOn ? styles.cameraButtonActive : ""}`}
-              >
-                On
-              </button>
-              <button
-                onClick={() => toggleCamera(false)}
-                className={`${styles.cameraButton} ${styles.cameraButtonOff} ${!cameraOn ? styles.cameraButtonActive : ""}`}
-              >
-                Off
-              </button>
-            </div>
-          </div>
-
-          {/* Camera Video Feed */}
-          {cameraOn && (
-            <div className={styles.cameraVideoContainer}>
-              <video
-                ref={videoRef}
-                className={styles.cameraVideo}
-                autoPlay
-                playsInline
-                muted
-              />
-            </div>
-          )}
 
           <p>
             {currentQuestion.question}

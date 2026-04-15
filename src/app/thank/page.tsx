@@ -1,8 +1,10 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "../../styles/thank.module.css";
 
 export default function ThankYouPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const score = searchParams.get("score") || "0";
 
   return (
     <div className={styles.container}>
@@ -37,7 +39,7 @@ export default function ThankYouPage() {
           </div>
 
           <div className={styles.buttons}>
-            <button className={styles.primary} onClick={() => navigate("/dashboard")}>Go to Dashboard</button>
+            <button className={styles.primary} onClick={() => navigate(`/dashboard?score=${score}`)}>Go to Dashboard</button>
             <button className={styles.secondary}>Logout</button>
           </div>
 

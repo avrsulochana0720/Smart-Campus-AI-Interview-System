@@ -20,6 +20,7 @@ export default function Hero() {
   const [registerData, setRegisterData] = useState<RegisterData>({ email: '', password: '', profilePhoto: null });
   const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' });
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +54,50 @@ export default function Hero() {
 
   return (
     <section className="hero">
+      <nav className="navbar">
+        <div className="navbar-brand">
+          <span className="brand-text">Smart Campus AI</span>
+        </div>
+        <div className="navbar-links">
+          <a href="#" className="nav-link">Home</a>
+          <a href="#" className="nav-link">Features</a>
+          <a href="#" className="nav-link">About</a>
+          <a href="#" className="nav-link">Contact</a>
+        </div>
+        <div className="navbar-right">
+          <div className="navbar-profile">
+            <div className="profile-avatar-nav" onClick={() => navigate('/dashboard?section=profile')} style={{ cursor: 'pointer' }}>
+              <svg width="40" height="40" viewBox="0 0 40 40" className="avatar-svg-nav">
+                <defs>
+                  <linearGradient id="avatarGradientNav" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 1}} />
+                    <stop offset="50%" style={{stopColor: '#8b5cf6', stopOpacity: 1}} />
+                    <stop offset="100%" style={{stopColor: '#ec4899', stopOpacity: 1}} />
+                  </linearGradient>
+                </defs>
+                <circle cx="20" cy="20" r="18" fill="url(#avatarGradientNav)" />
+                <circle cx="20" cy="15" r="6" fill="#ffffff" opacity="0.9" />
+                <ellipse cx="20" cy="28" rx="8" ry="5" fill="#ffffff" opacity="0.9" />
+              </svg>
+            </div>
+          </div>
+          <button className="mobile-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu">
+          <a href="#" className="mobile-nav-link">Home</a>
+          <a href="#" className="mobile-nav-link">Features</a>
+          <a href="#" className="mobile-nav-link">About</a>
+          <a href="#" className="mobile-nav-link">Contact</a>
+        </div>
+      )}
       <div className="hero-content">
         <h1 className="hero-title">
           AI-Powered Smart Campus Interview Platform

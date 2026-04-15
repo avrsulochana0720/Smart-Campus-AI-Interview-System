@@ -1,18 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 
-import Navbar from "./app/components/Navbar";
 import Hero from "./app/components/Hero";
 import Features from "./app/components/Features";
 import CTA from "./app/components/CTA";
 import FooterNew from "./app/components/FooterNew";
 
-import Interview from "./app/components/interview/page";
+import Interview from "./app/interview/interview";
 import Instructions from "./app/instructions/page";
 import Thank from "./app/thank/page";
 import Dashboard from "./app/dashboard/page";
 import Job from "./app/job/page";
 import Resume from "./app/resume/page";
-import PlacementHead from "./app/placement-head/page";
 
 function LandingPage() {
   return (
@@ -28,7 +26,6 @@ function LandingPage() {
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -38,7 +35,6 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/job" element={<Job />} />
           <Route path="/resume" element={<Resume />} />
-          <Route path="/placement-head" element={<PlacementHead />} />
         </Routes>
       </div>
     </div>

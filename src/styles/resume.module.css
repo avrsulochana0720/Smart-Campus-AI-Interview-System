@@ -1,32 +1,39 @@
 .container {
-  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  color: #000000;
+  background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+              linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  color: #000;
   min-height: 100vh;
-  padding: 2rem 4rem;
+  padding: 0.25rem 0.5rem;
   font-family: "Segoe UI", sans-serif;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Header */
 .header {
   text-align: center;
-  margin-bottom: 3rem;
-  margin-top: 4rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .title {
-  color: #000000;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-size: 3rem;
-  font-weight: 900;
+  font-weight: 800;
   margin-bottom: 1rem;
   line-height: 1.2;
 }
 
 .subtitle {
-  color: #000000;
+  color: #000;
   font-size: 1.1rem;
   max-width: 600px;
   margin: 0 auto;
@@ -45,9 +52,8 @@
 
 .navbar li {
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 500;
   transition: color 0.3s ease;
-  color: #000000;
 }
 
 .navbar li:hover {
@@ -58,21 +64,20 @@
 .uploadSection {
   display: flex;
   justify-content: stretch;
-  margin-bottom: 3rem;
-  margin-top: 2rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
   width: 100%;
 }
 
 .uploadBox {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   padding: 3rem 2rem;
-  border-radius: 12px;
+  border-radius: 1.5rem;
   text-align: center;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
 }
 
 .uploadBox button {
@@ -81,7 +86,7 @@
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 8px;
-  font-weight: 900;
+  font-weight: bold;
   cursor: pointer;
   margin-top: 1rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -95,7 +100,7 @@
 /* Modules */
 .modules {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
   margin-top: 2rem;
@@ -103,58 +108,57 @@
 }
 
 .moduleCard {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   padding: 2rem 2.5rem;
-  border-radius: 12px;
+  border-radius: 1.5rem;
   text-align: center;
   flex: 1;
   min-width: 200px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.1);
 }
 
 .moduleCard:hover {
   transform: translateY(-6px);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
 }
 
 .moduleCard h2 {
-  color: #000000;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 0.5rem;
-  font-weight: 800;
-  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 /* Profile Card Styling */
 .profileCard h3 {
   font-size: 1.75rem;
-  font-weight: 900;
-  color: #000000;
+  font-weight: 700;
+  color: #000;
   margin: 0 0 0.5rem 0;
 }
 
 .profileCard p {
-  color: #000000;
+  color: #64748b;
   font-size: 1rem;
   margin: 0 0 1rem 0;
-  font-weight: 600;
 }
 
 /* Profile Card */
 .profileCard {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   padding: 2.5rem 3rem;
-  border-radius: 12px;
+  border-radius: 1.5rem;
   text-align: center;
   margin-bottom: 3rem;
   margin-top: 2rem;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
 }
 
 .tags {
@@ -171,8 +175,8 @@
   padding: 0.4rem 0.8rem;
   border-radius: 6px;
   font-size: 0.85rem;
-  color: #3B82F6;
-  font-weight: 700;
+  color: #3b82f6;
+  font-weight: 600;
 }
 
 .actions {
@@ -185,19 +189,20 @@
 }
 
 .confirm {
-  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
   color: #fff;
-  padding: 0.6rem 1.2rem;
+  padding: 0.8rem 2rem;
   border: none;
-  border-radius: 8px;
-  font-weight: 800;
+  border-radius: 1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
 }
 
 .confirm:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.4);
 }
 
 /* Footer */
@@ -205,7 +210,7 @@
   margin-top: auto;
   padding-top: 4rem;
   padding-bottom: 2rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .footerContent {
@@ -224,21 +229,20 @@
 
 .footerBrand h3 {
   font-size: 1.5rem;
-  font-weight: 900;
-  color: #000000;
+  font-weight: 700;
+  color: #000;
   margin: 0;
-  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .footerBrand p {
-  color: #000000;
+  color: #64748b;
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
-  font-weight: 600;
 }
 
 .socialLinks {
@@ -248,10 +252,10 @@
 }
 
 .socialLinks a {
-  color: #000000;
+  color: #64748b;
   text-decoration: none;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 500;
   transition: color 0.3s ease;
 }
 
@@ -266,9 +270,9 @@
 }
 
 .footerColumn h4 {
-  color: #000000;
+  color: #000;
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -282,10 +286,9 @@
 }
 
 .footerColumn li a {
-  color: #000000;
+  color: #64748b;
   text-decoration: none;
   font-size: 0.9rem;
-  font-weight: 600;
   transition: color 0.3s ease;
 }
 
@@ -296,7 +299,7 @@
 .footerDivider {
   width: 100%;
   height: 1px;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(59, 130, 246, 0.1);
   margin: 2rem 0;
 }
 
@@ -310,9 +313,8 @@
 }
 
 .footerBottom p {
-  color: #000000;
+  color: #64748b;
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.5;
-  font-weight: 600;
 }

@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../../styles/instructions.module.css";
 
 export default function InstructionsPage() {
   const [systemChecks, setSystemChecks] = useState([false, false, false, false]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Simulate system checks one by one
@@ -23,6 +25,10 @@ export default function InstructionsPage() {
       }, item.delay);
     });
   }, []);
+
+  const handleNext = () => {
+    navigate("/interview");
+  };
 
   return (
     <div className={styles.container}>
@@ -108,7 +114,7 @@ export default function InstructionsPage() {
 
       {/* Next Button */}
       <div className={styles.footer}>
-        <button className={styles.nextButton}>Next</button>
+        <button className={styles.nextButton} onClick={handleNext}>Next</button>
       </div>
     </div>
   );

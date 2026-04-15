@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "../../styles/Navbar.css";
 
 export default function Navbar() {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -21,14 +24,12 @@ export default function Navbar() {
           <Link to="/instructions">Instructions</Link>
           <Link to="/interview">Interview</Link>
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/placement-head">Placement Head</Link>
-          <Link to="/dashboard?section=profile" className="navbar-profile">
-            <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
-              alt="Profile"
-              className="navbar-profile-image"
-            />
-          </Link>
+          {isHomePage && (
+            <Link to="/resume" className="navbar-button">
+              <span>Get Started</span>
+              <div className="navbar-button-hover" />
+            </Link>
+          )}
         </div>
       </div>
     </nav>
