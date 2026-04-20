@@ -2,10 +2,30 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import styles from "../../styles/dashboard.module.css";
 import Navbar from "../components/Navbar";
+import axios from "axios";
+
+interface QA {
+  question: string;
+  answer: string;
+  score: number;
+}
+
+interface Interview {
+  interview_id: number;
+  job_role: string;
+  company: string;
+  date: string;
+  qa_list: QA[];
+  total_score: number;
+  average_score: number;
+}
 
 export default function DashboardPage() {
   const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [interviewHistory, setInterviewHistory] = useState<Interview[]>([]);
+  const [expandedInterviews, setExpandedInterviews] = useState<Record<number, boolean>>({});
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -13,6 +33,36 @@ export default function DashboardPage() {
       setActiveSection(section);
     }
   }, [searchParams]);
+
+  const fetchInterviewHistory = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://127.0.0.1:8000/interview-history", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setInterviewHistory(response.data);
+    } catch (error) {
+      console.error("Error fetching interview history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSection === "reports") {
+      fetchInterviewHistory();
+    }
+  }, [activeSection]);
+
+  const toggleExpand = (interviewId: number) => {
+    setExpandedInterviews(prev => ({
+      ...prev,
+      [interviewId]: !prev[interviewId]
+    }));
+  };
 
   return (
     <>
@@ -342,23 +392,42 @@ export default function DashboardPage() {
               </div>
 
               <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Available Reports</h3>
-                <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  <div style={{ padding: "1rem", background: "rgba(0,0,0,0.3)", borderRadius: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <p style={{ margin: "0", fontWeight: "500" }}>Interview Report - Oct 2024</p>
-                      <p style={{ margin: "0", fontSize: "0.875rem", color: "#9ca3af" }}>TechCorp Inc.</p>
-                    </div>
-                    <button style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}>Download</button>
+                <h3 className={styles.cardTitle}>Interview History</h3>
+                {loading ? (
+                  <p style={{ marginTop: "1rem", color: "#9ca3af" }}>Loading interview history...</p>
+                ) : interviewHistory.length === 0 ? (
+                  <p style={{ marginTop: "1rem", color: "#9ca3af" }}>No interview history found. Complete an interview to see your history here.</p>
+                ) : (
+                  <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {interviewHistory.map((interview) => (
+                      <div key={interview.interview_id} style={{ padding: "1rem", background: "rgba(0,0,0,0.3)", borderRadius: "0.5rem" }}>
+                        <div 
+                          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+                          onClick={() => toggleExpand(interview.interview_id)}
+                        >
+                          <div>
+                            <p style={{ margin: "0", fontWeight: "500" }}>{interview.job_role} - {interview.company}</p>
+                            <p style={{ margin: "0", fontSize: "0.875rem", color: "#9ca3af" }}>Date: {interview.date} | Average Score: {interview.average_score.toFixed(1)}/10</p>
+                          </div>
+                          <span style={{ fontSize: "1.5rem", color: "#9ca3af" }}>
+                            {expandedInterviews[interview.interview_id] ? "▼" : "▶"}
+                          </span>
+                        </div>
+                        {expandedInterviews[interview.interview_id] && (
+                          <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                            {interview.qa_list.map((qa, index) => (
+                              <div key={index} style={{ marginBottom: "1rem" }}>
+                                <p style={{ margin: "0 0 0.5rem 0", fontWeight: "500", color: "#3B82F6" }}>Q: {qa.question}</p>
+                                <p style={{ margin: "0 0 0.5rem 0", color: "#9ca3af" }}>A: {qa.answer}</p>
+                                <p style={{ margin: "0", fontSize: "0.875rem" }}>Score: {qa.score}/10</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ padding: "1rem", background: "rgba(0,0,0,0.3)", borderRadius: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <p style={{ margin: "0", fontWeight: "500" }}>Interview Report - Aug 2024</p>
-                      <p style={{ margin: "0", fontSize: "0.875rem", color: "#9ca3af" }}>WebAgency</p>
-                    </div>
-                    <button style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}>Download</button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 

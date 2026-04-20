@@ -3,3 +3,7 @@ uvicorn
 sqlalchemy
 email-validator
 passlib[bcrypt]
+pymysql
+PyPDF2
+python-jose[cryptography]
+openai

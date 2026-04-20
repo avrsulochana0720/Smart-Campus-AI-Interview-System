@@ -11,6 +11,7 @@ import Thank from "./app/thank/page";
 import Dashboard from "./app/dashboard/page";
 import Job from "./app/job/page";
 import Resume from "./app/resume/page";
+import Login from "./app/login/page";
 
 function LandingPage() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/interview" element={<Interview />} />
           <Route path="/thank" element={<Thank />} />

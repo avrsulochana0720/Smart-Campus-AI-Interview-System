@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../styles/interview.module.css';
 import thankStyles from '../../styles/thank.module.css';
+import { interviewAPI } from '../../utils/api';
 
 const Interview: React.FC = () => {
   const navigate = useNavigate();
@@ -12,14 +13,72 @@ const Interview: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<string[]>(['', '', '']);
+  const [answers, setAnswers] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [interviewId, setInterviewId] = useState<number | null>(null);
 
-  const questions = [
-    "Explain the CAP theorem and how you would apply it when choosing a database for a global real-time notification system?",
-    "Describe the difference between monolithic architecture and microservices architecture. When would you choose one over the other?",
-    "How do you handle authentication and authorization in a distributed system? What are the common security concerns?"
-  ];
+  useEffect(() => {
+    const storedInterviewId = localStorage.getItem('interview_id');
+    if (storedInterviewId) {
+      setInterviewId(parseInt(storedInterviewId));
+      generateQuestions(parseInt(storedInterviewId));
+    }
+  }, []);
+
+  const generateQuestions = async (id: number) => {
+    try {
+      console.log('Generating questions for interview:', id);
+      await interviewAPI.generateQuestions(id);
+      fetchNextQuestion(id);
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      alert('Failed to generate questions. Please try again.');
+    }
+  };
+
+  const fetchNextQuestion = async (id: number) => {
+    try {
+      console.log('Fetching next question for interview:', id);
+      const questionData = await interviewAPI.getQuestion(id);
+      if (questionData.message === 'All questions answered') {
+        setIsCompleted(true);
+      } else {
+        setCurrentQuestion(questionData);
+        setAnswer('');
+        setAnswers(prev => [...prev, '']);
+      }
+    } catch (error) {
+      console.error('Error fetching question:', error);
+      alert('Failed to fetch question. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const submitAnswer = async () => {
+    if (!currentQuestion || !interviewId || !answer.trim()) return;
+
+    try {
+      console.log('Submitting answer for question:', currentQuestion.question_id);
+      const result = await interviewAPI.submitAnswer(interviewId, currentQuestion.question_id, answer);
+      console.log('Answer submitted:', result);
+      
+      if (result.next_question) {
+        setCurrentQuestion(result.next_question);
+        setAnswer('');
+        setCurrentQuestionIndex(prev => prev + 1);
+        setAnswers(prev => [...prev, '']);
+      } else if (result.is_complete) {
+        setIsCompleted(true);
+      }
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+      alert('Failed to submit answer. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -111,12 +170,13 @@ const Interview: React.FC = () => {
     }
   };
 
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setAnswer(answers[currentQuestionIndex + 1]);
+  const handleNextQuestion = async () => {
+    if (answer.trim()) {
+      await submitAnswer();
     } else {
-      setIsCompleted(true);
+      if (currentQuestion) {
+        await fetchNextQuestion(interviewId!);
+      }
     }
   };
 
@@ -210,7 +270,7 @@ const Interview: React.FC = () => {
               <div className={styles.spaceY3}>
                 <div className={styles.progressItem}>
                   <span>Question</span>
-                  <span className={styles.progressValue}>{currentQuestionIndex + 1} of {questions.length}</span>
+                  <span className={styles.progressValue}>{currentQuestionIndex + 1}</span>
                 </div>
                 <div className={styles.progressItem}>
                   <span>Verified Identity</span>
@@ -279,7 +339,7 @@ const Interview: React.FC = () => {
 
               {/* Question Text */}
               <p className={styles.questionText}>
-                {questions[currentQuestionIndex]}
+                {currentQuestion?.question || (isLoading ? 'Loading question...' : 'No question available')}
               </p>
 
               {/* Voice Recorder */}

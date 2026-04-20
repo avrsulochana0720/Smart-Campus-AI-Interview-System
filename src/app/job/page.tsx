@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../styles/job.module.css";
+import { interviewAPI } from "../../utils/api";
 
 const JOB_ROLES = [
   "Frontend Developer",
@@ -52,11 +53,21 @@ export default function JobPage() {
     if (!isFormValid) return;
 
     setIsLoading(true);
-    // Simulate orchestrator setup
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const result = await interviewAPI.create(jobRole, company);
+      localStorage.setItem("interview_id", result.interview_id);
+      localStorage.setItem("job_role", jobRole);
+      localStorage.setItem("company", company);
       navigate("/instructions");
-    }, 1500);
+    } catch (error: any) {
+      console.log("FULL ERROR:", error);
+      console.log("ERROR RESPONSE:", error.response);
+      console.log("ERROR DATA:", error.response?.data);
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || "Interview creation failed";
+      alert(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
