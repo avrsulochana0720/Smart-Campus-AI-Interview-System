@@ -32,14 +32,18 @@ export default function ResumeUploadPage() {
     setError("");
 
     try {
-      await resumeAPI.upload(selectedFile);
-    } catch (err) {
-      console.error("Upload failed, but continuing:", err);
-      setError("Upload failed, but continuing to next page...");
-    } finally {
+      const result = await resumeAPI.upload(selectedFile);
+      // Store resume_id for use when creating interview
+      if (result?.resume_id || result?.id) {
+        localStorage.setItem("resume_id", String(result?.resume_id || result?.id));
+      }
       setUploading(false);
-      // Navigate regardless of upload result for testing
       navigate("/job");
+    } catch (err: any) {
+      console.error("Upload failed:", err);
+      const errorMessage = err.response?.data?.detail || err.message || "Upload failed. Please try again.";
+      setError(errorMessage);
+      setUploading(false);
     }
   };
 

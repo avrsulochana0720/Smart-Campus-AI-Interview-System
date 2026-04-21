@@ -15,64 +15,68 @@ const Interview: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [questions, setQuestions] = useState<string[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  const [questions, setQuestions] = useState<any[]>([]); // Array of {id, question}
   const [isLoading, setIsLoading] = useState(true);
   const [interviewId, setInterviewId] = useState<number | null>(null);
 
   useEffect(() => {
     const storedInterviewId = localStorage.getItem('interview_id');
     if (storedInterviewId) {
-      setInterviewId(parseInt(storedInterviewId));
-      generateQuestions(parseInt(storedInterviewId));
+      const id = parseInt(storedInterviewId);
+      setInterviewId(id);
+      loadInterviewData(id);
     }
   }, []);
 
-  const generateQuestions = async (id: number) => {
+  const loadInterviewData = async (id: number) => {
     try {
-      console.log('Generating questions for interview:', id);
-      await interviewAPI.generateQuestions(id);
-      fetchNextQuestion(id);
-    } catch (error) {
-      console.error('Error generating questions:', error);
-      alert('Failed to generate questions. Please try again.');
-    }
-  };
+      setIsLoading(true);
+      // 1. Generate/Get questions
+      const genData = await interviewAPI.generateQuestions(id);
+      const questionList = genData.questions || [];
+      setQuestions(questionList);
+      setAnswers(new Array(questionList.length).fill(''));
 
-  const fetchNextQuestion = async (id: number) => {
-    try {
-      console.log('Fetching next question for interview:', id);
+      // 2. Get current unanswered question to set initial index
       const questionData = await interviewAPI.getQuestion(id);
-      if (questionData.message === 'All questions answered') {
+      if (questionData.is_complete || questionData.message === 'All questions answered') {
         setIsCompleted(true);
       } else {
-        setCurrentQuestion(questionData);
-        setAnswer('');
-        setAnswers(prev => [...prev, '']);
+        // Find the index of the question we got from the server
+        const index = questionList.findIndex((q: any) => q.id === questionData.question_id);
+        if (index !== -1) {
+          setCurrentQuestionIndex(index);
+        } else if (questionData.order_index !== undefined) {
+          setCurrentQuestionIndex(questionData.order_index);
+        }
       }
     } catch (error) {
-      console.error('Error fetching question:', error);
-      alert('Failed to fetch question. Please try again.');
+      console.error('Error loading interview data:', error);
+      alert('Failed to load interview. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const submitAnswer = async () => {
-    if (!currentQuestion || !interviewId || !answer.trim()) return;
+    const currentQ = questions[currentQuestionIndex];
+    if (!currentQ || !interviewId || !answer.trim()) return;
 
     try {
-      console.log('Submitting answer for question:', currentQuestion.question_id);
-      const result = await interviewAPI.submitAnswer(interviewId, currentQuestion.question_id, answer);
-      console.log('Answer submitted:', result);
+      const result = await interviewAPI.submitAnswer(interviewId, currentQ.id, answer);
       
-      if (result.next_question) {
-        setCurrentQuestion(result.next_question);
-        setAnswer('');
-        setCurrentQuestionIndex(prev => prev + 1);
-        setAnswers(prev => [...prev, '']);
-      } else if (result.is_complete) {
+      // Update answers array
+      const newAnswers = [...answers];
+      newAnswers[currentQuestionIndex] = answer;
+      setAnswers(newAnswers);
+
+      if (result.is_complete || currentQuestionIndex === questions.length - 1) {
         setIsCompleted(true);
+      } else {
+        // Move to next
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
+        setAnswer(answers[nextIndex] || '');
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
@@ -96,26 +100,41 @@ const Interview: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
   const toggleCamera = async () => {
     try {
       if (!cameraEnabled) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setStream(newStream);
         setCameraEnabled(true);
       } else {
-        if (videoRef.current && videoRef.current.srcObject) {
-          const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-          tracks.forEach(track => track.stop());
-          videoRef.current.srcObject = null;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          setStream(null);
         }
         setCameraEnabled(false);
       }
     } catch (error) {
       console.error('Camera error:', error);
+      alert('Could not access camera. Please check permissions.');
     }
   };
+
+  useEffect(() => {
+    if (cameraEnabled && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [cameraEnabled, stream]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
 
   const toggleRecording = () => {
     if (isRecording) {
@@ -133,23 +152,14 @@ const Interview: React.FC = () => {
 
         recognition.onresult = (event: any) => {
           let finalTranscript = '';
-          let interimTranscript = '';
-
           for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
+              finalTranscript += event.results[i][0].transcript + ' ';
             }
           }
-
-          setAnswers(prev => {
-            const newAnswers = [...prev];
-            newAnswers[currentQuestionIndex] = newAnswers[currentQuestionIndex] + finalTranscript;
-            return newAnswers;
-          });
-          setAnswer(answers[currentQuestionIndex] + finalTranscript);
+          if (finalTranscript) {
+            setAnswer(prev => prev + finalTranscript);
+          }
         };
 
         recognition.onerror = (event: any) => {
@@ -174,27 +184,33 @@ const Interview: React.FC = () => {
     if (answer.trim()) {
       await submitAnswer();
     } else {
-      if (currentQuestion) {
-        await fetchNextQuestion(interviewId!);
+      // Just skip to next if possible
+      if (currentQuestionIndex < questions.length - 1) {
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
+        setAnswer(answers[nextIndex] || '');
+      } else {
+        setIsCompleted(true);
       }
     }
   };
 
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-      setAnswer(answers[currentQuestionIndex - 1]);
+      const prevIndex = currentQuestionIndex - 1;
+      setCurrentQuestionIndex(prevIndex);
+      setAnswer(answers[prevIndex] || '');
     }
   };
 
   const handleAnswerChange = (value: string) => {
     setAnswer(value);
-    setAnswers(prev => {
-      const newAnswers = [...prev];
-      newAnswers[currentQuestionIndex] = value;
-      return newAnswers;
-    });
+    const newAnswers = [...answers];
+    newAnswers[currentQuestionIndex] = value;
+    setAnswers(newAnswers);
   };
+
+  const currentQText = questions[currentQuestionIndex]?.question;
 
   return (
     <div className={styles.interviewContainer}>
@@ -270,7 +286,9 @@ const Interview: React.FC = () => {
               <div className={styles.spaceY3}>
                 <div className={styles.progressItem}>
                   <span>Question</span>
-                  <span className={styles.progressValue}>{currentQuestionIndex + 1}</span>
+                  <span className={styles.progressValue}>
+                    {questions.length > 0 ? `${currentQuestionIndex + 1} / ${questions.length}` : '...'}
+                  </span>
                 </div>
                 <div className={styles.progressItem}>
                   <span>Verified Identity</span>
@@ -303,7 +321,7 @@ const Interview: React.FC = () => {
                   <svg className={styles.cameraIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  <span className={styles.cameraStatus}>Camera Off</span>
+                  <span className={styles.cameraStatus}>{cameraEnabled ? 'Camera On' : 'Camera Off'}</span>
                 </div>
 
                 {/* Right side: ON/OFF buttons */}
@@ -332,6 +350,7 @@ const Interview: React.FC = () => {
                     ref={videoRef}
                     autoPlay
                     muted
+                    playsInline
                     className={styles.cameraPreview}
                   />
                 </div>
@@ -339,7 +358,7 @@ const Interview: React.FC = () => {
 
               {/* Question Text */}
               <p className={styles.questionText}>
-                {currentQuestion?.question || (isLoading ? 'Loading question...' : 'No question available')}
+                {currentQText || (isLoading ? 'Loading question...' : 'No question available')}
               </p>
 
               {/* Voice Recorder */}

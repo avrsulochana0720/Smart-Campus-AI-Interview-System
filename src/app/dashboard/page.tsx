@@ -8,6 +8,7 @@ interface QA {
   question: string;
   answer: string;
   score: number;
+  feedback?: string;
 }
 
 interface Interview {
@@ -20,12 +21,19 @@ interface Interview {
   average_score: number;
 }
 
+interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export default function DashboardPage() {
   const [searchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [interviewHistory, setInterviewHistory] = useState<Interview[]>([]);
   const [expandedInterviews, setExpandedInterviews] = useState<Record<number, boolean>>({});
   const [loading, setLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -33,6 +41,26 @@ export default function DashboardPage() {
       setActiveSection(section);
     }
   }, [searchParams]);
+
+  // Fetch user profile from token (decode JWT sub = email, stored name)
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        // Decode JWT payload (base64)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserProfile({
+          id: payload.user_id || 0,
+          name: payload.name || payload.sub?.split('@')[0] || 'User',
+          email: payload.sub || '',
+        });
+      } catch (_) {
+        // silently fail
+      }
+    }
+    // Always fetch interview history on mount
+    fetchInterviewHistory();
+  }, []);
 
   const fetchInterviewHistory = async () => {
     try {
@@ -52,7 +80,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (activeSection === "reports") {
+    if (activeSection === "reports" || activeSection === "interviews" || activeSection === "dashboard") {
       fetchInterviewHistory();
     }
   }, [activeSection]);
@@ -63,6 +91,12 @@ export default function DashboardPage() {
       [interviewId]: !prev[interviewId]
     }));
   };
+
+  // Compute real stats from history
+  const totalInterviews = interviewHistory.length;
+  const allScores = interviewHistory.flatMap(i => i.qa_list.map(q => q.score).filter(s => s > 0));
+  const overallAvg = allScores.length > 0 ? (allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0;
+  const overallPct = Math.round(overallAvg * 10); // score is /10, convert to %
 
   return (
     <>
@@ -105,11 +139,11 @@ export default function DashboardPage() {
           </div>
           <div className={styles.profile} onClick={() => setActiveSection("profile")} style={{ cursor: 'pointer' }}>
             <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userProfile?.email || 'user')}`}
               alt="Profile"
               className={styles.avatar}
             />
-            <span className={styles.username}>John Doe</span>
+            <span className={styles.username}>{userProfile?.name || 'User'}</span>
           </div>
         </aside>
 
@@ -131,14 +165,24 @@ export default function DashboardPage() {
                 <div className={styles.cardCenter}>
                   <h3 className={styles.cardTitle}>Overall Performance</h3>
                   <div className={styles.progressCircle}>
-                    <span className={styles.progressText}>85%</span>
+                    <span className={styles.progressText}>
+                      {loading ? '...' : (overallPct > 0 ? `${overallPct}%` : 'N/A')}
+                    </span>
                   </div>
-                  <p className={styles.accent}>Elite Candidate</p>
+                  <p className={styles.accent}>
+                    {overallPct >= 80 ? 'Elite Candidate' : overallPct >= 60 ? 'Good Candidate' : overallPct > 0 ? 'Keep Practicing' : 'No data yet'}
+                  </p>
                 </div>
 
                 <div className={styles.card}>
-                  <h3 className={styles.cardTitle}>Skill Radar</h3>
-                  <div className={styles.radar}></div>
+                  <h3 className={styles.cardTitle}>Interview Stats</h3>
+                  <div className={styles.radar}>
+                    <div style={{ padding: '1rem', color: '#9ca3af' }}>
+                      <p style={{ marginBottom: '0.75rem' }}>Total Interviews: <strong style={{ color: '#fff' }}>{totalInterviews}</strong></p>
+                      <p style={{ marginBottom: '0.75rem' }}>Questions Answered: <strong style={{ color: '#fff' }}>{allScores.length}</strong></p>
+                      <p>Avg Score: <strong style={{ color: '#3B82F6' }}>{overallAvg > 0 ? `${overallAvg.toFixed(1)}/10` : 'N/A'}</strong></p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -177,14 +221,19 @@ export default function DashboardPage() {
               {/* Bottom Grid */}
               <div className={styles.grid}>
                 <div className={styles.card}>
-                  <h3 className={styles.cardTitle}>Recruiter Insights</h3>
-                  <p>Recruiters highlighted the following strengths and areas for improvement:</p>
+                <h3 className={styles.cardTitle}>Recruiter Insights</h3>
+                {loading ? (
+                  <p style={{ color: '#9ca3af', marginTop: '1rem' }}>Loading...</p>
+                ) : interviewHistory.length === 0 ? (
+                  <p style={{ color: '#9ca3af', marginTop: '1rem' }}>Complete an interview to see insights here.</p>
+                ) : (
                   <ul className={styles.list}>
-                    <li>Strong coding fundamentals</li>
-                    <li>Confident communication</li>
-                    <li>Needs improvement in system design explanations</li>
+                    {interviewHistory[0]?.qa_list.slice(0, 3).map((qa, i) => (
+                      <li key={i}>{qa.feedback || 'Good response'}</li>
+                    ))}
                   </ul>
-                </div>
+                )}
+              </div>
 
                 <div className={styles.card}>
                   <h3 className={styles.cardTitle}>TPO Alerts</h3>
@@ -214,12 +263,13 @@ export default function DashboardPage() {
               <div className={styles.card}>
                 <div style={{ display: "flex", alignItems: "center", gap: "2rem", marginBottom: "2rem" }}>
                   <img
-                    src="https://via.placeholder.com/100"
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userProfile?.email || 'user')}`}
                     style={{ width: "100px", height: "100px", borderRadius: "50%" }}
+                    alt="Avatar"
                   />
                   <div>
-                    <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>John Doe</h3>
-                    <p style={{ color: "#9ca3af" }}>Senior Frontend Engineer</p>
+                    <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>{userProfile?.name || 'User'}</h3>
+                    <p style={{ color: "#9ca3af" }}>{userProfile?.email || ''}</p>
                   </div>
                 </div>
 
@@ -228,7 +278,8 @@ export default function DashboardPage() {
                     <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Full Name</label>
                     <input
                       type="text"
-                      defaultValue="John Doe"
+                      value={userProfile?.name || ''}
+                      readOnly
                       style={{
                         width: "100%",
                         padding: "0.75rem",
@@ -243,7 +294,8 @@ export default function DashboardPage() {
                     <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Email</label>
                     <input
                       type="email"
-                      defaultValue="john.doe@example.com"
+                      value={userProfile?.email || ''}
+                      readOnly
                       style={{
                         width: "100%",
                         padding: "0.75rem",
@@ -255,10 +307,11 @@ export default function DashboardPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Phone</label>
+                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Total Interviews Completed</label>
                     <input
-                      type="tel"
-                      defaultValue="+1 (555) 123-4567"
+                      type="text"
+                      value={totalInterviews.toString()}
+                      readOnly
                       style={{
                         width: "100%",
                         padding: "0.75rem",
@@ -270,10 +323,11 @@ export default function DashboardPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>LinkedIn</label>
+                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Overall Score</label>
                     <input
-                      type="url"
-                      defaultValue="https://linkedin.com/in/johndoe"
+                      type="text"
+                      value={overallAvg > 0 ? `${overallAvg.toFixed(1)} / 10 (${overallPct}%)` : 'No interviews yet'}
+                      readOnly
                       style={{
                         width: "100%",
                         padding: "0.75rem",
@@ -284,12 +338,6 @@ export default function DashboardPage() {
                       }}
                     />
                   </div>
-                  <button
-                    className={styles.button}
-                    style={{ marginTop: "1rem" }}
-                  >
-                    Save Changes
-                  </button>
                 </div>
               </div>
             </>
@@ -306,44 +354,45 @@ export default function DashboardPage() {
               </div>
 
               <div className={styles.card}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Position</th>
-                      <th>Company</th>
-                      <th>Status</th>
-                      <th>Score</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Oct 24, 2024</td>
-                      <td>Senior Frontend Engineer</td>
-                      <td>TechCorp Inc.</td>
-                      <td><span className={`${styles.badge} ${styles.easy}`}>Completed</span></td>
-                      <td className={styles.score}>85%</td>
-                      <td><button style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}>View</button></td>
-                    </tr>
-                    <tr>
-                      <td>Sep 15, 2024</td>
-                      <td>Full Stack Developer</td>
-                      <td>StartupXYZ</td>
-                      <td><span className={`${styles.badge} ${styles.inProgress}`}>In Progress</span></td>
-                      <td className={styles.score}>--</td>
-                      <td><button style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}>Continue</button></td>
-                    </tr>
-                    <tr>
-                      <td>Aug 20, 2024</td>
-                      <td>React Developer</td>
-                      <td>WebAgency</td>
-                      <td><span className={`${styles.badge} ${styles.easy}`}>Completed</span></td>
-                      <td className={styles.score}>92%</td>
-                      <td><button style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}>View</button></td>
-                    </tr>
-                  </tbody>
-                </table>
+                {loading ? (
+                  <p style={{ color: '#9ca3af', marginTop: '1rem' }}>Loading interviews...</p>
+                ) : interviewHistory.length === 0 ? (
+                  <p style={{ color: '#9ca3af', marginTop: '1rem' }}>No interviews found. Complete an interview to see your history here.</p>
+                ) : (
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Position</th>
+                        <th>Company</th>
+                        <th>Questions</th>
+                        <th>Avg Score</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {interviewHistory.map((interview) => (
+                        <tr key={interview.interview_id}>
+                          <td>{new Date(interview.date).toLocaleDateString()}</td>
+                          <td>{interview.job_role}</td>
+                          <td>{interview.company}</td>
+                          <td>{interview.qa_list.length}</td>
+                          <td className={styles.score}>
+                            {interview.average_score > 0 ? `${interview.average_score.toFixed(1)}/10` : '--'}
+                          </td>
+                          <td>
+                            <button
+                              style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}
+                              onClick={() => { toggleExpand(interview.interview_id); setActiveSection('reports'); }}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </>
           )}
@@ -386,6 +435,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{ height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px" }}>
                         <div style={{ height: "100%", width: "78%", background: "#f59e0b", borderRadius: "4px" }}></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -416,10 +466,13 @@ export default function DashboardPage() {
                         {expandedInterviews[interview.interview_id] && (
                           <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
                             {interview.qa_list.map((qa, index) => (
-                              <div key={index} style={{ marginBottom: "1rem" }}>
-                                <p style={{ margin: "0 0 0.5rem 0", fontWeight: "500", color: "#3B82F6" }}>Q: {qa.question}</p>
-                                <p style={{ margin: "0 0 0.5rem 0", color: "#9ca3af" }}>A: {qa.answer}</p>
-                                <p style={{ margin: "0", fontSize: "0.875rem" }}>Score: {qa.score}/10</p>
+                              <div key={index} style={{ marginBottom: "1.25rem", padding: "0.75rem", background: "rgba(255,255,255,0.03)", borderRadius: "0.375rem" }}>
+                                <p style={{ margin: "0 0 0.5rem 0", fontWeight: "500", color: "#3B82F6" }}>Q{index+1}: {qa.question}</p>
+                                <p style={{ margin: "0 0 0.5rem 0", color: "#d1d5db" }}>A: {qa.answer}</p>
+                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: "0.875rem", background: qa.score >= 7 ? 'rgba(34,197,94,0.2)' : qa.score >= 4 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)', color: qa.score >= 7 ? '#22c55e' : qa.score >= 4 ? '#f59e0b' : '#ef4444', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontWeight: '600' }}>Score: {qa.score}/10</span>
+                                  {qa.feedback && <span style={{ fontSize: "0.875rem", color: "#9ca3af", fontStyle: 'italic' }}>💬 {qa.feedback}</span>}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -429,18 +482,23 @@ export default function DashboardPage() {
                   </div>
                 )}
               </div>
-            </div>
+
 
             <div className={styles.card}>
               <h3 className={styles.cardTitle}>AI Analysis</h3>
               <div style={{ marginTop: "1rem" }}>
-                <p style={{ marginBottom: "1rem" }}>Based on your recent interviews, our AI has identified the following insights:</p>
-                <ul className={styles.list}>
-                  <li>Strong performance in technical interviews (85% average)</li>
-                  <li>Excellent communication skills with clear explanations</li>
-                  <li>Areas for improvement: System design scalability concepts</li>
-                  <li>Recommended focus: Distributed systems and microservices architecture</li>
-                </ul>
+                {interviewHistory.length === 0 ? (
+                  <p style={{ color: '#9ca3af' }}>Complete an interview to see AI-generated insights here.</p>
+                ) : (
+                  <ul className={styles.list}>
+                    <li>Overall average score: {overallAvg.toFixed(1)}/10 ({overallPct}%)</li>
+                    <li>Total interviews completed: {totalInterviews}</li>
+                    <li>Total questions answered: {allScores.length}</li>
+                    {overallPct >= 80 && <li>Elite performance — you are in the top tier of candidates!</li>}
+                    {overallPct >= 60 && overallPct < 80 && <li>Good performance — focus on system design and edge cases to improve.</li>}
+                    {overallPct < 60 && overallPct > 0 && <li>Keep practicing — review your answers in the history above for areas to improve.</li>}
+                  </ul>
+                )}
               </div>
             </div>
           </>

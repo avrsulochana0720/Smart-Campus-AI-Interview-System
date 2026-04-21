@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authAPI } from "../../utils/api";
 import "../../styles/Hero.css";
 
 interface RegisterData {
@@ -22,14 +23,18 @@ export default function Hero() {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Register:', registerData);
-    alert('Registration successful!');
-    setShowRegister(false);
-    setRegisterData({ email: '', password: '', profilePhoto: null });
-    setProfilePhotoPreview(null);
-    navigate('/resume');
+    try {
+      await authAPI.register('User', registerData.email, registerData.password);
+      setShowRegister(false);
+      setRegisterData({ email: '', password: '', profilePhoto: null });
+      setProfilePhotoPreview(null);
+      navigate('/login');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.detail || 'Registration failed';
+      alert(errorMessage);
+    }
   };
 
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,12 +49,17 @@ export default function Hero() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login:', loginData);
-    setShowLogin(false);
-    setLoginData({ email: '', password: '' });
-    navigate('/resume');
+    try {
+      await authAPI.login(loginData.email, loginData.password);
+      setShowLogin(false);
+      setLoginData({ email: '', password: '' });
+      navigate('/resume');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.detail || 'Invalid email or password';
+      alert(errorMessage);
+    }
   };
 
   return (
@@ -103,7 +113,7 @@ export default function Hero() {
           AI-Powered Smart Campus Interview Platform
         </h1>
         <p className="hero-subtitle">
-          Automating campus recruitment with intelligent interview flow. Scale your talent discovery with etheral precision and bias-free evaluation.
+          Automating campus recruitment with intelligent interview flow. Scale your talent discovery with ethereal precision and bias-free evaluation.
         </p>
         <div className="hero-buttons">
           <button className="hero-button-primary" onClick={() => setShowRegister(true)}>

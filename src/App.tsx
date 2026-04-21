@@ -12,6 +12,8 @@ import Dashboard from "./app/dashboard/page";
 import Job from "./app/job/page";
 import Resume from "./app/resume/page";
 import Login from "./app/login/page";
+import Register from "./app/register/page";
+import PlacementHead from "./app/placement-head/page";
 
 function LandingPage() {
   return (
@@ -31,12 +33,21 @@ export default function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/instructions" element={<Instructions />} />
           <Route path="/interview" element={<Interview />} />
           <Route path="/thank" element={<Thank />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/job" element={<Job />} />
           <Route path="/resume" element={<Resume />} />
+          <Route path="/placement-head" element={<PlacementHead />} />
+          <Route path="*" element={
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: '#fff' }}>
+              <h1 style={{ fontSize: '4rem', marginBottom: '1rem' }}>404</h1>
+              <p style={{ fontSize: '1.25rem', color: '#9ca3af' }}>Page not found</p>
+              <a href="/" style={{ marginTop: '1.5rem', color: '#3B82F6', textDecoration: 'underline' }}>Go Home</a>
+            </div>
+          } />
         </Routes>
       </div>
     </div>

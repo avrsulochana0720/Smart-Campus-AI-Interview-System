@@ -547,7 +547,8 @@ def get_interview_history(current_user: User = Depends(get_current_user), db: Se
             {
                 "question": q.question,
                 "answer": q.answer if q.answer else "Not answered",
-                "score": q.score if q.score is not None else 0
+                "score": q.score if q.score is not None else 0,
+                "feedback": q.feedback if q.feedback else ""
             }
             for q in questions
         ]
@@ -580,7 +581,7 @@ def generate_questions(
 ):
     """
     Generate interview questions using AI based on interview details.
-    Stores questions in database and returns first question.
+    Stores questions in database and returns questions list.
     """
     # Get interview
     interview = db.query(Interview).filter(Interview.id == request.interview_id).first()
@@ -591,6 +592,18 @@ def generate_questions(
     if interview.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You don't have access to this interview")
     
+    # Check if questions already exist for this interview
+    existing_questions = db.query(InterviewQuestion).filter(
+        InterviewQuestion.interview_id == request.interview_id
+    ).order_by(InterviewQuestion.order_index.asc()).all()
+    
+    if existing_questions:
+        print(f"Found {len(existing_questions)} existing questions. Returning them.")
+        return {
+            "message": "Questions already generated",
+            "questions": [q.question for q in existing_questions]
+        }
+
     # Check if interview has resume_id
     if not interview.resume_id:
         raise HTTPException(status_code=404, detail="Resume not linked to interview")
@@ -610,27 +623,50 @@ def generate_questions(
         )
         
         # Store questions in database
+        created_questions = []
         for index, q in enumerate(questions):
             interview_question = InterviewQuestion(
                 interview_id=request.interview_id,
-                question=q["question"],
+                question=q["question"] if isinstance(q, dict) else q,
                 order_index=index
             )
             db.add(interview_question)
+            created_questions.append(interview_question)
         
         db.commit()
         
         # Return questions list
-        if questions:
-            return {
-                "questions": [q["question"] for q in questions]
-            }
-        else:
-            raise HTTPException(status_code=500, detail="No questions generated")
+        return {
+            "message": "Questions generated successfully",
+            "questions": [{"id": q.id, "question": q.question} for q in created_questions]
+        }
         
     except HTTPException:
         raise
     except Exception as e:
         db.rollback()
         print(f"ERROR in /generate-questions: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating questions: {str(e)}")
+        # Fallback questions
+        fallback_questions = [
+            f"Tell me about your experience related to {interview.job_role}.",
+            "What are your greatest strengths as a developer?",
+            f"Why do you want to work at {interview.company}?",
+            "Describe a challenging technical problem you solved recently.",
+            "Where do you see yourself in five years?"
+        ]
+        
+        created_questions = []
+        for index, q_text in enumerate(fallback_questions):
+            new_q = InterviewQuestion(
+                interview_id=request.interview_id,
+                question=q_text,
+                order_index=index
+            )
+            db.add(new_q)
+            created_questions.append(new_q)
+        db.commit()
+        
+        return {
+            "message": "Generated fallback questions",
+            "questions": [{"id": q.id, "question": q.question} for q in created_questions]
+        }

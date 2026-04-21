@@ -52,18 +52,24 @@ export default function JobPage() {
   const handleStartInterview = async () => {
     if (!isFormValid) return;
 
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login first to start an interview");
+      navigate("/login");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const result = await interviewAPI.create(jobRole, company);
-      localStorage.setItem("interview_id", result.interview_id);
+      const resumeId = localStorage.getItem("resume_id");
+      const result = await interviewAPI.create(jobRole, company, resumeId ? parseInt(resumeId) : undefined);
+      localStorage.setItem("interview_id", String(result.interview_id));
       localStorage.setItem("job_role", jobRole);
       localStorage.setItem("company", company);
       navigate("/instructions");
     } catch (error: any) {
-      console.log("FULL ERROR:", error);
-      console.log("ERROR RESPONSE:", error.response);
-      console.log("ERROR DATA:", error.response?.data);
-      const errorMessage = error.response?.data?.detail || error.response?.data?.message || "Interview creation failed";
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || "Interview creation failed. Please make sure you have uploaded a resume.";
       alert(errorMessage);
     } finally {
       setIsLoading(false);
