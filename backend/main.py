@@ -9,8 +9,12 @@ from models import User, Interview, Resume, InterviewQuestion
 from ai_service import question_generator, answer_evaluator
 import PyPDF2
 import os
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
+
+# Load environment variables
+load_dotenv()
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -415,6 +419,12 @@ def submit_answer(answer: AnswerRequest, current_user: User = Depends(get_curren
             InterviewQuestion.order_index > question_record.order_index
         ).order_by(InterviewQuestion.order_index.asc()).first()
         
+        # Step 5: Dynamically update the next question text if suggested by AI
+        if next_question_record and evaluation.get("next_question"):
+            next_question_record.question = evaluation["next_question"]
+            db.commit()
+            db.refresh(next_question_record)
+        
         next_question = next_question_record.question if next_question_record else None
         question_id = next_question_record.id if next_question_record else None
         
@@ -506,8 +516,20 @@ def get_interview_report(
     if answered_questions:
         total_score = sum(qa["score"] for qa in answered_questions)
         average_score = total_score / len(answered_questions)
+        
+        # Generate narrative summary
+        try:
+            narrative_summary = answer_evaluator.generate_narrative_summary(
+                job_role=interview.job_role,
+                company=interview.company,
+                qa_data=answered_questions
+            )
+        except Exception as e:
+            print(f"Error generating narrative summary: {e}")
+            narrative_summary = "Narrative summary could not be generated at this time."
     else:
         average_score = 0
+        narrative_summary = "No questions answered yet. Narrative summary unavailable."
 
     return {
         "interview_id": interview_id,
@@ -515,7 +537,8 @@ def get_interview_report(
         "company": interview.company,
         "created_at": interview.created_at,
         "questions": questions_answers,
-        "average_score": average_score
+        "average_score": average_score,
+        "narrative_summary": narrative_summary
     }
 
 # Interview history endpoint
@@ -601,7 +624,7 @@ def generate_questions(
         print(f"Found {len(existing_questions)} existing questions. Returning them.")
         return {
             "message": "Questions already generated",
-            "questions": [q.question for q in existing_questions]
+            "questions": [{"id": q.id, "question": q.question} for q in existing_questions]
         }
 
     # Check if interview has resume_id

@@ -27,6 +27,7 @@ class Interview(Base):
     job_role = Column(String, nullable=False)
     company = Column(String, nullable=False)
     status = Column(String, default="in_progress")
+    summary = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class InterviewQuestion(Base):

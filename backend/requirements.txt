@@ -8,3 +8,5 @@ PyPDF2
 python-jose[cryptography]
 openai
 python-multipart
+ollama
+python-dotenv

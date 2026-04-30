@@ -1,493 +1,535 @@
-/* Global Styling */
-.interviewContainer {
+/* Modern AI Interview Dashboard - CSS Module - 3 Column Viewport */
+
+/* Container */
+.container {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: #F5F7FB;
-  min-height: 100vh;
+  background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+              linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  height: 100vh;
+  overflow: hidden;
+  padding: 0.75rem;
 }
 
-/* Header */
-.header {
+/* Layout - 3 Columns */
+.layout {
+  display: grid;
+  grid-template-columns: 250px 220px 1fr;
+  gap: 0.75rem;
+  height: 100%;
+}
+
+/* Column 1 - Candidate Profile + Progress */
+.column1 {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Column 2 - Interviewers Stacked */
+.column2 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Column 3 - Question, Controls, Answer, Buttons */
+.column3 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Profile Card */
+.profileCard {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border-radius: 1rem;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  background: white;
-  padding: 1rem 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  margin-top: 0.5rem;
 }
 
-.logo {
-  font-weight: bold;
-  font-size: 1.25rem;
-  background: linear-gradient(to right, #3B82F6, #9333EA);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.navbar {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.navbar a {
-  color: #374151;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.navbar a:hover {
-  color: #3B82F6;
-}
-
-.navbar a.active {
-  font-weight: 600;
-  color: #3B82F6;
-}
-
-.profileAvatar {
-  width: 2.5rem;
-  height: 2.5rem;
+.avatar {
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  border: 2px solid #E5E7EB;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to right, #3B82F6, #9333EA);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  margin-bottom: 0.5rem;
+}
+
+.avatar svg {
+  width: 32px;
+  height: 32px;
   color: white;
-  font-weight: 600;
 }
 
-/* Main Content */
-.mainContent {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  display: flex;
-  gap: 1.5rem;
+.candidateName {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.125rem;
 }
 
-/* Left Panel */
-.leftPanel {
-  width: 33.333%;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.candidateRole {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
 }
 
-/* AI Interviewer Card */
-.interviewerCard {
+.aiInterviewerButton {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  color: white;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.aiInterviewerButton:hover {
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.4);
+  transform: scale(1.05);
+}
+
+/* Progress Card */
+.progressCard {
   background: white;
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.interviewerImage {
-  width: 10rem;
-  height: 10rem;
-  border-radius: 50%;
-  margin: 0 auto;
-  border: 4px solid #BFDBFE;
-  object-fit: cover;
-}
-
-.interviewerLabel {
-  width: 100%;
-  background: linear-gradient(to right, #3B82F6, #9333EA);
-  color: white;
-  text-align: center;
   padding: 0.75rem;
-  border-radius: 0 0 1rem 1rem;
-  font-weight: 600;
-  margin-top: 1rem;
-}
-
-/* Interview Progress */
-.progressCard {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .progressTitle {
-  font-weight: 600;
-  color: #1F2937;
-  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
 }
 
 .progressItem {
   display: flex;
   justify-content: space-between;
-  color: #4B5563;
+  align-items: center;
+  margin-bottom: 0.375rem;
+}
+
+.progressLabel {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.progressBadge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 500;
+}
+
+.progressBadgeActive {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.progressBadgePending {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+
+.progressBadgeHigh {
+  background: #dcfce7;
+  color: #16a34a;
+  font-weight: 700;
+}
+
+/* Tips Card */
+.tipsCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  flex: 1;
+}
+
+.tipsTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
   margin-bottom: 0.5rem;
 }
 
-.progressValue {
-  font-weight: 600;
-  color: #1F2937;
+.tipItem {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.375rem;
+  line-height: 1.4;
 }
 
-.progressValue.green {
-  color: #22C55E;
+.tipItem::before {
+  content: '• ';
+  color: #3b82f6;
+  font-weight: 700;
 }
 
-/* Right Panel */
-.rightPanel {
-  width: 66.667%;
-}
-
-.techCard {
+/* Interviewer Card */
+.interviewerCard {
   background: white;
-  padding: 1.5rem;
   border-radius: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.techCardHeader {
+  padding: 0.25rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 1.5rem;
+  flex: 1;
 }
 
-.techTitle {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #2563EB;
-}
-
-.timerBadge {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  background: linear-gradient(to right, #9333EA, #6366F1);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-/* Camera Section */
-.cameraSection {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #F3F4F6;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-}
-
-.cameraLeft {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.cameraIcon {
-  color: #6B7280;
-}
-
-.cameraStatus {
-  color: #22C55E;
-  font-weight: 500;
-}
-
-.cameraButtons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.cameraButton {
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.cameraButton:hover {
-  opacity: 0.8;
-}
-
-.cameraButton.on {
-  background: #BBF7D0;
-  color: #15803D;
-}
-
-.cameraButton.off {
-  background: #BFDBFE;
-  color: #1D4ED8;
-}
-
-.cameraButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.cameraPreview {
-  margin-top: 1rem;
-  width: 100%;
-  height: 12rem;
-  border-radius: 0.75rem;
-  object-fit: cover;
-  border: 1px solid #E5E7EB;
-}
-
-/* Question Text */
-.questionText {
-  margin-top: 1rem;
-  font-weight: 600;
-  color: #1F2937;
-  line-height: 1.6;
-}
-
-/* Start Speaking Button */
-.startSpeakingButton {
-  margin-top: 1rem;
-  background: linear-gradient(to right, #3B82F6, #2563EB);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-  width: 100%;
-}
-
-.startSpeakingButton:hover {
-  transform: scale(1.05);
-}
-
-/* Textarea */
-.answerTextarea {
-  margin-top: 1rem;
-  width: 100%;
-  height: 8rem;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  font-family: inherit;
-  font-size: 0.875rem;
-  resize: none;
-}
-
-.answerTextarea::placeholder {
-  color: #9CA3AF;
-}
-
-.answerTextarea:focus {
-  outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Bottom Buttons */
-.bottomButtons {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.bottomButton {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.bottomButton:hover {
-  opacity: 0.9;
-}
-
-.skipButton {
-  background: #9CA3AF;
-  color: white;
-}
-
-.saveDraftButton {
-  background: #3B82F6;
-  color: white;
-}
-
-.nextQuestionButton {
-  background: linear-gradient(to right, #9333EA, #EC4899);
-  color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Voice Recorder */
-.voiceRecorder {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: center;
-}
-
-.micButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(to right, #3B82F6, #2563EB);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.micButton:hover {
-  transform: scale(1.05);
-}
-
-.micIcon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.recordingButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(to right, #EF4444, #DC2626);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.recordingButton:hover {
-  transform: scale(1.05);
-}
-
-.recordingIndicator {
-  width: 0.75rem;
-  height: 0.75rem;
-  background: white;
+.interviewerAvatar {
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  animation: pulse 1.5s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  position: relative;
+  transition: all 0.3s ease;
+  margin-bottom: 0.125rem;
+}
+
+.interviewerAvatar svg {
+  width: 120px;
+  height: 120px;
+  color: white;
+}
+
+.hrAvatar {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+}
+
+.technicalAvatar {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+}
+
+.interviewerLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Active Speaker Animation */
+.activeSpeaker {
+  opacity: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.activeSpeaker::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -1;
+  animation: glow 2s ease-in-out infinite;
+}
+
+.inactiveSpeaker {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
 }
 
 @keyframes pulse {
   0%, 100% {
-    opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    transform: scale(1.05);
   }
 }
 
-/* Utility Classes */
-.headerContainer {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
+@keyframes glow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
-.headerFlex {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flexColCenter {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.spaceY3 {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.mt4 {
-  margin-top: 1rem;
-}
-
-/* Thank You Card */
-.thankYouContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 80vh;
-  padding: 2rem;
-}
-
-.thankYouCard {
+/* Question Card */
+.questionCard {
   background: white;
   border-radius: 1rem;
-  padding: 2.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  max-width: 500px;
-  width: 100%;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  position: relative;
 }
 
-.thankYouIcon {
-  width: 4rem;
-  height: 4rem;
-  background: linear-gradient(to right, #3B82F6, #9333EA);
-  color: white;
-  border-radius: 50%;
+.questionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.375rem;
+}
+
+.questionText {
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Controls Card */
+.controlsCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  position: relative;
+}
+
+.controlsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controlButton {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0 auto 1.5rem auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.thankYouTitle {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #2563EB;
-  margin-bottom: 1rem;
-}
-
-.thankYouMessage {
-  color: #4B5563;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-}
-
-.thankYouButton {
-  background: linear-gradient(to right, #9333EA, #EC4899);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.75rem;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.75rem;
   border: none;
-  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-  width: 100%;
+  transition: all 0.3s ease;
 }
 
-.thankYouButton:hover {
-  transform: scale(1.05);
+.controlButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+.controlButtonInactive {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.controlButtonInactive:hover {
+  background: #e5e7eb;
+}
+
+.controlButtonCameraOn {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.controlButtonCameraOn:hover {
+  background: #bbf7d0;
+}
+
+.controlButtonRecording {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.controlButtonRecording:hover {
+  background: #fecaca;
+}
+
+/* Timer */
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(59, 130, 246, 0.05);
+  border-radius: 0.5rem;
+}
+
+.timer svg {
+  width: 16px;
+  height: 16px;
+  color: #3b82f6;
+}
+
+.timerText {
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Camera Preview */
+.cameraPreview {
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.cameraPreview video {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Answer Card */
+.answerCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.answerLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.375rem;
+}
+
+.textarea {
+  width: 100%;
+  flex: 1;
+  padding: 0.625rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: none;
+  transition: all 0.3s ease;
+  min-height: 0;
+}
+
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Buttons Card */
+.buttonsCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+}
+
+.bottomButtons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.button {
+  padding: 0.375rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.buttonPrevious {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.buttonPrevious:hover {
+  background: #d1d5db;
+}
+
+.buttonPrevious:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.buttonSave {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.buttonSave:hover {
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.4);
+}
+
+.buttonNext {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.buttonNext:hover {
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.4);
+}
+
+/* Waveform Animation for Recording */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+}
+
+.waveformBar {
+  width: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  animation: wave 1s ease-in-out infinite;
+}
+
+.waveformBar:nth-child(1) { animation-delay: 0s; }
+.waveformBar:nth-child(2) { animation-delay: 0.1s; }
+.waveformBar:nth-child(3) { animation-delay: 0.2s; }
+.waveformBar:nth-child(4) { animation-delay: 0.3s; }
+.waveformBar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes wave {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 16px;
+  }
 }
