@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from database import engine, get_db, Base
@@ -16,8 +16,8 @@ from jose import JWTError, jwt
 # Load environment variables
 load_dotenv()
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context (using pbkdf2_sha256 for maximum compatibility)
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # JWT configuration
 SECRET_KEY = "your-secret-key-here"
@@ -88,6 +88,8 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    
+    model_config = ConfigDict(from_attributes=True)
 
 # Pydantic model for interview request
 class InterviewRequest(BaseModel):
@@ -102,6 +104,8 @@ class InterviewResponse(BaseModel):
     job_role: str
     company: str
     status: str
+    
+    model_config = ConfigDict(from_attributes=True)
 
 # Pydantic model for answer request
 class AnswerRequest(BaseModel):
@@ -139,6 +143,24 @@ class CreateInterviewRequest(BaseModel):
 class GenerateQuestionsRequest(BaseModel):
     interview_id: int
 
+from fastapi.responses import JSONResponse
+from fastapi import Request
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"GLOBAL ERROR: {type(exc).__name__}: {str(exc)}")
+    import traceback
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
+
 # Create tables on startup
 @app.on_event("startup")
 def startup_event():
@@ -147,31 +169,45 @@ def startup_event():
 # Register API endpoint
 @app.post("/register", response_model=UserResponse)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if email already exists
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    # Truncate password to 72 bytes (bcrypt limit)
-    password_bytes = user.password.encode('utf-8')
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-    truncated_password = password_bytes.decode('utf-8', errors='ignore')
-
-    # Hash the password
-    hashed_password = pwd_context.hash(truncated_password)
-
-    # Create new user
-    new_user = User(
-        name=user.name,
-        email=user.email,
-        password=hashed_password
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return new_user
+    print(f"=== REGISTER CALLED: {user.email} ===")
+    try:
+        # Check if email already exists
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if db_user:
+            print(f"Registration failed: Email {user.email} already exists")
+            raise HTTPException(status_code=400, detail="Email already registered")
+    
+        print(f"Hashing password for {user.email}...")
+        # Truncate password to 72 bytes (bcrypt limit)
+        password_bytes = user.password.encode('utf-8')
+        if len(password_bytes) > 72:
+            password_bytes = password_bytes[:72]
+        truncated_password = password_bytes.decode('utf-8', errors='ignore')
+    
+        # Hash the password
+        hashed_password = pwd_context.hash(truncated_password)
+    
+        print(f"Creating user record for {user.email}...")
+        # Create new user
+        new_user = User(
+            name=user.name,
+            email=user.email,
+            password=hashed_password
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    
+        print(f"Registration successful: {user.email} (ID: {new_user.id})")
+        return new_user
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"ERROR during registration: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Registration error: {str(e)}")
 
 # Login API endpoint
 @app.post("/login")
@@ -192,7 +228,11 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
     # Create access token
-    access_token = create_access_token(data={"sub": db_user.email, "user_id": db_user.id})
+    access_token = create_access_token(data={
+        "sub": db_user.email,
+        "user_id": db_user.id,
+        "name": db_user.name
+    })
 
     return {"access_token": access_token, "token_type": "bearer"}
 

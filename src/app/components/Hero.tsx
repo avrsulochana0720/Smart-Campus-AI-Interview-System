@@ -4,6 +4,7 @@ import { authAPI } from "../../utils/api";
 import "../../styles/Hero.css";
 
 interface RegisterData {
+  name: string;
   email: string;
   password: string;
   profilePhoto: File | null;
@@ -18,7 +19,7 @@ export default function Hero() {
   const navigate = useNavigate();
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [registerData, setRegisterData] = useState<RegisterData>({ email: '', password: '', profilePhoto: null });
+  const [registerData, setRegisterData] = useState<RegisterData>({ name: '', email: '', password: '', profilePhoto: null });
   const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' });
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,9 +27,9 @@ export default function Hero() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await authAPI.register('User', registerData.email, registerData.password);
+      await authAPI.register(registerData.name, registerData.email, registerData.password);
       setShowRegister(false);
-      setRegisterData({ email: '', password: '', profilePhoto: null });
+      setRegisterData({ name: '', email: '', password: '', profilePhoto: null });
       setProfilePhotoPreview(null);
       navigate('/login');
     } catch (err: any) {
@@ -169,6 +170,17 @@ export default function Hero() {
                     className="profile-photo-input"
                   />
                 </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="register-name">Full Name</label>
+                <input
+                  type="text"
+                  id="register-name"
+                  value={registerData.name}
+                  onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                  required
+                  placeholder="Enter your full name"
+                />
               </div>
               <div className="form-group">
                 <label htmlFor="register-email">Email</label>

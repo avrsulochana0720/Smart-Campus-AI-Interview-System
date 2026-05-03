@@ -103,8 +103,8 @@ export default function ResumeUploadPage() {
 
         {/* Profile Card */}
         <section className={styles.profileCard}>
-          <h3>Alex Chen</h3>
-          <p>Computer Science '25 – Stanford University</p>
+          <h3>{localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token')!.split('.')[1])).name || 'User' : 'Guest'}</h3>
+          <p>Candidate Profile</p>
           <div className={styles.tags}>
             <span>IMPACT</span>
             <span>MOTIVE</span>

@@ -20,6 +20,8 @@ const Interview: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [interviewId, setInterviewId] = useState<number | null>(null);
   const [activeSpeaker, setActiveSpeaker] = useState<'hr' | 'technical' | null>(null);
+  const [candidateInfo, setCandidateInfo] = useState({ name: 'Candidate', role: 'Applicant' });
+  const [interviewDetails, setInterviewDetails] = useState({ job_role: '', company: '', created_at: '' });
 
   useEffect(() => {
     const storedInterviewId = localStorage.getItem('interview_id');
@@ -30,9 +32,33 @@ const Interview: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCandidateInfo({
+          name: payload.name || payload.sub?.split('@')[0] || 'Candidate',
+          role: localStorage.getItem('job_role') || 'Applicant'
+        });
+      } catch (e) {
+        console.error("Failed to decode token", e);
+      }
+    }
+  }, []);
+
   const loadInterviewData = async (id: number) => {
     try {
       setIsLoading(true);
+      
+      // Get interview report/details first
+      const report = await interviewAPI.getReport(id);
+      setInterviewDetails({
+        job_role: report.job_role,
+        company: report.company,
+        created_at: report.created_at
+      });
+
       // 1. Generate/Get questions
       const genData = await interviewAPI.generateQuestions(id);
       const questionList = genData.questions || [];
@@ -45,18 +71,29 @@ const Interview: React.FC = () => {
         setIsCompleted(true);
       } else {
         // Find the index of the question we got from the server
-        const index = questionList.findIndex((q: any) => q.id === questionData.question_id);
+        const index = questionList.findIndex((q: any) => q.id === (questionData.question_id || questionData.id));
         if (index !== -1) {
           setCurrentQuestionIndex(index);
+          updateSpeaker(questionList[index]);
         } else if (questionData.order_index !== undefined) {
           setCurrentQuestionIndex(questionData.order_index);
+          updateSpeaker(questionList[questionData.order_index]);
         }
       }
     } catch (error) {
       console.error('Error loading interview data:', error);
-      alert('Failed to load interview. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const updateSpeaker = (question: any) => {
+    if (!question) return;
+    const qType = (question.type || '').toLowerCase();
+    if (qType === 'behavioral' || qType === 'hr') {
+      setActiveSpeaker('hr');
+    } else {
+      setActiveSpeaker('technical');
     }
   };
 
@@ -92,6 +129,7 @@ const Interview: React.FC = () => {
         const nextIndex = currentQuestionIndex + 1;
         setCurrentQuestionIndex(nextIndex);
         setAnswer(newAnswers[nextIndex] || '');
+        updateSpeaker(questions[nextIndex]);
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
@@ -244,9 +282,9 @@ const Interview: React.FC = () => {
             </div>
             <div className={thankStyles.right}>
               <div className={thankStyles.details}>
-                <p><span className={thankStyles.label}>Reference ID:</span> SI-9823-TXQ</p>
-                <p><span className={thankStyles.label}>Timestamp:</span> Oct 24, 2024 • 14:32</p>
-                <p><span className={thankStyles.label}>Position:</span> Senior Frontend Engineer</p>
+                <p><span className={thankStyles.label}>Reference ID:</span> SI-{interviewId || '0000'}-AI</p>
+                <p><span className={thankStyles.label}>Timestamp:</span> {interviewDetails.created_at ? new Date(interviewDetails.created_at).toLocaleString() : new Date().toLocaleString()}</p>
+                <p><span className={thankStyles.label}>Position:</span> {interviewDetails.job_role} at {interviewDetails.company}</p>
               </div>
               <div className={thankStyles.next}>
                 <h2>What happens next?</h2>
@@ -276,8 +314,8 @@ const Interview: React.FC = () => {
               <div className={styles.avatar}>
                 <User />
               </div>
-              <span className={styles.candidateName}>John Doe</span>
-              <span className={styles.candidateRole}>Frontend Developer</span>
+              <span className={styles.candidateName}>{candidateInfo.name}</span>
+              <span className={styles.candidateRole}>{candidateInfo.role}</span>
               <button className={styles.aiInterviewerButton}>
                 AI Interviewer
               </button>

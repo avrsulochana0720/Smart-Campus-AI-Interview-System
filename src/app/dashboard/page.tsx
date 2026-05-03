@@ -66,7 +66,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://127.0.0.1:8000/interview-history", {
+      const response = await axios.get("http://localhost:8000/interview-history", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -200,20 +200,25 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>Data Structures</td>
-                      <td><span className={`${styles.badge} ${styles.easy}`}>Easy</span></td>
-                      <td className={styles.score}>92</td>
-                      <td>Excellent fundamentals</td>
-                      <td className={styles.status}>✔</td>
-                    </tr>
-                    <tr>
-                      <td>System Design</td>
-                      <td><span className={`${styles.badge} ${styles.hard}`}>Hard</span></td>
-                      <td className={styles.score}>78</td>
-                      <td>Needs clarity in scaling</td>
-                      <td className={styles.status}>✔</td>
-                    </tr>
+                    {interviewHistory.length > 0 ? (
+                      interviewHistory[0].qa_list.slice(0, 5).map((qa, i) => (
+                        <tr key={i}>
+                          <td>Question {i + 1}</td>
+                          <td><span className={`${styles.badge} ${qa.score >= 7 ? styles.easy : qa.score >= 4 ? styles.medium : styles.hard}`}>
+                            {qa.score >= 7 ? 'Proficient' : qa.score >= 4 ? 'Developing' : 'Needs Focus'}
+                          </span></td>
+                          <td className={styles.score}>{qa.score * 10}</td>
+                          <td>{qa.feedback || 'Answer recorded'}</td>
+                          <td className={styles.status}>{qa.score >= 5 ? '✔' : '✘'}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>
+                          No data available. Complete an interview to see your breakdown.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -236,9 +241,9 @@ export default function DashboardPage() {
               </div>
 
                 <div className={styles.card}>
-                  <h3 className={styles.cardTitle}>TPO Alerts</h3>
-                  <div className={styles.alert}>Interview scheduled for April 2nd</div>
-                  <div className={styles.alert}>Resume review pending</div>
+                  <h3 className={styles.cardTitle}>Upcoming Schedule</h3>
+                  <div className={styles.alert}>Next review cycle: {new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
+                  <div className={styles.alert}>AI Coaching session available</div>
                 </div>
               </div>
 
