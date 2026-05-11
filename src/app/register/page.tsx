@@ -7,6 +7,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await authAPI.register(name, email, password);
+      await authAPI.register(name, email, password, photo || undefined);
       navigate("/login");
     } catch (err: any) {
       console.error("Register error:", err);
@@ -67,6 +68,15 @@ export default function RegisterPage() {
               minLength={6}
               className={styles.input}
               placeholder="Enter your password (min 6 characters)"
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Profile Photo:</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhoto(e.target.files?.[0] || null)}
+              className={styles.input}
             />
           </div>
           {error && <p className={styles.error}>{error}</p>}

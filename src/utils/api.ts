@@ -66,11 +66,18 @@ export const authAPI = {
     }
     return response.data;
   },
-  register: async (name: string, email: string, password: string) => {
-    const response = await axios.post(`${API_BASE_URL}/register`, {
-      name,
-      email,
-      password,
+  register: async (name: string, email: string, password: string, photo?: File) => {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
+    if (photo) {
+      formData.append('photo', photo);
+    }
+    const response = await axios.post(`${API_BASE_URL}/register`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
     return response.data;
   },
@@ -106,9 +113,10 @@ export const interviewAPI = {
     });
     return response.data;
   },
-  generateQuestions: async (interviewId: number) => {
+  generateQuestions: async (interviewId: number, phase: string = "hr") => {
     const response = await api.post('/generate-questions', {
       interview_id: interviewId,
+      phase,
     });
     return response.data;
   },

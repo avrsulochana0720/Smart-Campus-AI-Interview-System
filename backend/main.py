@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -72,6 +73,11 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# Mount uploads directory to serve static files (profile images)
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 # Pydantic model for user registration
 class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -88,6 +94,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    profile_image: str = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -142,6 +149,7 @@ class CreateInterviewRequest(BaseModel):
 # Pydantic model for generate questions request
 class GenerateQuestionsRequest(BaseModel):
     interview_id: int
+    phase: str = "hr" # hr or technical
 
 from fastapi.responses import JSONResponse
 from fastapi import Request
@@ -168,37 +176,57 @@ def startup_event():
 
 # Register API endpoint
 @app.post("/register", response_model=UserResponse)
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    print(f"=== REGISTER CALLED: {user.email} ===")
+async def register_user(
+    name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    photo: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
+    print(f"=== REGISTER CALLED: {email} ===")
     try:
         # Check if email already exists
-        db_user = db.query(User).filter(User.email == user.email).first()
+        db_user = db.query(User).filter(User.email == email).first()
         if db_user:
-            print(f"Registration failed: Email {user.email} already exists")
+            print(f"Registration failed: Email {email} already exists")
             raise HTTPException(status_code=400, detail="Email already registered")
     
-        print(f"Hashing password for {user.email}...")
+        print(f"Hashing password for {email}...")
         # Truncate password to 72 bytes (bcrypt limit)
-        password_bytes = user.password.encode('utf-8')
+        password_bytes = password.encode('utf-8')
         if len(password_bytes) > 72:
             password_bytes = password_bytes[:72]
         truncated_password = password_bytes.decode('utf-8', errors='ignore')
     
         # Hash the password
         hashed_password = pwd_context.hash(truncated_password)
+        
+        # Handle photo upload
+        profile_image_url = None
+        if photo:
+            file_extension = photo.filename.split('.')[-1] if '.' in photo.filename else 'jpg'
+            file_name = f"profile_{email}_{int(datetime.utcnow().timestamp())}.{file_extension}"
+            file_path = os.path.join("uploads", file_name)
+            
+            with open(file_path, "wb") as buffer:
+                buffer.write(await photo.read())
+            
+            profile_image_url = f"http://localhost:8000/uploads/{file_name}"
+            print(f"Photo saved: {profile_image_url}")
     
-        print(f"Creating user record for {user.email}...")
+        print(f"Creating user record for {email}...")
         # Create new user
         new_user = User(
-            name=user.name,
-            email=user.email,
-            password=hashed_password
+            name=name,
+            email=email,
+            password=hashed_password,
+            profile_image=profile_image_url
         )
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
     
-        print(f"Registration successful: {user.email} (ID: {new_user.id})")
+        print(f"Registration successful: {email} (ID: {new_user.id})")
         return new_user
     except HTTPException:
         raise
@@ -231,7 +259,8 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={
         "sub": db_user.email,
         "user_id": db_user.id,
-        "name": db_user.name
+        "name": db_user.name,
+        "profile_image": db_user.profile_image
     })
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -439,12 +468,19 @@ def submit_answer(answer: AnswerRequest, current_user: User = Depends(get_curren
 
     # Step 2: Call AI for evaluation
     try:
+        # Fetch resume text if not provided
+        resume_text = answer.resume_summary
+        if not resume_text and interview.resume_id:
+            resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
+            if resume:
+                resume_text = resume.resume_text[:1000]  # Limit to 1000 chars for context
+
         evaluation = answer_evaluator.evaluate_answer(
             question=question_record.question,
             user_answer=answer.answer,
             job_role=answer.job_role or interview.job_role,
             company=answer.company or interview.company,
-            resume_summary=answer.resume_summary
+            resume_summary=resume_text
         )
         
         # Step 3: Update DB with score and feedback
@@ -655,17 +691,30 @@ def generate_questions(
     if interview.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You don't have access to this interview")
     
-    # Check if questions already exist for this interview
+    # Check if questions already exist for this interview AND this phase
     existing_questions = db.query(InterviewQuestion).filter(
-        InterviewQuestion.interview_id == request.interview_id
+        InterviewQuestion.interview_id == request.interview_id,
+        InterviewQuestion.question_type == request.phase
     ).order_by(InterviewQuestion.order_index.asc()).all()
     
     if existing_questions:
-        print(f"Found {len(existing_questions)} existing questions. Returning them.")
+        print(f"Found {len(existing_questions)} existing {request.phase} questions. Returning them.")
         return {
-            "message": "Questions already generated",
-            "questions": [{"id": q.id, "question": q.question} for q in existing_questions]
+            "message": f"{request.phase.capitalize()} questions already generated",
+            "questions": [{"id": q.id, "question": q.question, "type": q.question_type} for q in existing_questions]
         }
+
+    # Get all questions to avoid repeats
+    all_prev_questions = db.query(InterviewQuestion).filter(
+        InterviewQuestion.interview_id == request.interview_id
+    ).all()
+    existing_q_texts = [q.question for q in all_prev_questions]
+
+    # Get max order_index to continue numbering
+    last_q = db.query(InterviewQuestion).filter(
+        InterviewQuestion.interview_id == request.interview_id
+    ).order_by(InterviewQuestion.order_index.desc()).first()
+    start_index = (last_q.order_index + 1) if last_q else 0
 
     # Check if interview has resume_id
     if not interview.resume_id:
@@ -682,16 +731,22 @@ def generate_questions(
             resume_text=resume.resume_text,
             job_role=interview.job_role,
             company=interview.company,
-            experience_level="mid"
+            experience_level="mid",
+            phase=request.phase,
+            existing_questions=existing_q_texts
         )
         
         # Store questions in database
         created_questions = []
         for index, q in enumerate(questions):
+            q_text = q["question"] if isinstance(q, dict) else q
+            q_type = q.get("type", request.phase) if isinstance(q, dict) else request.phase
+            
             interview_question = InterviewQuestion(
                 interview_id=request.interview_id,
-                question=q["question"] if isinstance(q, dict) else q,
-                order_index=index
+                question=q_text,
+                question_type=q_type,
+                order_index=start_index + index
             )
             db.add(interview_question)
             created_questions.append(interview_question)
@@ -700,36 +755,40 @@ def generate_questions(
         
         # Return questions list
         return {
-            "message": "Questions generated successfully",
-            "questions": [{"id": q.id, "question": q.question} for q in created_questions]
+            "message": f"{request.phase.capitalize()} questions generated successfully",
+            "questions": [{"id": q.id, "question": q.question, "type": q.question_type} for q in created_questions]
         }
         
-    except HTTPException:
-        raise
     except Exception as e:
         db.rollback()
         print(f"ERROR in /generate-questions: {str(e)}")
         # Fallback questions
-        fallback_questions = [
-            f"Tell me about your experience related to {interview.job_role}.",
-            "What are your greatest strengths as a developer?",
-            f"Why do you want to work at {interview.company}?",
-            "Describe a challenging technical problem you solved recently.",
-            "Where do you see yourself in five years?"
-        ]
+        if request.phase == "hr":
+            fallback = [
+                f"Tell me about yourself and your interest in {interview.company}.",
+                "What are your strengths and weaknesses?",
+                "Where do you see yourself in 5 years?"
+            ]
+        else:
+            fallback = [
+                f"Explain a technical project you worked on using {interview.job_role} skills.",
+                "How do you handle difficult technical bugs?",
+                f"Why should we hire you for this technical role at {interview.company}?"
+            ]
         
         created_questions = []
-        for index, q_text in enumerate(fallback_questions):
+        for index, q_text in enumerate(fallback):
             new_q = InterviewQuestion(
                 interview_id=request.interview_id,
                 question=q_text,
-                order_index=index
+                question_type=request.phase,
+                order_index=start_index + index
             )
             db.add(new_q)
             created_questions.append(new_q)
         db.commit()
         
         return {
-            "message": "Generated fallback questions",
-            "questions": [{"id": q.id, "question": q.question} for q in created_questions]
+            "message": f"Generated fallback {request.phase} questions",
+            "questions": [{"id": q.id, "question": q.question, "type": q.question_type} for q in created_questions]
         }

@@ -43,7 +43,9 @@ class QuestionGenerator:
         resume_text: str, 
         job_role: str, 
         company: str, 
-        experience_level: str = "mid"
+        experience_level: str = "mid",
+        phase: str = "hr",
+        existing_questions: List[str] = None
     ) -> List[Dict]:
         """
         Generate interview questions using Ollama (Qwen3-0.6B).
@@ -51,24 +53,56 @@ class QuestionGenerator:
         skills = self.extract_resume_skills(resume_text)
         skills_str = ", ".join(skills) if skills else "various technologies"
         
-        prompt = f"""
-As an AI Interview Architect, generate 5 highly relevant interview questions for a {job_role} position at {company}.
-Candidate Skills: {skills_str}
-Seniority Level: {experience_level}
+        if phase == "hr":
+            prompt = f"""
+As an AI HR Interviewer, generate 5 professional behavioral and HR questions for a {job_role} position at {company}.
+Focus on:
+1. Introduction and motivation.
+2. Soft skills (leadership, teamwork, or communication).
+3. Culture fit for {company}.
+4. Conflict resolution and problem-solving in teams.
+5. Career goals and future growth.
 
 Requirements:
-1. Question 1-2: Core technical fundamentals related to {skills_str}.
-2. Question 3: A scenario-based problem solving question.
-3. Question 4: A behavioral/culture-fit question specific to {company}.
-4. Question 5: An advanced/edge-case technical challenge.
+- Generate exactly 5 questions.
+- Questions should NOT be in this list: {existing_questions if existing_questions else "None"}
+- Return ONLY a valid JSON object.
 
-Return ONLY a valid JSON object with this exact structure:
+Exact Structure:
 {{
     "questions": [
         {{
-            "question": "Clear and concise question text",
-            "type": "technical/scenario/behavioral",
-            "difficulty": "easy/medium/hard"
+            "question": "Question text",
+            "type": "hr",
+            "difficulty": "medium"
+        }}
+    ]
+}}
+"""
+        else:
+            prompt = f"""
+As an AI Technical Interviewer, generate 5 deep technical and scenario-based questions for a {job_role} position at {company}.
+Candidate Skills: {skills_str}
+
+Focus on:
+1. Core technical fundamentals of {skills_str}.
+2. Problem-solving scenarios.
+3. System design or edge cases.
+4. Performance optimization.
+5. Security or scalability.
+
+Requirements:
+- Generate exactly 5 questions.
+- Questions should NOT be in this list: {existing_questions if existing_questions else "None"}
+- Return ONLY a valid JSON object.
+
+Exact Structure:
+{{
+    "questions": [
+        {{
+            "question": "Question text",
+            "type": "technical",
+            "difficulty": "hard"
         }}
     ]
 }}
@@ -97,18 +131,25 @@ Return ONLY a valid JSON object with this exact structure:
             
         except Exception as e:
             print(f"Error generating questions with Ollama ({self.model}): {e}")
-            return self.generate_template_questions(job_role, company, skills, experience_level)
+            return self.generate_template_questions(job_role, company, skills, experience_level, phase)
     
-    def generate_template_questions(self, job_role, company, skills, experience_level):
-        # ... (same as before)
-        questions = [
-            {"question": f"Explain your experience with {job_role} and {', '.join(skills[:3])}.", "type": "technical", "difficulty": "medium"},
-            {"question": f"How would you contribute to the team at {company}?", "type": "behavioral", "difficulty": "easy"},
-            {"question": "Describe a difficult technical challenge you faced.", "type": "scenario", "difficulty": "hard"},
-            {"question": f"What are the best practices for {skills[0] if skills else 'software development'}?", "type": "technical", "difficulty": "medium"},
-            {"question": f"Why are you interested in this position at {company}?", "type": "behavioral", "difficulty": "easy"}
-        ]
-        return questions
+    def generate_template_questions(self, job_role, company, skills, experience_level, phase="hr"):
+        if phase == "hr":
+            return [
+                {"question": f"Tell me about yourself and why you want to join {company} as a {job_role}.", "type": "hr", "difficulty": "easy"},
+                {"question": "What is your biggest professional achievement so far?", "type": "hr", "difficulty": "medium"},
+                {"question": f"How do you handle conflict in a team environment at {company}?", "type": "hr", "difficulty": "medium"},
+                {"question": "Describe a time you showed leadership in a project.", "type": "hr", "difficulty": "medium"},
+                {"question": f"Where do you see yourself in five years with {company}?", "type": "hr", "difficulty": "medium"}
+            ]
+        else:
+            return [
+                {"question": f"Explain the core architecture of a project you built using {skills[0] if skills else 'your main stack'}.", "type": "technical", "difficulty": "hard"},
+                {"question": "How do you ensure code quality and performance in your applications?", "type": "technical", "difficulty": "hard"},
+                {"question": f"Describe a complex technical problem you solved as a {job_role}.", "type": "technical", "difficulty": "hard"},
+                {"question": f"What are the trade-offs of using {skills[1] if len(skills) > 1 else 'microservices'}?", "type": "technical", "difficulty": "hard"},
+                {"question": "How would you optimize a database query that is running extremely slow in production?", "type": "technical", "difficulty": "hard"}
+            ]
 
 class AnswerEvaluator:
     def __init__(self):
@@ -168,6 +209,24 @@ Return ONLY a valid JSON object with this exact structure:
         except Exception as e:
             print(f"Error evaluating answer with Ollama: {e}")
             return {"score": 5, "feedback": "Answer recorded.", "next_question": "Continue"}
+
+    def evaluate_template_answer(
+        self,
+        question: str,
+        user_answer: str,
+        job_role: str,
+        company: str
+    ) -> Dict:
+        """
+        Fallback evaluation when AI fails.
+        """
+        # Simple length-based scoring for fallback
+        score = min(len(user_answer.split()) // 5 + 3, 8)
+        return {
+            "score": score,
+            "feedback": "Answer analyzed based on length and relevance to job role.",
+            "next_question": f"Based on your experience, how would you handle a complex project in {job_role}?"
+        }
 
     def generate_narrative_summary(
         self,

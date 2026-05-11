@@ -9,6 +9,7 @@ class User(Base):
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password = Column(String, nullable=False)
+    profile_image = Column(String, nullable=True)
 
 class Resume(Base):
     __tablename__ = "resumes"
@@ -36,6 +37,7 @@ class InterviewQuestion(Base):
     id = Column(Integer, primary_key=True, index=True)
     interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=False)
     question = Column(Text, nullable=False)
+    question_type = Column(String, default="technical") # technical or hr
     answer = Column(Text, nullable=True)
     score = Column(Integer, nullable=True)
     feedback = Column(Text, nullable=True)

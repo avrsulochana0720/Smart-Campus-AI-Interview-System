@@ -19,8 +19,12 @@ const Interview: React.FC = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [interviewId, setInterviewId] = useState<number | null>(null);
-  const [activeSpeaker, setActiveSpeaker] = useState<'hr' | 'technical' | null>(null);
-  const [candidateInfo, setCandidateInfo] = useState({ name: 'Candidate', role: 'Applicant' });
+  const [activeSpeaker, setActiveSpeaker] = useState<'hr' | 'technical' | null>('hr');
+  const [interviewPhase, setInterviewPhase] = useState<'hr' | 'technical'>('hr');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [performanceScore, setPerformanceScore] = useState('0');
+  const [scores, setScores] = useState<number[]>([]);
+  const [candidateInfo, setCandidateInfo] = useState({ name: 'Candidate', role: 'Applicant', profile_image: null as string | null });
   const [interviewDetails, setInterviewDetails] = useState({ job_role: '', company: '', created_at: '' });
 
   useEffect(() => {
@@ -39,7 +43,8 @@ const Interview: React.FC = () => {
         const payload = JSON.parse(atob(token.split('.')[1]));
         setCandidateInfo({
           name: payload.name || payload.sub?.split('@')[0] || 'Candidate',
-          role: localStorage.getItem('job_role') || 'Applicant'
+          role: localStorage.getItem('job_role') || 'Applicant',
+          profile_image: payload.profile_image || null
         });
       } catch (e) {
         console.error("Failed to decode token", e);
@@ -47,9 +52,66 @@ const Interview: React.FC = () => {
     }
   }, []);
 
+  // Real-time Dual Interviewer Voice + Highlight Synchronization
+  useEffect(() => {
+    const currentQuestion = questions[currentQuestionIndex]?.question;
+    if (!currentQuestion || isLoading || isCompleted) return;
+
+    const qType = (questions[currentQuestionIndex].type || questions[currentQuestionIndex].question_type || '').toLowerCase();
+    const speakerToActivate = (qType === 'hr' || qType === 'behavioral') ? 'hr' : 'technical';
+    
+    const speak = () => {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(currentQuestion);
+      
+      // Find a professional-sounding voice
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Different voices for HR vs Technical for better AI feel
+      const preferredVoice = speakerToActivate === 'hr' 
+        ? voices.find(v => v.name.includes('Google UK English Female') || v.name.includes('Microsoft Zira'))
+        : voices.find(v => v.name.includes('Google UK English Male') || v.name.includes('Microsoft David'));
+      
+      if (preferredVoice) utterance.voice = preferredVoice;
+      
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        setActiveSpeaker(speakerToActivate);
+      };
+
+      utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // Voice synchronization
+    if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = speak;
+    } else {
+      speak();
+    }
+
+    return () => {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    };
+  }, [currentQuestionIndex, questions, isLoading, isCompleted]);
+
   const loadInterviewData = async (id: number) => {
     try {
       setIsLoading(true);
+      setActiveSpeaker('hr');
       
       // Get interview report/details first
       const report = await interviewAPI.getReport(id);
@@ -59,25 +121,23 @@ const Interview: React.FC = () => {
         created_at: report.created_at
       });
 
-      // 1. Generate/Get questions
-      const genData = await interviewAPI.generateQuestions(id);
+      // 1. Generate/Get HR questions
+      const genData = await interviewAPI.generateQuestions(id, 'hr');
       const questionList = genData.questions || [];
+      
+      // 2. Check if we already have technical questions too
+      const currentStatus = await interviewAPI.getQuestion(id);
+      
       setQuestions(questionList);
       setAnswers(new Array(questionList.length).fill(''));
 
-      // 2. Get current unanswered question to set initial index
-      const questionData = await interviewAPI.getQuestion(id);
-      if (questionData.is_complete || questionData.message === 'All questions answered') {
+      if (currentStatus.is_complete) {
         setIsCompleted(true);
       } else {
-        // Find the index of the question we got from the server
-        const index = questionList.findIndex((q: any) => q.id === (questionData.question_id || questionData.id));
+        const index = questionList.findIndex((q: any) => q.id === (currentStatus.question_id || currentStatus.id));
         if (index !== -1) {
           setCurrentQuestionIndex(index);
           updateSpeaker(questionList[index]);
-        } else if (questionData.order_index !== undefined) {
-          setCurrentQuestionIndex(questionData.order_index);
-          updateSpeaker(questionList[questionData.order_index]);
         }
       }
     } catch (error) {
@@ -89,17 +149,50 @@ const Interview: React.FC = () => {
 
   const updateSpeaker = (question: any) => {
     if (!question) return;
-    const qType = (question.type || '').toLowerCase();
+    const qType = (question.type || question.question_type || '').toLowerCase();
     if (qType === 'behavioral' || qType === 'hr') {
       setActiveSpeaker('hr');
+      setInterviewPhase('hr');
     } else {
       setActiveSpeaker('technical');
+      setInterviewPhase('technical');
     }
   };
 
   const submitAnswer = async () => {
     const currentQ = questions[currentQuestionIndex];
-    if (!currentQ || !interviewId || !answer.trim()) return;
+    if (!currentQ || !interviewId) return;
+
+    // Fast skip if answer is empty
+    if (!answer.trim()) {
+      if (currentQuestionIndex < questions.length - 1) {
+        const nextIndex = currentQuestionIndex + 1;
+        setCurrentQuestionIndex(nextIndex);
+        setAnswer(answers[nextIndex] || '');
+        updateSpeaker(questions[nextIndex]);
+      } else if (interviewPhase === 'hr') {
+        // Force transition if last HR question skipped
+        setIsLoading(true);
+        setActiveSpeaker('technical');
+        setInterviewPhase('technical');
+        try {
+          const techData = await interviewAPI.generateQuestions(interviewId, 'technical');
+          const newQuestions = [...questions, ...techData.questions];
+          setQuestions(newQuestions);
+          const nextIndex = currentQuestionIndex + 1;
+          setCurrentQuestionIndex(nextIndex);
+          setAnswer('');
+          updateSpeaker(newQuestions[nextIndex]);
+        } catch (err) {
+          setIsCompleted(true);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsCompleted(true);
+      }
+      return;
+    }
 
     try {
       const result = await interviewAPI.submitAnswer(interviewId, currentQ.id, answer);
@@ -109,21 +202,39 @@ const Interview: React.FC = () => {
       newAnswers[currentQuestionIndex] = answer;
       setAnswers(newAnswers);
 
-      // Dynamically update the NEXT question if provided by AI
-      if (result.next_question && result.question_id && currentQuestionIndex < questions.length - 1) {
-        const newQuestions = [...questions];
-        const nextIndex = currentQuestionIndex + 1;
-        // Update the next question record in our local state
-        newQuestions[nextIndex] = {
-          ...newQuestions[nextIndex],
-          id: result.question_id,
-          question: result.next_question
-        };
-        setQuestions(newQuestions);
+      // Update performance score
+      if (result.score !== undefined) {
+        const newScores = [...scores, result.score];
+        setScores(newScores);
+        const avg = newScores.reduce((a, b) => a + b, 0) / newScores.length;
+        setPerformanceScore((avg * 10).toFixed(0)); // Convert to percentage
       }
 
-      if (result.is_complete || currentQuestionIndex === questions.length - 1) {
-        setIsCompleted(true);
+      if (currentQuestionIndex === questions.length - 1) {
+        // End of current questions list
+        if (interviewPhase === 'hr') {
+          // Transition to Technical
+          setIsLoading(true);
+          setActiveSpeaker('technical');
+          setInterviewPhase('technical');
+          
+          try {
+            const techData = await interviewAPI.generateQuestions(interviewId, 'technical');
+            const newQuestions = [...questions, ...techData.questions];
+            setQuestions(newQuestions);
+            const nextIndex = currentQuestionIndex + 1;
+            setCurrentQuestionIndex(nextIndex);
+            setAnswer('');
+            updateSpeaker(newQuestions[nextIndex]);
+          } catch (err) {
+            console.error("Failed to generate technical questions", err);
+            setIsCompleted(true);
+          } finally {
+            setIsLoading(false);
+          }
+        } else {
+          setIsCompleted(true);
+        }
       } else {
         // Move to next
         const nextIndex = currentQuestionIndex + 1;
@@ -189,11 +300,14 @@ const Interview: React.FC = () => {
     };
   }, [stream]);
 
+  const [interimAnswer, setInterimAnswer] = useState('');
+
   const toggleRecording = () => {
     if (isRecording) {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
         setIsRecording(false);
+        setInterimAnswer('');
       }
     } else {
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -204,14 +318,31 @@ const Interview: React.FC = () => {
         recognition.lang = 'en-US';
 
         recognition.onresult = (event: any) => {
-          let finalTranscript = '';
+          let interim = '';
+          let final = '';
+
           for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript + ' ';
+              final += transcript + ' ';
+            } else {
+              interim += transcript;
             }
           }
-          if (finalTranscript) {
-            setAnswer(prev => prev + finalTranscript);
+
+          if (final) {
+            setAnswer(prev => {
+              const base = prev.endsWith(' ') ? prev : prev + (prev ? ' ' : '');
+              const newVal = base + final;
+              // Sync with answers array
+              const newAnswers = [...answers];
+              newAnswers[currentQuestionIndex] = newVal;
+              setAnswers(newAnswers);
+              return newVal;
+            });
+            setInterimAnswer('');
+          } else {
+            setInterimAnswer(interim);
           }
         };
 
@@ -233,19 +364,9 @@ const Interview: React.FC = () => {
     }
   };
 
-  const handleNextQuestion = async () => {
-    if (answer.trim()) {
-      await submitAnswer();
-    } else {
-      // Just skip to next if possible
-      if (currentQuestionIndex < questions.length - 1) {
-        const nextIndex = currentQuestionIndex + 1;
-        setCurrentQuestionIndex(nextIndex);
-        setAnswer(answers[nextIndex] || '');
-      } else {
-        setIsCompleted(true);
-      }
-    }
+  const handleNextQuestion = () => {
+    // Move to next question "fastly" as requested
+    submitAnswer();
   };
 
   const handlePreviousQuestion = () => {
@@ -312,12 +433,16 @@ const Interview: React.FC = () => {
             {/* Candidate Profile Card */}
             <div className={styles.profileCard}>
               <div className={styles.avatar}>
-                <User />
+                {candidateInfo.profile_image ? (
+                  <img src={candidateInfo.profile_image} alt={candidateInfo.name} className={styles.avatarImage} />
+                ) : (
+                  <User />
+                )}
               </div>
               <span className={styles.candidateName}>{candidateInfo.name}</span>
               <span className={styles.candidateRole}>{candidateInfo.role}</span>
               <button className={styles.aiInterviewerButton}>
-                AI Interviewer
+                Interviewee
               </button>
             </div>
 
@@ -326,15 +451,21 @@ const Interview: React.FC = () => {
               <h3 className={styles.progressTitle}>Interview Progress</h3>
               <div className={styles.progressItem}>
                 <span className={styles.progressLabel}>HR Round</span>
-                <span className={`${styles.progressBadge} ${styles.progressBadgeActive}`}>Active</span>
+                <span className={`${styles.progressBadge} ${interviewPhase === 'hr' ? styles.progressBadgeActive : styles.progressBadgeCompleted}`}>
+                  {interviewPhase === 'hr' ? 'Active' : 'Completed'}
+                </span>
               </div>
               <div className={styles.progressItem}>
                 <span className={styles.progressLabel}>Technical Round</span>
-                <span className={`${styles.progressBadge} ${styles.progressBadgePending}`}>Pending</span>
+                <span className={`${styles.progressBadge} ${interviewPhase === 'technical' ? styles.progressBadgeActive : styles.progressBadgePending}`}>
+                  {interviewPhase === 'technical' ? 'Active' : 'Pending'}
+                </span>
               </div>
               <div className={styles.progressItem}>
-                <span className={styles.progressLabel}>Focus Score</span>
-                <span className={`${styles.progressBadge} ${styles.progressBadgeHigh}`}>92% High</span>
+                <span className={styles.progressLabel}>Performance</span>
+                <span className={`${styles.progressBadge} ${parseFloat(performanceScore) > 80 ? styles.progressBadgeHigh : styles.progressBadgeMedium}`}>
+                  {performanceScore}% {parseFloat(performanceScore) > 80 ? 'High' : 'Stable'}
+                </span>
               </div>
               <div className={styles.progressItem}>
                 <span className={styles.progressLabel}>Question</span>
@@ -357,20 +488,50 @@ const Interview: React.FC = () => {
 
           {/* COLUMN 2 - Interviewers Stacked */}
           <div className={styles.column2}>
-            {/* HR Interviewer */}
-            <div className={styles.interviewerCard}>
-              <div className={`${styles.interviewerAvatar} ${styles.hrAvatar} ${activeSpeaker === 'hr' ? styles.activeSpeaker : styles.inactiveSpeaker}`}>
-                <User />
-              </div>
-              <span className={styles.interviewerLabel}>HR Interviewer</span>
-            </div>
-
             {/* Technical Interviewer */}
             <div className={styles.interviewerCard}>
-              <div className={`${styles.interviewerAvatar} ${styles.technicalAvatar} ${activeSpeaker === 'technical' ? styles.activeSpeaker : styles.inactiveSpeaker}`}>
-                <User />
+              <div className={`
+                ${styles.interviewerAvatar} 
+                ${styles.technicalAvatar} 
+                ${activeSpeaker === 'technical' ? styles.activeSpeaker : styles.inactiveSpeaker}
+                ${activeSpeaker === 'technical' && isSpeaking ? styles.speakingEffect : ''}
+              `}>
+                <img 
+                  src="/down.jpeg" 
+                  alt="Technical Interviewer" 
+                  className={styles.interviewerImage} 
+                />
+                {activeSpeaker === 'technical' && isSpeaking && (
+                  <>
+                    <div className={styles.pulseRing} />
+                    <div className={styles.speakingIndicator} />
+                  </>
+                )}
               </div>
               <span className={styles.interviewerLabel}>Technical Interviewer</span>
+            </div>
+
+            {/* HR Interviewer */}
+            <div className={styles.interviewerCard}>
+              <div className={`
+                ${styles.interviewerAvatar} 
+                ${styles.hrAvatar} 
+                ${activeSpeaker === 'hr' ? styles.activeSpeaker : styles.inactiveSpeaker}
+                ${activeSpeaker === 'hr' && isSpeaking ? styles.speakingEffect : ''}
+              `}>
+                <img 
+                  src="/im.jpeg" 
+                  alt="HR Interviewer" 
+                  className={styles.interviewerImage} 
+                />
+                {activeSpeaker === 'hr' && isSpeaking && (
+                  <>
+                    <div className={styles.pulseRing} />
+                    <div className={styles.speakingIndicator} />
+                  </>
+                )}
+              </div>
+              <span className={styles.interviewerLabel}>HR Interviewer</span>
             </div>
           </div>
 
@@ -429,7 +590,7 @@ const Interview: React.FC = () => {
             <div className={styles.answerCard}>
               <span className={styles.answerLabel}>Your Answer</span>
               <textarea
-                value={answer}
+                value={answer + (interimAnswer ? (answer && !answer.endsWith(' ') ? ' ' : '') + interimAnswer : '')}
                 onChange={(e) => handleAnswerChange(e.target.value)}
                 placeholder="Your answer will appear here..."
                 className={styles.textarea}
@@ -453,7 +614,7 @@ const Interview: React.FC = () => {
                   onClick={handleNextQuestion}
                   className={`${styles.button} ${styles.buttonNext}`}
                 >
-                  {currentQuestionIndex === questions.length - 1 ? 'Complete' : 'Next Question'}
+                  {currentQuestionIndex === questions.length - 1 && interviewPhase === 'technical' ? 'Complete' : 'Next Question'}
                 </button>
               </div>
             </div>
