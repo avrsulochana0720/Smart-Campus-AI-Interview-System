@@ -48,19 +48,25 @@ class QuestionGenerator:
         existing_questions: List[str] = None
     ) -> List[Dict]:
         """
-        Generate interview questions using Ollama (Qwen3-0.6B).
+        Generate interview questions using Ollama (Qwen).
+        Tailors questions based on Job Role, Company, and Resume Analysis.
         """
         skills = self.extract_resume_skills(resume_text)
         skills_str = ", ".join(skills) if skills else "various technologies"
         
+        # Limit resume text to avoid prompt overflow but keep essential info
+        resume_context = resume_text[:2000] if resume_text else "No resume content provided."
+        
         if phase == "hr":
             prompt = f"""
-As an AI HR Interviewer, generate 5 professional behavioral and HR questions for a {job_role} position at {company}.
+As an AI HR Interviewer, generate 5 professional behavioral and HR questions for a candidate applying for the {job_role} position at {company}.
+The candidate's resume context is: {resume_context}
+
 Focus on:
-1. Introduction and motivation.
-2. Soft skills (leadership, teamwork, or communication).
-3. Culture fit for {company}.
-4. Conflict resolution and problem-solving in teams.
+1. Introduction and motivation for {job_role} at {company}.
+2. Relevant experiences and projects mentioned in the resume.
+3. Soft skills (leadership, teamwork, or communication) tailored to a {job_role}.
+4. Culture fit for {company}.
 5. Career goals and future growth.
 
 Requirements:
@@ -82,14 +88,16 @@ Exact Structure:
         else:
             prompt = f"""
 As an AI Technical Interviewer, generate 5 deep technical and scenario-based questions for a {job_role} position at {company}.
-Candidate Skills: {skills_str}
+Analyze the candidate's resume and expertise:
+Resume Context: {resume_context}
+Identified Skills: {skills_str}
 
 Focus on:
-1. Core technical fundamentals of {skills_str}.
-2. Problem-solving scenarios.
-3. System design or edge cases.
-4. Performance optimization.
-5. Security or scalability.
+1. Core technical fundamentals relevant to {job_role} and candidate's projects.
+2. Real-world problem-solving scenarios based on the candidate's experience.
+3. System design or edge cases related to {skills_str}.
+4. Optimization and performance in the context of {job_role}.
+5. Emerging trends or specific tools mentioned in the resume.
 
 Requirements:
 - Generate exactly 5 questions.
@@ -164,17 +172,21 @@ class AnswerEvaluator:
         resume_summary: str = ""
     ) -> Dict:
         """
-        Evaluate user answer using Ollama (Qwen3-0.6B).
+        Evaluate user answer using Ollama (Qwen).
+        Uses Job Role, Company, and Resume context for evaluation.
         """
         prompt = f"""
 As an expert technical interviewer for {company}, evaluate the candidate's response for the {job_role} position.
+The candidate's resume summary/context: {resume_summary[:1000]}
+
 Question: {question}
 Answer: {user_answer}
-Job Context: {job_role} at {company}
 
-Evaluate based on accuracy, completeness, and relevance.
-If the answer is poor, provide constructive feedback and a slightly easier follow-up question.
-If the answer is excellent, provide praise and a more challenging/deep-dive follow-up question.
+Evaluation Criteria:
+1. Accuracy: Is the answer technically correct?
+2. Completeness: Did the candidate cover all parts of the question?
+3. Contextual Relevance: Does it align with the {job_role} role at {company}?
+4. Resume Alignment: Does the answer reflect the skills mentioned in their resume?
 
 Return ONLY a valid JSON object with this exact structure:
 {{

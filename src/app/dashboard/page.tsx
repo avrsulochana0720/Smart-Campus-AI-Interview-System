@@ -19,6 +19,7 @@ interface Interview {
   qa_list: QA[];
   total_score: number;
   average_score: number;
+  narrative_summary?: string;
 }
 
 interface UserProfile {
@@ -156,6 +157,11 @@ export default function DashboardPage() {
                 <div>
                   <h2 className={styles.title}>Performance Nexus</h2>
                   <p className={styles.subtitle}>Comprehensive candidate performance analytics</p>
+                  {interviewHistory.length > 0 && (
+                    <p style={{ color: "#3B82F6", marginTop: "0.5rem", fontSize: "0.95rem" }}>
+                      Current Position: <strong>{interviewHistory[0].job_role}</strong> at <strong>{interviewHistory[0].company}</strong>
+                    </p>
+                  )}
                 </div>
                 <button className={styles.button}>Download PDF Report</button>
               </div>
@@ -180,7 +186,12 @@ export default function DashboardPage() {
                     <div style={{ padding: '1rem', color: '#9ca3af' }}>
                       <p style={{ marginBottom: '0.75rem' }}>Total Interviews: <strong style={{ color: '#fff' }}>{totalInterviews}</strong></p>
                       <p style={{ marginBottom: '0.75rem' }}>Questions Answered: <strong style={{ color: '#fff' }}>{allScores.length}</strong></p>
-                      <p>Avg Score: <strong style={{ color: '#3B82F6' }}>{overallAvg > 0 ? `${overallAvg.toFixed(1)}/10` : 'N/A'}</strong></p>
+                      <p style={{ marginBottom: '0.75rem' }}>Avg Score: <strong style={{ color: '#3B82F6' }}>{overallAvg > 0 ? `${overallAvg.toFixed(1)}/10` : 'N/A'}</strong></p>
+                      {interviewHistory.length > 0 && (
+                        <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#d1d5db' }}>
+                          Latest: <strong>{new Date(interviewHistory[0].date).toLocaleDateString()}</strong>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -188,28 +199,26 @@ export default function DashboardPage() {
 
               {/* Sectional Breakdown */}
               <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Sectional Breakdown</h3>
+                <h3 className={styles.cardTitle}>Latest Interview Performance</h3>
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Category</th>
-                      <th>Difficulty</th>
+                      <th>Question</th>
+                      <th>Your Answer</th>
                       <th>Score</th>
-                      <th>AI Feedback</th>
+                      <th>Feedback</th>
                       <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {interviewHistory.length > 0 ? (
-                      interviewHistory[0].qa_list.slice(0, 5).map((qa, i) => (
+                      interviewHistory[0].qa_list.map((qa, i) => (
                         <tr key={i}>
-                          <td>Question {i + 1}</td>
-                          <td><span className={`${styles.badge} ${qa.score >= 7 ? styles.easy : qa.score >= 4 ? styles.medium : styles.hard}`}>
-                            {qa.score >= 7 ? 'Proficient' : qa.score >= 4 ? 'Developing' : 'Needs Focus'}
-                          </span></td>
-                          <td className={styles.score}>{qa.score * 10}</td>
-                          <td>{qa.feedback || 'Answer recorded'}</td>
-                          <td className={styles.status}>{qa.score >= 5 ? '✔' : '✘'}</td>
+                          <td style={{ maxWidth: '200px', wordWrap: 'break-word' }}>{qa.question}</td>
+                          <td style={{ maxWidth: '250px', wordWrap: 'break-word', color: '#d1d5db' }}>{qa.answer || 'Not answered'}</td>
+                          <td className={styles.score}>{qa.score > 0 ? `${(qa.score * 10).toFixed(0)}%` : '--'}</td>
+                          <td style={{ maxWidth: '200px', wordWrap: 'break-word', fontSize: '0.875rem', color: '#9ca3af' }}>{qa.feedback || 'Answer recorded'}</td>
+                          <td className={styles.status}>{qa.score >= 5 ? '✔' : qa.score > 0 ? '◐' : '✘'}</td>
                         </tr>
                       ))
                     ) : (
@@ -226,24 +235,46 @@ export default function DashboardPage() {
               {/* Bottom Grid */}
               <div className={styles.grid}>
                 <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Recruiter Insights</h3>
+                <h3 className={styles.cardTitle}>AI Insights & Feedback</h3>
                 {loading ? (
                   <p style={{ color: '#9ca3af', marginTop: '1rem' }}>Loading...</p>
                 ) : interviewHistory.length === 0 ? (
                   <p style={{ color: '#9ca3af', marginTop: '1rem' }}>Complete an interview to see insights here.</p>
                 ) : (
-                  <ul className={styles.list}>
-                    {interviewHistory[0]?.qa_list.slice(0, 3).map((qa, i) => (
-                      <li key={i}>{qa.feedback || 'Good response'}</li>
-                    ))}
-                  </ul>
+                  <div>
+                    {interviewHistory[0].narrative_summary && (
+                      <p style={{ color: '#d1d5db', marginBottom: '1rem', lineHeight: '1.6' }}>
+                        {interviewHistory[0].narrative_summary}
+                      </p>
+                    )}
+                    <ul className={styles.list}>
+                      {interviewHistory[0].qa_list.slice(0, 3).map((qa, i) => (
+                        <li key={i} style={{ color: '#9ca3af', fontSize: '0.9rem' }}>
+                          <strong style={{ color: '#3B82F6' }}>Q{i+1}:</strong> {qa.feedback || 'Good response'}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
 
                 <div className={styles.card}>
-                  <h3 className={styles.cardTitle}>Upcoming Schedule</h3>
-                  <div className={styles.alert}>Next review cycle: {new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
-                  <div className={styles.alert}>AI Coaching session available</div>
+                  <h3 className={styles.cardTitle}>Interview Summary</h3>
+                  {interviewHistory.length === 0 ? (
+                    <div className={styles.alert}>No interviews completed yet</div>
+                  ) : (
+                    <>
+                      <div className={styles.alert}>
+                        <strong>Position:</strong> {interviewHistory[0].job_role} @ {interviewHistory[0].company}
+                      </div>
+                      <div className={styles.alert}>
+                        <strong>Date:</strong> {new Date(interviewHistory[0].date).toLocaleDateString()}
+                      </div>
+                      <div className={styles.alert}>
+                        <strong>Average Score:</strong> {interviewHistory[0].average_score.toFixed(1)}/10 ({Math.round(interviewHistory[0].average_score * 10)}%)
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -275,6 +306,11 @@ export default function DashboardPage() {
                   <div>
                     <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>{userProfile?.name || 'User'}</h3>
                     <p style={{ color: "#9ca3af" }}>{userProfile?.email || ''}</p>
+                    {interviewHistory.length > 0 && (
+                      <p style={{ color: "#3B82F6", marginTop: '0.5rem', fontSize: '0.95rem' }}>
+                        <strong>Top Position:</strong> {interviewHistory[0].job_role} @ {interviewHistory[0].company}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -328,7 +364,7 @@ export default function DashboardPage() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Overall Score</label>
+                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Overall Performance</label>
                     <input
                       type="text"
                       value={overallAvg > 0 ? `${overallAvg.toFixed(1)} / 10 (${overallPct}%)` : 'No interviews yet'}
@@ -343,6 +379,90 @@ export default function DashboardPage() {
                       }}
                     />
                   </div>
+                  <div>
+                    <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Total Questions Answered</label>
+                    <input
+                      type="text"
+                      value={allScores.length.toString()}
+                      readOnly
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem",
+                        borderRadius: "0.5rem",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        background: "rgba(0,0,0,0.3)",
+                        color: "#fff",
+                      }}
+                    />
+                  </div>
+                  {interviewHistory.length > 0 && (
+                    <>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Last Interview Position</label>
+                        <input
+                          type="text"
+                          value={interviewHistory[0].job_role}
+                          readOnly
+                          style={{
+                            width: "100%",
+                            padding: "0.75rem",
+                            borderRadius: "0.5rem",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(0,0,0,0.3)",
+                            color: "#fff",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Last Interview Company</label>
+                        <input
+                          type="text"
+                          value={interviewHistory[0].company}
+                          readOnly
+                          style={{
+                            width: "100%",
+                            padding: "0.75rem",
+                            borderRadius: "0.5rem",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(0,0,0,0.3)",
+                            color: "#fff",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Last Interview Date</label>
+                        <input
+                          type="text"
+                          value={new Date(interviewHistory[0].date).toLocaleDateString()}
+                          readOnly
+                          style={{
+                            width: "100%",
+                            padding: "0.75rem",
+                            borderRadius: "0.5rem",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(0,0,0,0.3)",
+                            color: "#fff",
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Last Interview Score</label>
+                        <input
+                          type="text"
+                          value={interviewHistory[0].average_score.toFixed(1) + ' / 10 (' + (interviewHistory[0].average_score * 10).toFixed(0) + '%)'}
+                          readOnly
+                          style={{
+                            width: "100%",
+                            padding: "0.75rem",
+                            borderRadius: "0.5rem",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: "rgba(0,0,0,0.3)",
+                            color: "#fff",
+                          }}
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </>
@@ -372,29 +492,44 @@ export default function DashboardPage() {
                         <th>Company</th>
                         <th>Questions</th>
                         <th>Avg Score</th>
+                        <th>Status</th>
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {interviewHistory.map((interview) => (
-                        <tr key={interview.interview_id}>
-                          <td>{new Date(interview.date).toLocaleDateString()}</td>
-                          <td>{interview.job_role}</td>
-                          <td>{interview.company}</td>
-                          <td>{interview.qa_list.length}</td>
-                          <td className={styles.score}>
-                            {interview.average_score > 0 ? `${interview.average_score.toFixed(1)}/10` : '--'}
-                          </td>
-                          <td>
-                            <button
-                              style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer" }}
-                              onClick={() => { toggleExpand(interview.interview_id); setActiveSection('reports'); }}
-                            >
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {interviewHistory.map((interview) => {
+                        const answeredCount = interview.qa_list.filter(qa => qa.answer !== 'Not answered').length;
+                        const totalCount = interview.qa_list.length;
+                        const isComplete = answeredCount === totalCount;
+                        return (
+                          <tr key={interview.interview_id}>
+                            <td>{new Date(interview.date).toLocaleDateString()}</td>
+                            <td style={{ fontWeight: '600', color: '#3B82F6' }}>{interview.job_role}</td>
+                            <td>{interview.company}</td>
+                            <td>{answeredCount}/{totalCount}</td>
+                            <td className={styles.score}>
+                              {interview.average_score > 0 ? (
+                                <span style={{ color: interview.average_score >= 7 ? '#22c55e' : interview.average_score >= 4 ? '#f59e0b' : '#ef4444', fontWeight: '600' }}>
+                                  {interview.average_score.toFixed(1)}/10
+                                </span>
+                              ) : '--'}
+                            </td>
+                            <td style={{ fontSize: '0.875rem' }}>
+                              <span style={{ background: isComplete ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)', color: isComplete ? '#22c55e' : '#f59e0b', padding: '0.35rem 0.65rem', borderRadius: '0.25rem', fontWeight: '600' }}>
+                                {isComplete ? 'Complete' : 'In Progress'}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", border: "none", background: "#3B82F6", color: "#fff", cursor: "pointer", fontSize: '0.875rem', fontWeight: '500' }}
+                                onClick={() => { toggleExpand(interview.interview_id); setActiveSection('reports'); }}
+                              >
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 )}
@@ -414,40 +549,39 @@ export default function DashboardPage() {
               <div className={styles.grid}>
                 <div className={styles.card}>
                   <h3 className={styles.cardTitle}>Performance Summary</h3>
-                  <div style={{ marginTop: "1rem" }}>
-                    <div style={{ marginBottom: "1rem" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                        <span>Technical Skills</span>
-                        <span>85%</span>
-                      </div>
-                      <div style={{ height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px" }}>
-                        <div style={{ height: "100%", width: "85%", background: "#3B82F6", borderRadius: "4px" }}></div>
-                      </div>
+                  {interviewHistory.length === 0 ? (
+                    <div style={{ marginTop: "1rem", color: '#9ca3af' }}>
+                      <p>Complete an interview to see your performance summary.</p>
                     </div>
-                    <div style={{ marginBottom: "1rem" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                        <span>Communication</span>
-                        <span>90%</span>
-                      </div>
-                      <div style={{ height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px" }}>
-                        <div style={{ height: "100%", width: "90%", background: "#22c55e", borderRadius: "4px" }}></div>
-                      </div>
+                  ) : (
+                    <div style={{ marginTop: "1rem" }}>
+                      {interviewHistory[0].qa_list.map((qa, idx) => {
+                        const scorePercent = qa.score > 0 ? qa.score * 10 : 0;
+                        const category = idx === 0 ? 'Technical Skills' : idx === 1 ? 'Communication' : idx === 2 ? 'Problem Solving' : `Question ${idx + 1}`;
+                        let color = '#3B82F6';
+                        if (qa.score >= 8) color = '#22c55e';
+                        else if (qa.score >= 5) color = '#f59e0b';
+                        else if (qa.score > 0) color = '#ef4444';
+                        
+                        return (
+                          <div key={idx} style={{ marginBottom: "1.5rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                              <span>{category}</span>
+                              <span style={{ color, fontWeight: '600' }}>{scorePercent > 0 ? `${scorePercent.toFixed(0)}%` : 'Not scored'}</span>
+                            </div>
+                            <div style={{ height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px", overflow: 'hidden' }}>
+                              <div style={{ height: "100%", width: `${scorePercent}%`, background: color, borderRadius: "4px", transition: 'width 0.3s ease' }}></div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                        <span>Problem Solving</span>
-                        <span>78%</span>
-                      </div>
-                      <div style={{ height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px" }}>
-                        <div style={{ height: "100%", width: "78%", background: "#f59e0b", borderRadius: "4px" }}></div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
               <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Interview History</h3>
+                <h3 className={styles.cardTitle}>Interview History & Analysis</h3>
                 {loading ? (
                   <p style={{ marginTop: "1rem", color: "#9ca3af" }}>Loading interview history...</p>
                 ) : interviewHistory.length === 0 ? (
@@ -461,8 +595,13 @@ export default function DashboardPage() {
                           onClick={() => toggleExpand(interview.interview_id)}
                         >
                           <div>
-                            <p style={{ margin: "0", fontWeight: "500" }}>{interview.job_role} - {interview.company}</p>
-                            <p style={{ margin: "0", fontSize: "0.875rem", color: "#9ca3af" }}>Date: {interview.date} | Average Score: {interview.average_score.toFixed(1)}/10</p>
+                            <p style={{ margin: "0", fontWeight: "600", fontSize: "1.05rem" }}>
+                              {interview.job_role}
+                              <span style={{ color: "#9ca3af", fontSize: "0.9rem", marginLeft: "0.5rem" }}>@ {interview.company}</span>
+                            </p>
+                            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.875rem", color: "#9ca3af" }}>
+                              Date: {new Date(interview.date).toLocaleDateString()} | Average Score: <strong style={{ color: '#3B82F6' }}>{interview.average_score.toFixed(1)}/10</strong> | Questions: <strong>{interview.qa_list.length}</strong>
+                            </p>
                           </div>
                           <span style={{ fontSize: "1.5rem", color: "#9ca3af" }}>
                             {expandedInterviews[interview.interview_id] ? "▼" : "▶"}
@@ -470,16 +609,29 @@ export default function DashboardPage() {
                         </div>
                         {expandedInterviews[interview.interview_id] && (
                           <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                            {interview.qa_list.map((qa, index) => (
-                              <div key={index} style={{ marginBottom: "1.25rem", padding: "0.75rem", background: "rgba(255,255,255,0.03)", borderRadius: "0.375rem" }}>
-                                <p style={{ margin: "0 0 0.5rem 0", fontWeight: "500", color: "#3B82F6" }}>Q{index+1}: {qa.question}</p>
-                                <p style={{ margin: "0 0 0.5rem 0", color: "#d1d5db" }}>A: {qa.answer}</p>
-                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: "0.875rem", background: qa.score >= 7 ? 'rgba(34,197,94,0.2)' : qa.score >= 4 ? 'rgba(245,158,11,0.2)' : 'rgba(239,68,68,0.2)', color: qa.score >= 7 ? '#22c55e' : qa.score >= 4 ? '#f59e0b' : '#ef4444', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontWeight: '600' }}>Score: {qa.score}/10</span>
-                                  {qa.feedback && <span style={{ fontSize: "0.875rem", color: "#9ca3af", fontStyle: 'italic' }}>💬 {qa.feedback}</span>}
+                            {interview.qa_list.map((qa, index) => {
+                              const scoreColor = qa.score >= 7 ? '#22c55e' : qa.score >= 4 ? '#f59e0b' : '#ef4444';
+                              return (
+                                <div key={index} style={{ marginBottom: "1.5rem", padding: "1rem", background: "rgba(255,255,255,0.03)", borderRadius: "0.375rem", borderLeft: `3px solid ${scoreColor}` }}>
+                                  <p style={{ margin: "0 0 0.75rem 0", fontWeight: "600", color: "#3B82F6", fontSize: '1rem' }}>
+                                    Q{index+1}: {qa.question}
+                                  </p>
+                                  <p style={{ margin: "0 0 0.75rem 0", color: "#d1d5db", lineHeight: '1.5', paddingLeft: '0.5rem', borderLeft: '2px solid rgba(59,130,246,0.3)' }}>
+                                    <strong style={{ color: '#fff' }}>Your Answer:</strong> {qa.answer || 'Not answered'}
+                                  </p>
+                                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginLeft: '0.5rem' }}>
+                                    <span style={{ fontSize: "0.875rem", background: scoreColor + '20', color: scoreColor, padding: '0.35rem 0.75rem', borderRadius: '0.375rem', fontWeight: '600' }}>
+                                      Score: {qa.score > 0 ? `${(qa.score * 10).toFixed(0)}%` : 'Not scored'}
+                                    </span>
+                                    {qa.feedback && (
+                                      <span style={{ fontSize: "0.875rem", color: "#d1d5db", fontStyle: 'italic', padding: '0.35rem 0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.375rem' }}>
+                                        💬 {qa.feedback}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -488,21 +640,39 @@ export default function DashboardPage() {
                 )}
               </div>
 
-
             <div className={styles.card}>
-              <h3 className={styles.cardTitle}>AI Analysis</h3>
+              <h3 className={styles.cardTitle}>AI Analysis & Recommendations</h3>
               <div style={{ marginTop: "1rem" }}>
                 {interviewHistory.length === 0 ? (
                   <p style={{ color: '#9ca3af' }}>Complete an interview to see AI-generated insights here.</p>
                 ) : (
-                  <ul className={styles.list}>
-                    <li>Overall average score: {overallAvg.toFixed(1)}/10 ({overallPct}%)</li>
-                    <li>Total interviews completed: {totalInterviews}</li>
-                    <li>Total questions answered: {allScores.length}</li>
-                    {overallPct >= 80 && <li>Elite performance — you are in the top tier of candidates!</li>}
-                    {overallPct >= 60 && overallPct < 80 && <li>Good performance — focus on system design and edge cases to improve.</li>}
-                    {overallPct < 60 && overallPct > 0 && <li>Keep practicing — review your answers in the history above for areas to improve.</li>}
-                  </ul>
+                  <div>
+                    {interviewHistory[0].narrative_summary && (
+                      <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(59,130,246,0.1)', borderRadius: '0.5rem', borderLeft: '3px solid #3B82F6' }}>
+                        <p style={{ margin: '0', color: '#d1d5db', lineHeight: '1.6' }}>
+                          {interviewHistory[0].narrative_summary}
+                        </p>
+                      </div>
+                    )}
+                    <ul className={styles.list}>
+                      <li><strong style={{ color: '#22c55e' }}>Overall Average Score:</strong> {overallAvg.toFixed(1)}/10 ({overallPct}%)</li>
+                      <li><strong style={{ color: '#3B82F6' }}>Total Interviews Completed:</strong> {totalInterviews}</li>
+                      <li><strong style={{ color: '#f59e0b' }}>Total Questions Answered:</strong> {allScores.length}</li>
+                      {overallPct >= 80 && <li style={{ color: '#22c55e' }}>✓ <strong>Elite performance</strong> — you are in the top tier of candidates!</li>}
+                      {overallPct >= 60 && overallPct < 80 && <li style={{ color: '#3B82F6' }}>✓ <strong>Good performance</strong> — focus on system design and edge cases to improve.</li>}
+                      {overallPct < 60 && overallPct > 0 && <li style={{ color: '#f59e0b' }}>→ <strong>Keep practicing</strong> — review your answers in the history above for areas to improve.</li>}
+                      {interviewHistory.length > 0 && (
+                        <>
+                          <li style={{ marginTop: '1rem', color: '#9ca3af' }}>
+                            <strong>Strength Areas:</strong> Questions with scores 8+/10
+                          </li>
+                          <li style={{ color: '#9ca3af' }}>
+                            <strong>Focus Areas:</strong> Questions with scores below 5/10
+                          </li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
                 )}
               </div>
             </div>

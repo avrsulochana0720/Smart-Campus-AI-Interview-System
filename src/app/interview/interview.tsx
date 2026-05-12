@@ -50,7 +50,67 @@ const Interview: React.FC = () => {
         console.error("Failed to decode token", e);
       }
     }
-  }, []);
+
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+          setAnswer(prev => prev + finalTranscript);
+        }
+      };
+      
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        // Handle various error cases and continue listening
+        if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
+          // Try to restart after a delay for continuous listening
+          setTimeout(() => {
+            if (isRecording) {
+              try {
+                recognition.start();
+              } catch (e) {
+                console.log('Failed to restart recognition:', e);
+              }
+            }
+          }, 1000);
+        }
+      };
+      
+      recognition.onend = () => {
+        // Always restart if we're still in recording mode
+        if (isRecording) {
+          setTimeout(() => {
+            try {
+              recognition.start();
+            } catch (e) {
+              console.log('Failed to restart recognition on end:', e);
+            }
+          }, 100);
+        }
+      };
+      
+      recognitionRef.current = recognition;
+    }
+  }, [isRecording]);
 
   // Real-time Dual Interviewer Voice + Highlight Synchronization
   useEffect(() => {
@@ -111,8 +171,9 @@ const Interview: React.FC = () => {
   const loadInterviewData = async (id: number) => {
     try {
       setIsLoading(true);
-      setActiveSpeaker('hr');
-      
+      setActiveSpeaker('technical');
+      setInterviewPhase('technical');
+
       // Get interview report/details first
       const report = await interviewAPI.getReport(id);
       setInterviewDetails({
@@ -121,13 +182,13 @@ const Interview: React.FC = () => {
         created_at: report.created_at
       });
 
-      // 1. Generate/Get HR questions
-      const genData = await interviewAPI.generateQuestions(id, 'hr');
+      // 1. Generate/Get Technical questions first
+      const genData = await interviewAPI.generateQuestions(id, 'technical');
       const questionList = genData.questions || [];
-      
-      // 2. Check if we already have technical questions too
+
+      // 2. Check if we already have HR questions too
       const currentStatus = await interviewAPI.getQuestion(id);
-      
+
       setQuestions(questionList);
       setAnswers(new Array(questionList.length).fill(''));
 
@@ -196,7 +257,7 @@ const Interview: React.FC = () => {
 
     try {
       const result = await interviewAPI.submitAnswer(interviewId, currentQ.id, answer);
-      
+
       // Update answers array
       const newAnswers = [...answers];
       newAnswers[currentQuestionIndex] = answer;
@@ -207,36 +268,37 @@ const Interview: React.FC = () => {
         const newScores = [...scores, result.score];
         setScores(newScores);
         const avg = newScores.reduce((a, b) => a + b, 0) / newScores.length;
-        setPerformanceScore((avg * 10).toFixed(0)); // Convert to percentage
+        setPerformanceScore((avg * 10).toFixed(0));
       }
 
       if (currentQuestionIndex === questions.length - 1) {
         // End of current questions list
-        if (interviewPhase === 'hr') {
-          // Transition to Technical
+        if (interviewPhase === 'technical') {
+          // Transition to HR
           setIsLoading(true);
-          setActiveSpeaker('technical');
-          setInterviewPhase('technical');
-          
+          setActiveSpeaker('hr');
+          setInterviewPhase('hr');
+
           try {
-            const techData = await interviewAPI.generateQuestions(interviewId, 'technical');
-            const newQuestions = [...questions, ...techData.questions];
+            const hrData = await interviewAPI.generateQuestions(interviewId, 'hr');
+            const newQuestions = [...questions, ...hrData.questions];
             setQuestions(newQuestions);
             const nextIndex = currentQuestionIndex + 1;
             setCurrentQuestionIndex(nextIndex);
             setAnswer('');
             updateSpeaker(newQuestions[nextIndex]);
           } catch (err) {
-            console.error("Failed to generate technical questions", err);
+            console.error("Failed to generate HR questions", err);
             setIsCompleted(true);
           } finally {
             setIsLoading(false);
           }
         } else {
+          // HR phase complete - interview done
           setIsCompleted(true);
         }
       } else {
-        // Move to next
+        // Move to next question
         const nextIndex = currentQuestionIndex + 1;
         setCurrentQuestionIndex(nextIndex);
         setAnswer(newAnswers[nextIndex] || '');
@@ -302,7 +364,7 @@ const Interview: React.FC = () => {
 
   const [interimAnswer, setInterimAnswer] = useState('');
 
-  const toggleRecording = () => {
+  const toggleRecording = async () => {
     if (isRecording) {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
@@ -310,6 +372,15 @@ const Interview: React.FC = () => {
         setInterimAnswer('');
       }
     } else {
+      // Request microphone access (works with both built-in and Bluetooth microphones)
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (error) {
+        console.error('Microphone access error:', error);
+        alert('Could not access microphone. Please check permissions.');
+        return;
+      }
+
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
@@ -348,11 +419,31 @@ const Interview: React.FC = () => {
 
         recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
-          setIsRecording(false);
+          // Continue listening even on errors for robust voice capture
+          if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
+            setTimeout(() => {
+              if (recognitionRef.current && isRecording) {
+                try {
+                  recognitionRef.current.start();
+                } catch (e) {
+                  console.log('Failed to restart recognition:', e);
+                }
+              }
+            }, 1000);
+          }
         };
 
         recognition.onend = () => {
-          setIsRecording(false);
+          // Always restart for continuous listening
+          if (isRecording && recognitionRef.current) {
+            setTimeout(() => {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.log('Failed to restart recognition on end:', e);
+              }
+            }, 100);
+          }
         };
 
         recognitionRef.current = recognition;
@@ -383,8 +474,6 @@ const Interview: React.FC = () => {
     newAnswers[currentQuestionIndex] = value;
     setAnswers(newAnswers);
   };
-
-  const currentQText = questions[currentQuestionIndex]?.question;
 
   return (
     <div className={styles.container}>
@@ -464,7 +553,7 @@ const Interview: React.FC = () => {
               <div className={styles.progressItem}>
                 <span className={styles.progressLabel}>Performance</span>
                 <span className={`${styles.progressBadge} ${parseFloat(performanceScore) > 80 ? styles.progressBadgeHigh : styles.progressBadgeMedium}`}>
-                  {performanceScore}% {parseFloat(performanceScore) > 80 ? 'High' : 'Stable'}
+                  {performanceScore}%
                 </span>
               </div>
               <div className={styles.progressItem}>
@@ -541,7 +630,7 @@ const Interview: React.FC = () => {
             <div className={styles.questionCard}>
               <span className={styles.questionLabel}>Question</span>
               <p className={styles.questionText}>
-                {currentQText || (isLoading ? 'Loading question...' : 'No question available')}
+                {questions.length > 0 ? `Question ${currentQuestionIndex + 1}` : (isLoading ? 'Loading...' : '...')}
               </p>
             </div>
 

@@ -89,12 +89,14 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+from typing import Optional
+
 # Pydantic model for user response
 class UserResponse(BaseModel):
     id: int
     name: str
     email: str
-    profile_image: str = None
+    profile_image: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -203,16 +205,27 @@ async def register_user(
         
         # Handle photo upload
         profile_image_url = None
-        if photo:
+        if photo and photo.filename:
+            print(f"DEBUG: Processing photo upload: {photo.filename}")
             file_extension = photo.filename.split('.')[-1] if '.' in photo.filename else 'jpg'
             file_name = f"profile_{email}_{int(datetime.utcnow().timestamp())}.{file_extension}"
             file_path = os.path.join("uploads", file_name)
             
-            with open(file_path, "wb") as buffer:
-                buffer.write(await photo.read())
-            
-            profile_image_url = f"http://localhost:8000/uploads/{file_name}"
-            print(f"Photo saved: {profile_image_url}")
+            # Ensure uploads directory exists
+            if not os.path.exists("uploads"):
+                os.makedirs("uploads")
+                
+            contents = await photo.read()
+            if contents:
+                with open(file_path, "wb") as buffer:
+                    buffer.write(contents)
+                
+                profile_image_url = f"http://localhost:8000/uploads/{file_name}"
+                print(f"DEBUG: Photo saved successfully: {profile_image_url}")
+            else:
+                print("DEBUG: Photo upload received but file content is empty")
+        else:
+            print(f"DEBUG: No photo uploaded or empty filename for {email}")
     
         print(f"Creating user record for {email}...")
         # Create new user

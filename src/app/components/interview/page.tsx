@@ -5,6 +5,8 @@ import { interviewAPI } from "../../../utils/api";
 
 export default function InterviewPage() {
   const [transcript, setTranscript] = useState("");
+  const [questions, setQuestions] = useState<Array<any>>([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [currentQuestionText, setCurrentQuestionText] = useState<string>("");
   const [currentQuestionId, setCurrentQuestionId] = useState<number | null>(null);
   const [score, setScore] = useState<number | null>(null);
@@ -12,25 +14,50 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [interviewPhase, setInterviewPhase] = useState<"hr" | "technical">("hr");
   const navigate = useNavigate();
 
   const interviewId = parseInt(localStorage.getItem("interview_id") || "0");
 
   useEffect(() => {
     if (interviewId) {
-      loadFirstQuestion();
+      loadAllQuestions();
     }
   }, [interviewId]);
-
-  const loadFirstQuestion = async () => {
+  
+  // Fetch 5 technical questions then 5 HR questions and combine them
+  const loadAllQuestions = async () => {
     try {
       setLoading(true);
-      const result = await interviewAPI.generateQuestions(interviewId);
-      setCurrentQuestionText(result.question);
-      setCurrentQuestionId(result.question_id);
+
+      // 1) Technical questions
+      const techResp = await interviewAPI.generateQuestions(interviewId, "technical");
+      let techQuestions: any[] = [];
+      if (Array.isArray(techResp.questions)) techQuestions = techResp.questions;
+      else if (techResp.question) techQuestions = [{ id: techResp.question_id, question: techResp.question, question_type: techResp.question_type || 'technical' }];
+
+      // 2) HR questions
+      const hrResp = await interviewAPI.generateQuestions(interviewId, "hr");
+      let hrQuestions: any[] = [];
+      if (Array.isArray(hrResp.questions)) hrQuestions = hrResp.questions;
+      else if (hrResp.question) hrQuestions = [{ id: hrResp.question_id, question: hrResp.question, question_type: hrResp.question_type || 'hr' }];
+
+      // Limit to 5 each and combine: Technical first, then HR
+      const combined = [...techQuestions.slice(0, 5).map((q: any) => ({ ...q, question_type: (q.question_type || 'technical') })), ...hrQuestions.slice(0, 5).map((q: any) => ({ ...q, question_type: (q.question_type || 'hr') }))];
+
+      if (combined.length === 0) {
+        alert('No questions generated for this interview.');
+        return;
+      }
+
+      setQuestions(combined);
+      setCurrentIndex(0);
+      setCurrentQuestionText(combined[0].question || '');
+      setCurrentQuestionId(combined[0].id || null);
+      setInterviewPhase((combined[0].question_type || 'hr') === 'technical' ? 'technical' : 'hr');
     } catch (error) {
-      console.error("Error generating questions:", error);
-      alert("Failed to generate questions. Please try again.");
+      console.error('Error loading questions:', error);
+      alert('Failed to load interview questions. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,58 +86,59 @@ export default function InterviewPage() {
   };
 
   const handleNextQuestion = async () => {
-    if (!currentQuestionId || !transcript.trim()) {
+    // ensure questions loaded
+    if (questions.length === 0) return;
+
+    if (!transcript.trim()) {
       alert("Please provide an answer before proceeding.");
       return;
     }
 
     setSubmitting(true);
     try {
-      const result = await interviewAPI.submitAnswer(interviewId, currentQuestionId, transcript);
+      const q = questions[currentIndex];
+      const result = await interviewAPI.submitAnswer(interviewId, q.id, transcript);
       setScore(result.score);
       setFeedback(result.feedback);
       setShowFeedback(true);
 
-      if (result.is_complete) {
-        setTimeout(() => {
-          navigate("/thank");
-        }, 2000);
+      const nextIndex = currentIndex + 1;
+      if (nextIndex >= questions.length) {
+        // finished all questions
+        setTimeout(() => navigate('/thank'), 1200);
       } else {
+        const nextQ = questions[nextIndex];
         setTimeout(() => {
-          setCurrentQuestionText(result.next_question);
-          setCurrentQuestionId(result.question_id);
-          setTranscript("");
+          setCurrentIndex(nextIndex);
+          setCurrentQuestionText(nextQ.question || '');
+          setCurrentQuestionId(nextQ.id || null);
+          setInterviewPhase((nextQ.question_type || 'hr') === 'technical' ? 'technical' : 'hr');
+          setTranscript('');
           setShowFeedback(false);
           setScore(null);
-          setFeedback("");
-        }, 2000);
+          setFeedback('');
+        }, 600);
       }
     } catch (error) {
-      console.error("Error submitting answer:", error);
-      alert("Failed to submit answer. Please try again.");
+      console.error('Error submitting answer:', error);
+      alert('Failed to submit answer. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Previous button behaviour: navigate back locally without submitting
   const handleSkipQuestion = async () => {
-    if (!currentQuestionId) return;
+    if (questions.length === 0) return;
+    if (currentIndex === 0) return;
 
-    setSubmitting(true);
-    try {
-      const result = await interviewAPI.submitAnswer(interviewId, currentQuestionId, "Skipped");
-      if (result.is_complete) {
-        navigate("/thank");
-      } else {
-        setCurrentQuestionText(result.next_question);
-        setCurrentQuestionId(result.question_id);
-        setTranscript("");
-      }
-    } catch (error) {
-      console.error("Error skipping question:", error);
-    } finally {
-      setSubmitting(false);
-    }
+    const prevIndex = currentIndex - 1;
+    const prevQ = questions[prevIndex];
+    setCurrentIndex(prevIndex);
+    setCurrentQuestionText(prevQ.question || '');
+    setCurrentQuestionId(prevQ.id || null);
+    setInterviewPhase((prevQ.question_type || 'hr') === 'technical' ? 'technical' : 'hr');
+    setTranscript('');
   };
 
   if (loading) {
@@ -129,23 +157,21 @@ export default function InterviewPage() {
       <div className={styles.left}>
         <div className={styles.avatarSection}>
           <div className={styles.avatarContainer}>
-            <svg
-              width="200"
-              height="200"
-              viewBox="0 0 200 200"
-              className={styles.avatar}
-            >
-              <circle cx="100" cy="100" r="90" fill="#1e293b" />
-              <circle cx="100" cy="80" r="35" fill="#fdbcb4" />
-              <path d="M 65 60 Q 100 40 135 60 Q 140 70 135 80 L 65 80 Q 60 70 65 60" fill="#4a4a4a" />
-              <circle cx="85" cy="75" r="3" fill="#333" />
-              <circle cx="115" cy="75" r="3" fill="#333" />
-              <path d="M 90 90 Q 100 95 110 90" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round" />
-              <path d="M 50 120 Q 100 110 150 120 L 140 160 Q 100 150 60 160 Z" fill="#1e40af" />
-              <path d="M 80 120 L 100 130 L 120 120" stroke="#fff" strokeWidth="2" fill="none" />
-            </svg>
+            <img
+              src={interviewPhase === "technical" ? "/down.jpeg" : "/im.jpeg"}
+              alt={interviewPhase === "technical" ? "Technical Interviewer" : "HR Interviewer"}
+              style={{
+                width: "200px",
+                height: "200px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "3px solid rgba(59, 130, 246, 0.5)"
+              }}
+            />
           </div>
-          <div className={styles.avatarLabel}>AI Interviewer</div>
+          <div className={styles.avatarLabel}>
+            {interviewPhase === "technical" ? "Technical Interviewer" : "HR Interviewer"}
+          </div>
         </div>
 
         <div className={styles.progress}>
@@ -192,7 +218,7 @@ export default function InterviewPage() {
 
         {/* Controls */}
         <div className={styles.controls}>
-          <button onClick={handleSkipQuestion} className={styles.skip} disabled={submitting}>Skip Question</button>
+          <button onClick={handleSkipQuestion} className={styles.skip} disabled={submitting}>Previous Question</button>
           <button onClick={handleNextQuestion} className={styles.next} disabled={submitting}>
             {submitting ? "Submitting..." : "Next Question"}
           </button>
