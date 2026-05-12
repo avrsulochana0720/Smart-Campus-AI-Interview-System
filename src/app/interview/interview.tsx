@@ -229,7 +229,7 @@ const Interview: React.FC = () => {
       if (currentQuestionIndex < questions.length - 1) {
         const nextIndex = currentQuestionIndex + 1;
         setCurrentQuestionIndex(nextIndex);
-        setAnswer(answers[nextIndex] || '');
+        setAnswer('');
         updateSpeaker(questions[nextIndex]);
       } else if (interviewPhase === 'hr') {
         // Force transition if last HR question skipped
@@ -301,7 +301,7 @@ const Interview: React.FC = () => {
         // Move to next question
         const nextIndex = currentQuestionIndex + 1;
         setCurrentQuestionIndex(nextIndex);
-        setAnswer(newAnswers[nextIndex] || '');
+        setAnswer('');
         updateSpeaker(questions[nextIndex]);
       }
     } catch (error) {
@@ -630,7 +630,7 @@ const Interview: React.FC = () => {
             <div className={styles.questionCard}>
               <span className={styles.questionLabel}>Question</span>
               <p className={styles.questionText}>
-                {questions.length > 0 ? `Question ${currentQuestionIndex + 1}` : (isLoading ? 'Loading...' : '...')}
+                {questions[currentQuestionIndex]?.question || (isLoading ? 'Loading question...' : 'No question available')}
               </p>
             </div>
 

@@ -214,7 +214,7 @@ export default function DashboardPage() {
                     {interviewHistory.length > 0 ? (
                       interviewHistory[0].qa_list.map((qa, i) => (
                         <tr key={i}>
-                          <td style={{ maxWidth: '200px', wordWrap: 'break-word' }}>{qa.question}</td>
+                          <td style={{ maxWidth: '200px', wordWrap: 'break-word' }}>Question {i + 1}</td>
                           <td style={{ maxWidth: '250px', wordWrap: 'break-word', color: '#d1d5db' }}>{qa.answer || 'Not answered'}</td>
                           <td className={styles.score}>{qa.score > 0 ? `${(qa.score * 10).toFixed(0)}%` : '--'}</td>
                           <td style={{ maxWidth: '200px', wordWrap: 'break-word', fontSize: '0.875rem', color: '#9ca3af' }}>{qa.feedback || 'Answer recorded'}</td>
@@ -614,7 +614,7 @@ export default function DashboardPage() {
                               return (
                                 <div key={index} style={{ marginBottom: "1.5rem", padding: "1rem", background: "rgba(255,255,255,0.03)", borderRadius: "0.375rem", borderLeft: `3px solid ${scoreColor}` }}>
                                   <p style={{ margin: "0 0 0.75rem 0", fontWeight: "600", color: "#3B82F6", fontSize: '1rem' }}>
-                                    Q{index+1}: {qa.question}
+                                    Question {index + 1}
                                   </p>
                                   <p style={{ margin: "0 0 0.75rem 0", color: "#d1d5db", lineHeight: '1.5', paddingLeft: '0.5rem', borderLeft: '2px solid rgba(59,130,246,0.3)' }}>
                                     <strong style={{ color: '#fff' }}>Your Answer:</strong> {qa.answer || 'Not answered'}
