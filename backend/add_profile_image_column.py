@@ -20,13 +20,4 @@ try:
         print("Successfully added profile_image column to MySQL")
 except Exception as e:
     print(f"Failed to update MySQL: {e}")
-    # Fallback to SQLite
-    try:
-        import sqlite3
-        conn = sqlite3.connect('app_users.db')
-        conn.execute('ALTER TABLE users ADD COLUMN profile_image TEXT')
-        conn.commit()
-        conn.close()
-        print("Successfully added profile_image column to SQLite")
-    except Exception as se:
-        print(f"Failed to update SQLite: {se}")
+    print("Please ensure XAMPP MySQL is running.")

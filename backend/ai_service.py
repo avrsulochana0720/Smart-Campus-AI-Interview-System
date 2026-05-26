@@ -1,9 +1,15 @@
-import ollama
 import os
 from typing import List, Dict, Any
 import re
 import json
 from dotenv import load_dotenv
+
+try:
+    from gemini_helper import request_gemini
+except ImportError:
+    import sys
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from gemini_helper import request_gemini
 
 # Load environment variables
 load_dotenv()
@@ -117,17 +123,13 @@ Exact Structure:
 """
         
         try:
-            response = ollama.generate(
-                model=self.model,
-                prompt=prompt,
-                options={'temperature': 0.7}
-            )
-            
-            content = response['response'].strip()
+            content = request_gemini(prompt)
+            content = content.strip()
             
             # Clean up JSON response
             content = re.sub(r'```json\n?', '', content)
             content = re.sub(r'```\n?', '', content)
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
             
             # Try to find the JSON object if there's extra text
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
@@ -135,29 +137,17 @@ Exact Structure:
                 content = json_match.group(0)
             
             result = json.loads(content)
-            return result.get("questions", [])
+            questions = result.get("questions", [])
+            print("\n" + "="*80)
+            print(f"[AI SERVICE GENERATED QUESTIONS - {phase.upper()} PHASE]")
+            for i, q in enumerate(questions):
+                print(f"  Q{i+1}: {q.get('question')}")
+            print("="*80 + "\n")
+            return questions
             
         except Exception as e:
-            print(f"Error generating questions with Ollama ({self.model}): {e}")
-            return self.generate_template_questions(job_role, company, skills, experience_level, phase)
-    
-    def generate_template_questions(self, job_role, company, skills, experience_level, phase="hr"):
-        if phase == "hr":
-            return [
-                {"question": f"Tell me about yourself and why you want to join {company} as a {job_role}.", "type": "hr", "difficulty": "easy"},
-                {"question": "What is your biggest professional achievement so far?", "type": "hr", "difficulty": "medium"},
-                {"question": f"How do you handle conflict in a team environment at {company}?", "type": "hr", "difficulty": "medium"},
-                {"question": "Describe a time you showed leadership in a project.", "type": "hr", "difficulty": "medium"},
-                {"question": f"Where do you see yourself in five years with {company}?", "type": "hr", "difficulty": "medium"}
-            ]
-        else:
-            return [
-                {"question": f"Explain the core architecture of a project you built using {skills[0] if skills else 'your main stack'}.", "type": "technical", "difficulty": "hard"},
-                {"question": "How do you ensure code quality and performance in your applications?", "type": "technical", "difficulty": "hard"},
-                {"question": f"Describe a complex technical problem you solved as a {job_role}.", "type": "technical", "difficulty": "hard"},
-                {"question": f"What are the trade-offs of using {skills[1] if len(skills) > 1 else 'microservices'}?", "type": "technical", "difficulty": "hard"},
-                {"question": "How would you optimize a database query that is running extremely slow in production?", "type": "technical", "difficulty": "hard"}
-            ]
+            print(f"Error generating questions with Gemini: {e}")
+            raise e
 
 class AnswerEvaluator:
     def __init__(self):
@@ -197,15 +187,11 @@ Return ONLY a valid JSON object with this exact structure:
 """
         
         try:
-            response = ollama.generate(
-                model=self.model,
-                prompt=prompt,
-                options={'temperature': 0.3}
-            )
-            
-            content = response['response'].strip()
+            content = request_gemini(prompt)
+            content = content.strip()
             content = re.sub(r'```json\n?', '', content)
             content = re.sub(r'```\n?', '', content)
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
             
             json_match = re.search(r'\{.*\}', content, re.DOTALL)
             if json_match:
@@ -219,7 +205,7 @@ Return ONLY a valid JSON object with this exact structure:
             }
             
         except Exception as e:
-            print(f"Error evaluating answer with Ollama: {e}")
+            print(f"Error evaluating answer with Gemini: {e}")
             return {"score": 5, "feedback": "Answer recorded.", "next_question": "Continue"}
 
     def evaluate_template_answer(
@@ -265,16 +251,109 @@ Summary:
 """
         
         try:
-            response = ollama.generate(
-                model=self.model,
-                prompt=prompt,
-                options={'temperature': 0.5}
-            )
-            
-            return response['response'].strip()
+            content = request_gemini(prompt)
+            content = content.strip()
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+            return content
         except Exception as e:
-            print(f"Error generating summary with Ollama: {e}")
+            print(f"Error generating summary with Gemini: {e}")
             return "Narrative summary unavailable."
+
+    def generate_interview_report(
+        self,
+        job_role: str,
+        company: str,
+        qa_data: List[Dict],
+        resume_text: str = ""
+    ) -> Dict:
+        """
+        Generate a comprehensive interview performance report using the same Qwen model.
+        Uses all saved answers from the database to create a detailed assessment.
+        
+        Args:
+            job_role: The job position being interviewed for
+            company: The company conducting the interview
+            qa_data: List of dicts with 'question', 'answer', 'score', 'feedback' keys
+            resume_text: Candidate's resume text for context
+        
+        Returns:
+            Dict with narrative_summary, average_score, and other metrics
+        """
+        if not qa_data:
+            return {
+                "narrative_summary": "No interview data available to generate report.",
+                "average_score": 0,
+                "total_questions": 0,
+                "answered_questions": 0
+            }
+        
+        # Calculate metrics
+        total_questions = len(qa_data)
+        answered_questions = sum(1 for qa in qa_data if qa.get('answer') and qa['answer'] != "Not answered")
+        average_score = sum(qa.get('score', 0) for qa in qa_data) / total_questions if total_questions > 0 else 0
+        
+        # Build comprehensive QA summary for the prompt
+        qa_summary = ""
+        for i, qa in enumerate(qa_data):
+            qa_summary += f"Q{i+1} ({qa.get('question_type', 'general')}): {qa['question']}\n"
+            qa_summary += f"Answer: {qa['answer'] if qa['answer'] != 'Not answered' else 'Not answered'}\n"
+            qa_summary += f"Score: {qa.get('score', 0)}/10\n"
+            if qa.get('feedback'):
+                qa_summary += f"Feedback: {qa['feedback']}\n"
+            qa_summary += "\n"
+        
+        # Build resume context (limited to avoid token overflow)
+        resume_context = resume_text[:1500] if resume_text else "No resume provided"
+        
+        # Create comprehensive prompt for report generation
+        prompt = f"""You are an expert HR and technical interviewer generating a comprehensive interview report.
+
+INTERVIEW DETAILS:
+Position: {job_role}
+Company: {company}
+Total Questions Asked: {total_questions}
+Questions Answered: {answered_questions}
+Average Score: {average_score:.1f}/10
+
+CANDIDATE RESUME SUMMARY:
+{resume_context}
+
+INTERVIEW TRANSCRIPT AND SCORES:
+{qa_summary}
+
+Based on the interview data above, generate a professional interview performance report. The report should include:
+
+1. OVERALL ASSESSMENT: A 2-3 sentence summary of the candidate's overall performance
+2. STRENGTHS: Key strengths demonstrated during the interview (2-3 points)
+3. AREAS FOR IMPROVEMENT: Constructive feedback on areas to develop (2-3 points)
+4. TECHNICAL COMPETENCY: Assessment of technical skills if applicable (1-2 sentences)
+5. SOFT SKILLS: Assessment of communication, problem-solving, and interpersonal skills (1-2 sentences)
+6. RECOMMENDATION: Hiring recommendation with brief reasoning (1-2 sentences)
+
+Format the response as a professional report with clear sections. Be specific and reference examples from the interview answers."""
+        
+        try:
+            content = request_gemini(prompt)
+            narrative = content.strip()
+            narrative = re.sub(r'<think>.*?</think>', '', narrative, flags=re.DOTALL)
+            
+            return {
+                "narrative_summary": narrative,
+                "average_score": int(average_score),
+                "total_questions": total_questions,
+                "answered_questions": answered_questions,
+                "status": "completed"
+            }
+            
+        except Exception as e:
+            print(f"Error generating interview report with Gemini: {e}")
+            return {
+                "narrative_summary": "Interview report could not be generated at this time. Please try again later.",
+                "average_score": int(average_score),
+                "total_questions": total_questions,
+                "answered_questions": answered_questions,
+                "status": "failed"
+            }
 
 # Singleton instances
 question_generator = QuestionGenerator()

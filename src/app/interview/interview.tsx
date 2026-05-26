@@ -1,16 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mic, MicOff, Video, VideoOff, Clock, User } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, User } from 'lucide-react';
 import styles from '../../styles/interview.module.css';
 import thankStyles from '../../styles/thank.module.css';
 import { interviewAPI } from '../../utils/api';
+
+const isPlaceholderQuestion = (qText: string) => {
+  if (!qText) return false;
+  return qText.includes("AI is personalizing") || qText.includes("Loading question");
+};
+
+const isErrorQuestion = (qText: string) => {
+  if (!qText) return false;
+  return qText.startsWith("ERROR:");
+};
 
 const Interview: React.FC = () => {
   const navigate = useNavigate();
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [answer, setAnswer] = useState('');
-  const [timeRemaining, setTimeRemaining] = useState(24 * 60 + 45);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const answerRef = useRef('');
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -19,6 +29,22 @@ const Interview: React.FC = () => {
   const [questions, setQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [interviewId, setInterviewId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isCompleted && interviewId) {
+      // Trigger report generation in background
+      interviewAPI.generateReport(interviewId).catch(err => console.error("Report generation failed", err));
+    }
+  }, [isCompleted, interviewId]);
+
+  useEffect(() => {
+    const unsubscribe = interviewAPI.onQuestionUpdate?.(() => {
+      // Force re-render so components read the updated question getters
+      setQuestions(prev => [...prev]);
+    });
+    return unsubscribe;
+  }, []);
   const [activeSpeaker, setActiveSpeaker] = useState<'hr' | 'technical' | null>('hr');
   const [interviewPhase, setInterviewPhase] = useState<'hr' | 'technical'>('hr');
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -33,8 +59,26 @@ const Interview: React.FC = () => {
       const id = parseInt(storedInterviewId);
       setInterviewId(id);
       loadInterviewData(id);
+      // Auto-start camera for real interview feel
+      startCamera();
     }
   }, []);
+
+  const startCamera = async () => {
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(newStream);
+      setCameraEnabled(true);
+    } catch (error) {
+      console.error('Camera error:', error);
+      // Log as a proctoring issue if camera fails to start in a real interview
+      if (interviewId) {
+        interviewAPI.logProctoringEvent(interviewId, 'camera_off', {
+          error: 'Camera access denied or failed on startup'
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -74,7 +118,11 @@ const Interview: React.FC = () => {
         }
         
         if (finalTranscript) {
-          setAnswer(prev => prev + finalTranscript);
+          setAnswer(prev => {
+            const newVal = prev + finalTranscript;
+            answerRef.current = newVal;
+            return newVal;
+          });
         }
       };
       
@@ -115,7 +163,7 @@ const Interview: React.FC = () => {
   // Real-time Dual Interviewer Voice + Highlight Synchronization
   useEffect(() => {
     const currentQuestion = questions[currentQuestionIndex]?.question;
-    if (!currentQuestion || isLoading || isCompleted) return;
+    if (!currentQuestion || isLoading || isCompleted || isPlaceholderQuestion(currentQuestion) || isErrorQuestion(currentQuestion)) return;
 
     const qType = (questions[currentQuestionIndex].type || questions[currentQuestionIndex].question_type || '').toLowerCase();
     const speakerToActivate = (qType === 'hr' || qType === 'behavioral') ? 'hr' : 'technical';
@@ -183,22 +231,32 @@ const Interview: React.FC = () => {
       });
 
       // 1. Generate/Get Technical questions first
-      const genData = await interviewAPI.generateQuestions(id, 'technical');
-      const questionList = genData.questions || [];
+      const techData = await interviewAPI.generateQuestions(id, 'technical');
+      const techQuestions = techData.questions || [];
 
-      // 2. Check if we already have HR questions too
+      // 2. Generate/Get HR questions too
+      const hrData = await interviewAPI.generateQuestions(id, 'hr');
+      const hrQuestions = hrData.questions || [];
+
+      // Combine them: 5 technical followed by 5 HR
+      const combinedQuestions = [
+        ...techQuestions.slice(0, 5).map((q: any) => ({ ...q, type: q.type || q.question_type || 'technical' })),
+        ...hrQuestions.slice(0, 5).map((q: any) => ({ ...q, type: q.type || q.question_type || 'hr' }))
+      ];
+
+      // Check where candidate is in the interview
       const currentStatus = await interviewAPI.getQuestion(id);
 
-      setQuestions(questionList);
-      setAnswers(new Array(questionList.length).fill(''));
+      setQuestions(combinedQuestions);
+      setAnswers(new Array(combinedQuestions.length).fill(''));
 
       if (currentStatus.is_complete) {
         setIsCompleted(true);
       } else {
-        const index = questionList.findIndex((q: any) => q.id === (currentStatus.question_id || currentStatus.id));
+        const index = combinedQuestions.findIndex((q: any) => q.id === (currentStatus.question_id || currentStatus.id));
         if (index !== -1) {
           setCurrentQuestionIndex(index);
-          updateSpeaker(questionList[index]);
+          updateSpeaker(combinedQuestions[index]);
         }
       }
     } catch (error) {
@@ -224,38 +282,25 @@ const Interview: React.FC = () => {
     const currentQ = questions[currentQuestionIndex];
     if (!currentQ || !interviewId) return;
 
+    const currentAnswer = answerRef.current;
+
     // Fast skip if answer is empty
-    if (!answer.trim()) {
+    if (!currentAnswer.trim()) {
       if (currentQuestionIndex < questions.length - 1) {
         const nextIndex = currentQuestionIndex + 1;
         setCurrentQuestionIndex(nextIndex);
         setAnswer('');
+        answerRef.current = '';
         updateSpeaker(questions[nextIndex]);
-      } else if (interviewPhase === 'hr') {
-        // Force transition if last HR question skipped
-        setIsLoading(true);
-        setActiveSpeaker('technical');
-        setInterviewPhase('technical');
-        try {
-          const techData = await interviewAPI.generateQuestions(interviewId, 'technical');
-          const newQuestions = [...questions, ...techData.questions];
-          setQuestions(newQuestions);
-          const nextIndex = currentQuestionIndex + 1;
-          setCurrentQuestionIndex(nextIndex);
-          setAnswer('');
-          updateSpeaker(newQuestions[nextIndex]);
-        } catch (err) {
-          setIsCompleted(true);
-        } finally {
-          setIsLoading(false);
-        }
       } else {
+        // We are at the end of the current questions list
         setIsCompleted(true);
       }
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const result = await interviewAPI.submitAnswer(interviewId, currentQ.id, answer);
 
       // Update answers array
@@ -272,74 +317,46 @@ const Interview: React.FC = () => {
       }
 
       if (currentQuestionIndex === questions.length - 1) {
-        // End of current questions list
-        if (interviewPhase === 'technical') {
-          // Transition to HR
-          setIsLoading(true);
-          setActiveSpeaker('hr');
-          setInterviewPhase('hr');
-
-          try {
-            const hrData = await interviewAPI.generateQuestions(interviewId, 'hr');
-            const newQuestions = [...questions, ...hrData.questions];
-            setQuestions(newQuestions);
-            const nextIndex = currentQuestionIndex + 1;
-            setCurrentQuestionIndex(nextIndex);
-            setAnswer('');
-            updateSpeaker(newQuestions[nextIndex]);
-          } catch (err) {
-            console.error("Failed to generate HR questions", err);
-            setIsCompleted(true);
-          } finally {
-            setIsLoading(false);
-          }
-        } else {
-          // HR phase complete - interview done
-          setIsCompleted(true);
-        }
+        // HR phase complete - interview done
+        setIsCompleted(true);
       } else {
         // Move to next question
         const nextIndex = currentQuestionIndex + 1;
         setCurrentQuestionIndex(nextIndex);
         setAnswer('');
+        answerRef.current = '';
         updateSpeaker(questions[nextIndex]);
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
       alert('Failed to submit answer. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 0) return 0;
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Timer logic removed per user request
 
   const [stream, setStream] = useState<MediaStream | null>(null);
 
   const toggleCamera = async () => {
     try {
       if (!cameraEnabled) {
-        const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        setStream(newStream);
-        setCameraEnabled(true);
+        await startCamera();
       } else {
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
           setStream(null);
         }
         setCameraEnabled(false);
+        
+        // Log violation for turning off camera during interview
+        if (interviewId && !isCompleted) {
+          interviewAPI.logProctoringEvent(interviewId, 'camera_off', {
+            timestamp: new Date().toISOString(),
+            action: 'User manually disabled camera'
+          });
+        }
       }
     } catch (error) {
       console.error('Camera error:', error);
@@ -352,6 +369,68 @@ const Interview: React.FC = () => {
       videoRef.current.srcObject = stream;
     }
   }, [cameraEnabled, stream]);
+
+  // Proctoring Listeners
+  useEffect(() => {
+    if (!interviewId || isCompleted) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        interviewAPI.logProctoringEvent(interviewId, 'tab_switch', {
+          timestamp: new Date().toISOString(),
+          url: window.location.href
+        });
+      }
+    };
+
+    const handleBlur = () => {
+      interviewAPI.logProctoringEvent(interviewId, 'window_change', {
+        timestamp: new Date().toISOString()
+      });
+    };
+
+    const handleResize = () => {
+      interviewAPI.logProctoringEvent(interviewId, 'browser_resize', {
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    const handleCopy = (e: ClipboardEvent) => {
+      interviewAPI.logProctoringEvent(interviewId, 'copy_paste', {
+        action: 'copy'
+      });
+    };
+
+    const handlePaste = (e: ClipboardEvent) => {
+      interviewAPI.logProctoringEvent(interviewId, 'copy_paste', {
+        action: 'paste'
+      });
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      interviewAPI.logProctoringEvent(interviewId, 'screenshot_attempt', {
+        action: 'Right-click context menu attempt'
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('resize', handleResize);
+    document.addEventListener('copy', handleCopy);
+    document.addEventListener('paste', handlePaste);
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('paste', handlePaste);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [interviewId, isCompleted]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -405,6 +484,7 @@ const Interview: React.FC = () => {
             setAnswer(prev => {
               const base = prev.endsWith(' ') ? prev : prev + (prev ? ' ' : '');
               const newVal = base + final;
+              answerRef.current = newVal;
               // Sync with answers array
               const newAnswers = [...answers];
               newAnswers[currentQuestionIndex] = newVal;
@@ -470,6 +550,7 @@ const Interview: React.FC = () => {
 
   const handleAnswerChange = (value: string) => {
     setAnswer(value);
+    answerRef.current = value;
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = value;
     setAnswers(newAnswers);
@@ -628,10 +709,46 @@ const Interview: React.FC = () => {
           <div className={styles.column3}>
             {/* Question Card */}
             <div className={styles.questionCard}>
+              <style>{`
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+                @keyframes pulse {
+                  0%, 100% { opacity: 1; }
+                  50% { opacity: 0.6; }
+                }
+              `}</style>
               <span className={styles.questionLabel}>Question</span>
-              <p className={styles.questionText}>
+              <p className={styles.questionText} style={isErrorQuestion(questions[currentQuestionIndex]?.question) ? { color: '#dc3545' } : undefined}>
                 {questions[currentQuestionIndex]?.question || (isLoading ? 'Loading question...' : 'No question available')}
               </p>
+              {questions[currentQuestionIndex] && isErrorQuestion(questions[currentQuestionIndex].question) && (
+                <div style={{ marginTop: '15px' }}>
+                  <button 
+                    onClick={() => {
+                       if (interviewId) {
+                         interviewAPI.retryQuestion(interviewId, questions[currentQuestionIndex].id);
+                         const updated = [...questions];
+                         updated[currentQuestionIndex].question = "AI is personalizing your question. Please wait... [Retrying]";
+                         setQuestions(updated);
+                       }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    Retry Generation
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Controls Card */}
@@ -645,12 +762,6 @@ const Interview: React.FC = () => {
                   {cameraEnabled ? <Video /> : <VideoOff />}
                   <span>{cameraEnabled ? 'Camera On' : 'Camera Off'}</span>
                 </button>
-
-                {/* Timer */}
-                <div className={styles.timer}>
-                  <Clock />
-                  <span className={styles.timerText}>{formatTime(timeRemaining)}</span>
-                </div>
 
                 {/* Microphone Toggle */}
                 <button
@@ -691,19 +802,51 @@ const Interview: React.FC = () => {
               <div className={styles.bottomButtons}>
                 <button
                   onClick={handlePreviousQuestion}
-                  disabled={currentQuestionIndex === 0}
+                  disabled={currentQuestionIndex === 0 || isSubmitting}
                   className={`${styles.button} ${styles.buttonPrevious}`}
                 >
                   Previous
                 </button>
-                <button className={`${styles.button} ${styles.buttonSave}`}>
+                <button 
+                  disabled={isSubmitting}
+                  className={`${styles.button} ${styles.buttonSave}`}
+                >
                   Save Draft
                 </button>
                 <button
                   onClick={handleNextQuestion}
+                  disabled={isSubmitting || (currentQuestionIndex < questions.length - 1 && isPlaceholderQuestion(questions[currentQuestionIndex + 1]?.question))}
                   className={`${styles.button} ${styles.buttonNext}`}
                 >
-                  {currentQuestionIndex === questions.length - 1 && interviewPhase === 'technical' ? 'Complete' : 'Next Question'}
+                  {isSubmitting ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: '12px',
+                        height: '12px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '50%',
+                        borderTopColor: '#ffffff',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                      AI Evaluating...
+                    </span>
+                  ) : currentQuestionIndex < questions.length - 1 && isPlaceholderQuestion(questions[currentQuestionIndex + 1]?.question) ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                      <span style={{
+                        display: 'inline-block',
+                        width: '12px',
+                        height: '12px',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: '50%',
+                        borderTopColor: '#ffffff',
+                        animation: 'spin 1s linear infinite'
+                      }} />
+                      Generating Next...
+                    </span>
+                  ) : (
+                    currentQuestionIndex === questions.length - 1 && interviewPhase === 'technical' ? 'Complete' : 'Next Question'
+                  )}
                 </button>
               </div>
             </div>

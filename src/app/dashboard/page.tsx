@@ -19,7 +19,13 @@ interface Interview {
   qa_list: QA[];
   total_score: number;
   average_score: number;
-  narrative_summary?: string;
+  report?: {
+    narrative_summary: string;
+    strengths: string;
+    weaknesses: string;
+    recommendation: string;
+    proctoring_analysis?: any;
+  };
 }
 
 interface UserProfile {
@@ -242,9 +248,9 @@ export default function DashboardPage() {
                   <p style={{ color: '#9ca3af', marginTop: '1rem' }}>Complete an interview to see insights here.</p>
                 ) : (
                   <div>
-                    {interviewHistory[0].narrative_summary && (
+                    {interviewHistory[0].report?.narrative_summary && (
                       <p style={{ color: '#d1d5db', marginBottom: '1rem', lineHeight: '1.6' }}>
-                        {interviewHistory[0].narrative_summary}
+                        {interviewHistory[0].report.narrative_summary}
                       </p>
                     )}
                     <ul className={styles.list}>
@@ -647,11 +653,16 @@ export default function DashboardPage() {
                   <p style={{ color: '#9ca3af' }}>Complete an interview to see AI-generated insights here.</p>
                 ) : (
                   <div>
-                    {interviewHistory[0].narrative_summary && (
+                    {interviewHistory[0].report?.narrative_summary && (
                       <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(59,130,246,0.1)', borderRadius: '0.5rem', borderLeft: '3px solid #3B82F6' }}>
                         <p style={{ margin: '0', color: '#d1d5db', lineHeight: '1.6' }}>
-                          {interviewHistory[0].narrative_summary}
+                          {interviewHistory[0].report.narrative_summary}
                         </p>
+                        {interviewHistory[0].report.recommendation && (
+                           <p style={{ marginTop: '1rem', color: '#fff', fontWeight: '600' }}>
+                             Recommendation: <span style={{ color: '#3B82F6' }}>{interviewHistory[0].report.recommendation}</span>
+                           </p>
+                        )}
                       </div>
                     )}
                     <ul className={styles.list}>
@@ -663,12 +674,13 @@ export default function DashboardPage() {
                       {overallPct < 60 && overallPct > 0 && <li style={{ color: '#f59e0b' }}>→ <strong>Keep practicing</strong> — review your answers in the history above for areas to improve.</li>}
                       {interviewHistory.length > 0 && (
                         <>
-                          <li style={{ marginTop: '1rem', color: '#9ca3af' }}>
-                            <strong>Strength Areas:</strong> Questions with scores 8+/10
-                          </li>
-                          <li style={{ color: '#9ca3af' }}>
-                            <strong>Focus Areas:</strong> Questions with scores below 5/10
-                          </li>
+                      {interviewHistory[0].report?.strengths && <li style={{ color: '#22c55e' }}>✓ <strong>Strengths:</strong> {interviewHistory[0].report.strengths}</li>}
+                      {interviewHistory[0].report?.weaknesses && <li style={{ color: '#ef4444' }}>✗ <strong>Areas for Improvement:</strong> {interviewHistory[0].report.weaknesses}</li>}
+                      {interviewHistory[0].report?.proctoring_analysis && (
+                        <li style={{ color: interviewHistory[0].report.proctoring_analysis.risk_level === 'high' ? '#ef4444' : '#f59e0b' }}>
+                          ⚠️ <strong>Proctoring Integrity:</strong> {interviewHistory[0].report.proctoring_analysis.risk_level.toUpperCase()} risk level ({interviewHistory[0].report.proctoring_analysis.total_violations} violations)
+                        </li>
+                      )}
                         </>
                       )}
                     </ul>

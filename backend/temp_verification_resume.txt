@@ -1,0 +1,6 @@
+
+    Alice Johnson
+    Senior Software Engineer
+    Skills: Python, Go, SQL, PostgreSQL, Docker, AWS, microservices, REST APIs
+    Experience: 5 years building highly scalable backend architectures. Deep knowledge of performance tuning, caching strategies, and OOP patterns.
+    

@@ -100,7 +100,86 @@ export const resumeAPI = {
   },
 };
 
+// Local cache for dynamically updating question texts in React state without modifying UI components
+const questionCache: Record<number, string> = {};
+let pollingInterval: any = null;
+let isPolling = false;
+const listeners: (() => void)[] = [];
+
+const notifyListeners = () => {
+  listeners.forEach(cb => cb());
+};
+
+const startPollingQuestions = (interviewId: number) => {
+  if (pollingInterval) return;
+  
+  const isPlaceholder = (text: string) => {
+    if (!text) return false;
+    return text.includes("AI is personalizing") || text.includes("Loading question");
+  };
+
+  pollingInterval = setInterval(async () => {
+    if (isPolling) return;
+    isPolling = true;
+    try {
+      const [techRes, hrRes] = await Promise.all([
+        api.post('/generate-questions', { interview_id: interviewId, phase: "technical" }),
+        api.post('/generate-questions', { interview_id: interviewId, phase: "hr" })
+      ]);
+      
+      let hasPlaceholders = false;
+      let updated = false;
+      
+      const processQuestions = (resData: any) => {
+        if (resData && resData.questions) {
+          resData.questions.forEach((q: any) => {
+            if (q.question) {
+              if (questionCache[q.id] !== q.question) {
+                questionCache[q.id] = q.question;
+                updated = true;
+              }
+              if (isPlaceholder(q.question)) {
+                hasPlaceholders = true;
+              }
+            }
+          });
+        }
+      };
+
+      processQuestions(techRes.data);
+      processQuestions(hrRes.data);
+      
+      if (updated) {
+        notifyListeners();
+      }
+      
+      // Stop background polling immediately when all questions are AI-customized to prevent DDoS on Uvicorn
+      if (!hasPlaceholders) {
+        stopPollingQuestions();
+      }
+    } catch (e) {
+      // Ignore background sync errors silently
+    } finally {
+      isPolling = false;
+    }
+  }, 10000);
+};
+
+const stopPollingQuestions = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+};
+
 export const interviewAPI = {
+  onQuestionUpdate: (callback: () => void) => {
+    listeners.push(callback);
+    return () => {
+      const index = listeners.indexOf(callback);
+      if (index > -1) listeners.splice(index, 1);
+    };
+  },
   create: async (jobRole: string, company: string, resumeId?: number) => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -118,6 +197,32 @@ export const interviewAPI = {
       interview_id: interviewId,
       phase,
     });
+    
+    // Save in cache
+    if (response.data && response.data.questions) {
+      response.data.questions.forEach((q: any) => {
+        if (q.question) questionCache[q.id] = q.question;
+      });
+
+      // Wrap in dynamic ES6 getters to automatically bypass React state copy
+      response.data.questions = response.data.questions.map((q: any) => {
+        const proxiedQ = { ...q };
+        Object.defineProperty(proxiedQ, 'question', {
+          get() {
+            return questionCache[q.id] || q.question;
+          },
+          set(val) {
+            questionCache[q.id] = val;
+          },
+          configurable: true,
+          enumerable: true
+        });
+        return proxiedQ;
+      });
+    }
+
+    // Start background sync to continually update the cache as questions generate
+    startPollingQuestions(interviewId);
     return response.data;
   },
   getQuestion: async (interviewId: number) => {
@@ -130,14 +235,49 @@ export const interviewAPI = {
       question_id: questionId,
       answer,
     });
+
+    // Update specific cache item immediately if next_question is returned
+    if (response.data && response.data.question_id && response.data.next_question) {
+      questionCache[response.data.question_id] = response.data.next_question;
+      notifyListeners();
+    }
+
+    // Stop background sync if the interview is fully completed
+    if (response.data && response.data.is_complete) {
+      stopPollingQuestions();
+    }
     return response.data;
   },
   getReport: async (interviewId: number) => {
     const response = await api.get(`/interview-report/${interviewId}`);
     return response.data;
   },
+  generateReport: async (interviewId: number) => {
+    const response = await api.post(`/generate-report/${interviewId}`);
+    return response.data;
+  },
+  fetchSavedReport: async (interviewId: number) => {
+    const response = await api.get(`/get-report/${interviewId}`);
+    return response.data;
+  },
   getHistory: async () => {
     const response = await api.get('/interview-history');
+    return response.data;
+  },
+  logProctoringEvent: async (interviewId: number, eventType: string, details: any) => {
+    const response = await api.post('/proctor/log-event', {
+      interview_id: interviewId,
+      event_type: eventType,
+      details,
+    });
+    return response.data;
+  },
+  retryQuestion: async (interviewId: number, questionId: number) => {
+    const response = await api.post('/retry-question', {
+      interview_id: interviewId,
+      question_id: questionId,
+    });
+    startPollingQuestions(interviewId);
     return response.data;
   },
 };

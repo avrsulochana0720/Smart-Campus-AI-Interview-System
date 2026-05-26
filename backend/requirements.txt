@@ -11,3 +11,6 @@ openai
 python-multipart
 ollama
 python-dotenv
+google-generativeai
+scikit-learn
+numpy

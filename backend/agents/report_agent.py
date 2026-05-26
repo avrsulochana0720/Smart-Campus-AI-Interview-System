@@ -1,507 +1,348 @@
 """
-Report Agent - Compiles interview results and generates comprehensive reports using Qwen AI
+report_agent.py — Qwen generates final honest report
+Uses Qwen (Ollama) to generate comprehensive, honest interview reports.
+Enhanced with RAG-based expected answer matching and detailed scoring:
+- Answer matching score
+- Technical knowledge score
+- HR communication score
+- Confidence analysis
+- Strengths / Weaknesses
+- Missing concepts
+- Improvement suggestions
+- Overall interview rating
 """
-from typing import Dict, Any, List
-from datetime import datetime
-import json
-import ollama
-from dotenv import load_dotenv
 import os
+import re
+import json
+import time
+from typing import Dict, List
+from datetime import datetime
+from dotenv import load_dotenv
+from metrics import record_metric
 
-# Load environment variables
+try:
+    from gemini_helper import request_gemini
+except ImportError:
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from gemini_helper import request_gemini
+
 load_dotenv()
 
+# Gemini config
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
+# Ollama fallback
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:0.6b")
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
 
 class ReportAgent:
     def __init__(self):
-        self.model = OLLAMA_MODEL
-    
-    def generate_report(self, interview_id: int, db) -> Dict[str, Any]:
-        """Generate comprehensive interview report"""
-        try:
-            from models import Interview, InterviewQuestion, InterviewReport, User, Resume, ProctoringLog
-            
-            # Get interview details
-            interview = db.query(Interview).filter(Interview.id == interview_id).first()
-            if not interview:
-                return {"error": "Interview not found"}
-            
-            # Get user details
-            user = db.query(User).filter(User.id == interview.user_id).first()
-            
-            # Get resume details
-            resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
-            
-            # Get all questions and answers
-            questions = db.query(InterviewQuestion).filter(
-                InterviewQuestion.interview_id == interview_id
-            ).order_by(InterviewQuestion.order_index).all()
-            
-            # Get proctoring summary
-            proctoring_logs = db.query(ProctoringLog).filter(
-                ProctoringLog.interview_id == interview_id
-            ).all()
-            
-            # Calculate metrics
-            total_score = sum(q.score for q in questions if q.score)
-            max_score = sum(q.max_score for q in questions)
-            average_score = total_score / len(questions) if questions else 0
-            percentage = (total_score / max_score) * 100 if max_score > 0 else 0
-            
-            # Analyze performance by question type
-            performance_by_type = self._analyze_by_question_type(questions)
-            
-            # Identify strengths and weaknesses
-            strengths, weaknesses = self._identify_strengths_weaknesses(questions, performance_by_type)
-            
-            # Generate skill assessment
-            skill_assessment = self._assess_skills(questions, resume)
-            
-            # Generate behavioral assessment
-            behavioral_assessment = self._assess_behavior(questions, resume)
-            
-            # Generate recommendations
-            recommendations = self._generate_recommendations(average_score, strengths, weaknesses)
-            
-            # Create report record
-            report = InterviewReport(
-                interview_id=interview_id,
-                user_id=interview.user_id,
-                overall_score=average_score,
-                total_questions=len(questions),
-                correct_answers=len([q for q in questions if q.score and q.score >= 6.0]),
-                strengths=strengths,
-                weaknesses=weaknesses,
-                recommendations="\n".join(recommendations),
-                detailed_feedback=self._generate_detailed_feedback(questions, interview),
-                skill_assessment=skill_assessment,
-                behavioral_assessment=behavioral_assessment
-            )
-            db.add(report)
-            db.commit()
-            
+        self.gemini_key = GEMINI_API_KEY
+        self.gemini_model = GEMINI_MODEL
+        self.ollama_model = OLLAMA_MODEL
+
+    def generate_report(
+        self,
+        job_role: str,
+        company: str,
+        qa_data: List[Dict],
+        resume_text: str = "",
+        proctoring_summary: Dict = None,
+        rag_evaluation: Dict = None
+    ) -> Dict:
+        """
+        Generate a comprehensive interview performance report.
+        Uses Qwen (Ollama) to generate reports.
+        Includes RAG-based evaluation data for enhanced reporting.
+        
+        Required fields in the report:
+        - answer matching score
+        - technical knowledge score
+        - HR communication score
+        - confidence analysis
+        - strengths
+        - weaknesses
+        - missing concepts
+        - improvement suggestions
+        - overall interview rating
+        """
+        if not qa_data:
             return {
-                "success": True,
-                "report": {
-                    "candidate_name": user.name if user else "Unknown",
-                    "job_role": interview.job_role,
-                    "company": interview.company,
-                    "overall_score": round(average_score, 1),
-                    "percentage": round(percentage, 1),
-                    "total_questions": len(questions),
-                    "interview_date": interview.created_at.isoformat(),
-                    "completion_time": interview.completed_at.isoformat() if interview.completed_at else None,
-                    "performance_by_type": performance_by_type,
-                    "strengths": strengths,
-                    "weaknesses": weaknesses,
-                    "skill_assessment": skill_assessment,
-                    "behavioral_assessment": behavioral_assessment,
-                    "recommendations": recommendations,
-                    "proctoring_summary": {
-                        "total_events": len(proctoring_logs),
-                        "critical_events": len([log for log in proctoring_logs if log.status == "critical"]),
-                        "warning_events": len([log for log in proctoring_logs if log.status == "warning"])
-                    },
-                    "question_details": [
-                        {
-                            "question": q.question,
-                            "answer": q.answer,
-                            "score": q.score,
-                            "max_score": q.max_score,
-                            "feedback": q.feedback,
-                            "question_type": q.question_type,
-                            "difficulty": q.difficulty
-                        }
-                        for q in questions
-                    ]
-                }
+                "narrative_summary": "No interview data available to generate report.",
+                "average_score": 0,
+                "total_questions": 0,
+                "answered_questions": 0,
+                "strengths": "",
+                "weaknesses": "",
+                "recommendation": "",
+                "technical_score": 0,
+                "hr_score": 0,
+                "confidence_score": 0,
+                "missing_concepts": "",
+                "improvement_suggestions": "",
+                "rag_matching_data": "",
+                "status": "failed"
             }
-            
-        except Exception as e:
-            print(f"Error generating report: {e}")
-            return {"success": False, "error": str(e)}
-    
-    def _analyze_by_question_type(self, questions: List) -> Dict[str, Any]:
-        """Analyze performance by question type"""
-        type_performance = {}
-        
-        for question in questions:
-            q_type = question.question_type
-            if q_type not in type_performance:
-                type_performance[q_type] = {
-                    "total": 0,
-                    "score_sum": 0,
-                    "max_sum": 0
-                }
-            
-            type_performance[q_type]["total"] += 1
-            if question.score:
-                type_performance[q_type]["score_sum"] += question.score
-            type_performance[q_type]["max_sum"] += question.max_score
-        
-        # Calculate averages
-        for q_type in type_performance:
-            total = type_performance[q_type]["total"]
-            type_performance[q_type]["average"] = round(
-                type_performance[q_type]["score_sum"] / total, 1
-            )
-            type_performance[q_type]["percentage"] = round(
-                (type_performance[q_type]["score_sum"] / type_performance[q_type]["max_sum"]) * 100, 1
-            )
-        
-        return type_performance
-    
-    def _identify_strengths_weaknesses(self, questions: List, performance_by_type: Dict) -> tuple:
-        """Identify strengths and weaknesses using Qwen AI for genuine analysis"""
-        # Prepare context for AI analysis
-        questions_context = []
-        for q in questions:
-            questions_context.append({
-                "question": q.question,
-                "answer": q.answer,
-                "score": q.score,
-                "question_type": q.question_type,
-                "feedback": q.feedback
-            })
-        
-        prompt = f"""
-As an expert interviewer, analyze the candidate's performance based on the following interview data:
 
-Question Performance by Type:
-{json.dumps(performance_by_type, indent=2)}
+        # Calculate metrics
+        total_questions = len(qa_data)
+        answered = [qa for qa in qa_data if qa.get("answer") and qa["answer"] != "Not answered"]
+        answered_questions = len(answered)
+        avg_score = sum(qa.get("score", 0) for qa in qa_data) / total_questions if total_questions > 0 else 0
 
-Question Details:
-{json.dumps(questions_context, indent=2)}
+        # Extract RAG evaluation scores if available
+        tech_score = 0
+        hr_score = 0
+        matching_score = 0
+        confidence_from_eval = 0
+        eval_strengths = []
+        eval_weaknesses = []
+        eval_missing = []
 
-Provide a genuine analysis of the candidate's strengths and weaknesses. Be specific and professional.
+        if rag_evaluation:
+            tech_score = rag_evaluation.get("technical_score", 0)
+            hr_score = rag_evaluation.get("hr_score", 0)
+            matching_score = rag_evaluation.get("matching_score", 0)
+            confidence_from_eval = rag_evaluation.get("confidence_score", 0)
+            eval_strengths = rag_evaluation.get("strengths", [])
+            eval_weaknesses = rag_evaluation.get("weaknesses", [])
+            eval_missing = rag_evaluation.get("missing_concepts", [])
 
-Return ONLY a valid JSON object with this exact structure:
-{{
-    "strengths": ["strength1", "strength2", "strength3"],
-    "weaknesses": ["weakness1", "weakness2", "weakness3"]
-}}
+        # Build QA transcript with expected answers
+        qa_transcript = ""
+        for i, qa in enumerate(qa_data):
+            qa_transcript += f"Q{i+1} ({qa.get('question_type', 'general')}): {qa['question']}\n"
+            qa_transcript += f"Answer: {qa.get('answer', 'Not answered')}\n"
+            qa_transcript += f"Score: {qa.get('score', 0)}/10\n"
+            if qa.get("feedback"):
+                qa_transcript += f"Feedback: {qa['feedback']}\n"
+            if qa.get("expected_answer"):
+                exp_preview = qa['expected_answer'][:100]
+                qa_transcript += f"Expected Answer (from knowledge base): {exp_preview}...\n"
+            if qa.get("matching_score"):
+                qa_transcript += f"Knowledge Base Match: {qa['matching_score']}%\n"
+            qa_transcript += "\n"
+
+        resume_context = resume_text[:800] if resume_text else "No resume provided."
+
+        # Proctoring context
+        proctor_ctx = ""
+        if proctoring_summary and proctoring_summary.get("total_violations", 0) > 0:
+            proctor_ctx = f"""
+PROCTORING DATA:
+- Total Violations: {proctoring_summary['total_violations']}
+- Risk Score: {proctoring_summary.get('risk_score', 0)}
+- Risk Level: {proctoring_summary.get('risk_level', 'clean')}
+- Critical Events: {proctoring_summary.get('critical_events', 0)}
 """
 
-        try:
-            response = ollama.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.7}
-            )
-            
-            result = response["message"]["content"]
-            # Parse JSON response
-            analysis = json.loads(result)
-            return analysis.get("strengths", []), analysis.get("weaknesses", [])
-        except Exception as e:
-            print(f"Error using Qwen for strengths/weaknesses: {e}")
-            # Fallback to rule-based logic
-            strengths = []
-            weaknesses = []
-            for q_type, perf in performance_by_type.items():
-                if perf["percentage"] >= 70:
-                    strengths.append(f"Strong performance in {q_type} questions")
-                elif perf["percentage"] <= 40:
-                    weaknesses.append(f"Needs improvement in {q_type} questions")
-            return strengths, weaknesses
-    
-    def _assess_skills(self, questions: List, resume) -> Dict[str, Any]:
-        """Assess technical and professional skills using Qwen AI for genuine analysis"""
-        # Prepare context for AI analysis
-        questions_context = []
-        for q in questions:
-            questions_context.append({
-                "question": q.question,
-                "answer": q.answer,
-                "score": q.score,
-                "question_type": q.question_type
-            })
-        
-        resume_context = ""
-        if resume:
-            resume_context = f"""
-Resume Analysis:
-- Candidate Type: {resume.candidate_type if resume.candidate_type else "Not classified"}
-- Classification Details: {resume.classification_details if resume.classification_details else "Not available"}
-- Resume Text (first 500 chars): {resume.resume_text[:500] if resume.resume_text else "Not available"}
+        # RAG matching summary
+        rag_ctx = ""
+        if rag_evaluation:
+            rag_ctx = f"""
+RAG KNOWLEDGE BASE MATCHING:
+- Technical Knowledge Score: {tech_score}/10
+- HR Communication Score: {hr_score}/10
+- Answer-to-Expected Match: {matching_score}%
+- Confidence Score: {confidence_from_eval}/10
+- Total Questions with PDF Matches: {rag_evaluation.get('total_answered', 0)}
+- Key Strengths from evaluation: {', '.join(eval_strengths[:3]) if eval_strengths else 'N/A'}
+- Key Weaknesses from evaluation: {', '.join(eval_weaknesses[:3]) if eval_weaknesses else 'N/A'}
+- Missing Concepts: {', '.join(eval_missing[:3]) if eval_missing else 'N/A'}
 """
-        
-        prompt = f"""
-As an expert technical interviewer, assess the candidate's skills based on the interview performance:
 
+        prompt = f"""You are a senior hiring manager writing an honest, professional interview performance report.
+
+INTERVIEW DETAILS:
+Position: {job_role}
+Company: {company}
+Total Questions: {total_questions}
+Questions Answered: {answered_questions}
+Average Score: {avg_score:.1f}/10
+{rag_ctx}
+CANDIDATE RESUME:
 {resume_context}
+{proctor_ctx}
+INTERVIEW TRANSCRIPT:
+{qa_transcript}
 
-Interview Questions and Answers:
-{json.dumps(questions_context, indent=2)}
+Generate an HONEST and PROFESSIONAL report. Do NOT sugarcoat poor performance.
 
-Provide a genuine assessment of the candidate's skills in three categories:
-1. Technical Skills (programming, tools, technologies)
-2. Communication Skills (clarity, articulation, listening)
-3. Problem Solving (analytical thinking, approach to challenges)
+Include these sections:
+1. OVERALL ASSESSMENT (2-3 sentences summarizing performance)
+2. ANSWER MATCHING SCORE (how well answers matched expected knowledge base answers, percentage)
+3. TECHNICAL KNOWLEDGE SCORE (assessment of technical competency out of 10)
+4. HR COMMUNICATION SCORE (assessment of soft skills and communication out of 10)
+5. CONFIDENCE ANALYSIS (how confidently the candidate answered, scored out of 10)
+6. STRENGTHS (2-3 specific strengths with evidence from answers)
+7. WEAKNESSES (2-3 specific weaknesses with evidence)
+8. MISSING CONCEPTS (key concepts the candidate failed to mention)
+9. IMPROVEMENT SUGGESTIONS (actionable advice for the candidate)
+10. OVERALL INTERVIEW RATING (out of 10 with clear recommendation)
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY a valid JSON object:
 {{
-    "technical_skills": ["skill1", "skill2", "skill3"],
-    "communication_skills": ["skill1", "skill2", "skill3"],
-    "problem_solving": ["skill1", "skill2", "skill3"]
-}}
-"""
+    "narrative_summary": "Full report text with all sections above formatted professionally",
+    "strengths": "Comma-separated key strengths",
+    "weaknesses": "Comma-separated key weaknesses",
+    "recommendation": "Hire / Conditional Hire / Not Recommended — with reasoning",
+    "confidence_score": (float 0-10),
+    "missing_concepts": "Comma-separated missing concepts",
+    "improvement_suggestions": "Comma-separated improvement suggestions"
+}}"""
 
+        # Route to high-speed cloud Gemini API instead of slow local Ollama
+        start_time = time.time()
+        report_text = request_gemini(prompt)
+        duration = time.time() - start_time
+        record_metric("generate_report", duration)
+
+        if report_text:
+            try:
+                # Try to parse as JSON
+                cleaned = re.sub(r'```json\n?', '', report_text)
+                cleaned = re.sub(r'```\n?', '', cleaned)
+                # Remove thinking tags if present
+                cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
+                json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+                if json_match:
+                    cleaned = json_match.group(0)
+                parsed = json.loads(cleaned)
+
+                return {
+                    "narrative_summary": parsed.get("narrative_summary", report_text),
+                    "average_score": int(avg_score),
+                    "total_questions": total_questions,
+                    "answered_questions": answered_questions,
+                    "strengths": parsed.get("strengths", ", ".join(eval_strengths) if eval_strengths else ""),
+                    "weaknesses": parsed.get("weaknesses", ", ".join(eval_weaknesses) if eval_weaknesses else ""),
+                    "recommendation": parsed.get("recommendation", ""),
+                    "technical_score": tech_score or round(avg_score, 1),
+                    "hr_score": hr_score or round(avg_score, 1),
+                    "confidence_score": parsed.get("confidence_score", confidence_from_eval or 0),
+                    "missing_concepts": parsed.get("missing_concepts", ", ".join(eval_missing) if eval_missing else ""),
+                    "improvement_suggestions": parsed.get("improvement_suggestions", ""),
+                    "rag_matching_data": json.dumps({
+                        "matching_score": matching_score,
+                        "per_question": rag_evaluation.get("per_question", []) if rag_evaluation else []
+                    }),
+                    "status": "completed"
+                }
+            except json.JSONDecodeError:
+                # If JSON parsing fails, use raw text as narrative
+                return {
+                    "narrative_summary": report_text,
+                    "average_score": int(avg_score),
+                    "total_questions": total_questions,
+                    "answered_questions": answered_questions,
+                    "strengths": ", ".join(eval_strengths) if eval_strengths else "",
+                    "weaknesses": ", ".join(eval_weaknesses) if eval_weaknesses else "",
+                    "recommendation": "",
+                    "technical_score": tech_score,
+                    "hr_score": hr_score,
+                    "confidence_score": confidence_from_eval,
+                    "missing_concepts": ", ".join(eval_missing) if eval_missing else "",
+                    "improvement_suggestions": "",
+                    "rag_matching_data": "",
+                    "status": "completed"
+                }
+
+        # Complete fallback — no AI available
+        return self._rule_based_report_full(
+            job_role, company, qa_data, avg_score,
+            total_questions, answered_questions,
+            tech_score, hr_score, confidence_from_eval,
+            matching_score, eval_strengths, eval_weaknesses, eval_missing
+        )
+
+    # ── Gemini Call ───────────────────────────────────
+    def _call_ollama(self, prompt: str) -> str:
+        """Call Gemini."""
         try:
-            response = ollama.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.7}
-            )
-            
-            result = response["message"]["content"]
-            # Parse JSON response
-            assessment = json.loads(result)
-            return {
-                "technical_skills": assessment.get("technical_skills", []),
-                "communication_skills": assessment.get("communication_skills", []),
-                "problem_solving": assessment.get("problem_solving", [])
-            }
+            full_prompt = f"/no_think\n{prompt}"
+            text = request_gemini(full_prompt)
+            text = text.strip()
+            # Remove thinking tags if present
+            text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
+            return text
         except Exception as e:
-            print(f"Error using Qwen for skill assessment: {e}")
-            # Fallback to rule-based logic
-            skill_assessment = {
-                "technical_skills": [],
-                "communication_skills": [],
-                "problem_solving": []
-            }
-            tech_questions = [q for q in questions if q.question_type == "technical"]
-            if tech_questions:
-                avg_tech_score = sum(q.score for q in tech_questions if q.score) / len(tech_questions)
-                if avg_tech_score >= 7.0:
-                    skill_assessment["technical_skills"].append("Strong technical knowledge")
-                elif avg_tech_score >= 5.0:
-                    skill_assessment["technical_skills"].append("Good technical foundation")
-                else:
-                    skill_assessment["technical_skills"].append("Technical skills need development")
-            return skill_assessment
-    
-    def _assess_behavior(self, questions: List, resume) -> Dict[str, Any]:
-        """Assess behavioral traits and cultural fit using Qwen AI for genuine analysis"""
-        # Prepare context for AI analysis
-        questions_context = []
-        for q in questions:
-            questions_context.append({
-                "question": q.question,
-                "answer": q.answer,
-                "score": q.score,
-                "question_type": q.question_type
-            })
-        
-        resume_context = ""
-        if resume:
-            resume_context = f"""
-Resume Analysis:
-- Candidate Type: {resume.candidate_type if resume.candidate_type else "Not classified"}
+            print(f"[ReportAgent] Gemini error: {e}")
+            return None
+
+    # ── Rule-based Fallback ───────────────────────────
+    def _rule_based_report_full(
+        self, job_role, company, qa_data, avg_score,
+        total_questions, answered_questions,
+        tech_score, hr_score, confidence_score,
+        matching_score, strengths_list, weaknesses_list, missing_list
+    ) -> Dict:
+        """Generate a comprehensive rule-based report when all AI services are unavailable."""
+        answered = [qa for qa in qa_data if qa.get("answer") and qa["answer"] != "Not answered"]
+
+        if avg_score >= 8:
+            overall = f"The candidate demonstrated excellent performance in the {job_role} interview at {company}, with strong answers across both technical and HR rounds."
+            rec = "Strongly recommended for hire."
+        elif avg_score >= 6:
+            overall = f"The candidate showed good potential for the {job_role} position at {company}, with solid performance in most areas."
+            rec = "Recommended for hire with mentoring."
+        elif avg_score >= 4:
+            overall = f"The candidate showed mixed performance for the {job_role} role at {company}. Some areas were acceptable while others need improvement."
+            rec = "Conditional hire — consider for junior position or probation period."
+        else:
+            overall = f"The candidate's performance in the {job_role} interview at {company} was below expectations."
+            rec = "Not recommended for the current position."
+
+        report = f"""OVERALL ASSESSMENT:
+{overall}
+
+SCORES:
+- Average Score: {avg_score:.1f}/10
+- Technical Knowledge: {tech_score}/10
+- HR Communication: {hr_score}/10
+- Confidence Score: {confidence_score}/10
+- Answer Matching: {matching_score}%
+- Questions Answered: {answered_questions}/{total_questions}
+
+STRENGTHS:
+{chr(10).join('- ' + s for s in strengths_list[:3]) if strengths_list else '- Assessment requires AI evaluation'}
+
+WEAKNESSES:
+{chr(10).join('- ' + w for w in weaknesses_list[:3]) if weaknesses_list else '- Assessment requires AI evaluation'}
+
+MISSING CONCEPTS:
+{chr(10).join('- ' + m for m in missing_list[:3]) if missing_list else '- No specific gaps identified'}
+
+QUESTION-BY-QUESTION BREAKDOWN:
 """
-        
-        prompt = f"""
-As an expert HR interviewer, assess the candidate's behavioral traits and cultural fit based on interview performance:
+        for i, qa in enumerate(qa_data):
+            report += f"\n{i+1}. ({qa.get('question_type', 'general')}) {qa['question']}\n"
+            report += f"   Score: {qa.get('score', 0)}/10\n"
+            if qa.get("feedback"):
+                report += f"   Feedback: {qa['feedback']}\n"
+            if qa.get("expected_answer"):
+                report += f"   Expected: {qa['expected_answer'][:100]}...\n"
 
-{resume_context}
+        report += f"\nRECOMMENDATION:\n{rec}"
 
-Interview Questions and Answers:
-{json.dumps(questions_context, indent=2)}
+        return {
+            "narrative_summary": report,
+            "average_score": int(avg_score),
+            "total_questions": total_questions,
+            "answered_questions": answered_questions,
+            "strengths": ", ".join(strengths_list[:3]) if strengths_list else "",
+            "weaknesses": ", ".join(weaknesses_list[:3]) if weaknesses_list else "",
+            "recommendation": rec,
+            "technical_score": tech_score,
+            "hr_score": hr_score,
+            "confidence_score": confidence_score,
+            "missing_concepts": ", ".join(missing_list[:3]) if missing_list else "",
+            "improvement_suggestions": "Practice more interview scenarios, review core concepts, prepare structured answers",
+            "rag_matching_data": json.dumps({"matching_score": matching_score}),
+            "status": "completed"
+        }
 
-Provide a genuine assessment of the candidate's behavioral traits in four categories:
-1. Teamwork (collaboration, cooperation, team dynamics)
-2. Leadership (initiative, guiding others, decision-making)
-3. Adaptability (flexibility, learning, handling change)
-4. Communication (verbal, written, listening skills)
 
-Return ONLY a valid JSON object with this exact structure:
-{{
-    "teamwork": "assessment text",
-    "leadership": "assessment text",
-    "adaptability": "assessment text",
-    "communication": "assessment text"
-}}
-"""
-
-        try:
-            response = ollama.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.7}
-            )
-            
-            result = response["message"]["content"]
-            # Parse JSON response
-            assessment = json.loads(result)
-            return {
-                "teamwork": assessment.get("teamwork", "Not assessed"),
-                "leadership": assessment.get("leadership", "Not assessed"),
-                "adaptability": assessment.get("adaptability", "Not assessed"),
-                "communication": assessment.get("communication", "Not assessed")
-            }
-        except Exception as e:
-            print(f"Error using Qwen for behavioral assessment: {e}")
-            # Fallback to rule-based logic
-            behavioral_assessment = {
-                "teamwork": "Not assessed",
-                "leadership": "Not assessed",
-                "adaptability": "Not assessed",
-                "communication": "Not assessed"
-            }
-            behav_questions = [q for q in questions if q.question_type == "behavioral"]
-            if behav_questions:
-                avg_score = sum(q.score for q in behav_questions if q.score) / len(behav_questions)
-                if avg_score >= 7.0:
-                    behavioral_assessment["teamwork"] = "Strong team player"
-                    behavioral_assessment["leadership"] = "Leadership potential evident"
-                    behavioral_assessment["adaptability"] = "Highly adaptable"
-                    behavioral_assessment["communication"] = "Excellent communicator"
-                elif avg_score >= 5.0:
-                    behavioral_assessment["teamwork"] = "Good team collaborator"
-                    behavioral_assessment["leadership"] = "Developing leadership skills"
-                    behavioral_assessment["adaptability"] = "Adaptable to change"
-                    behavioral_assessment["communication"] = "Good communicator"
-            return behavioral_assessment
-    
-    def _generate_recommendations(self, average_score: float, strengths: List, weaknesses: List) -> List[str]:
-        """Generate personalized recommendations using Qwen AI for genuine analysis"""
-        prompt = f"""
-As an expert hiring manager, provide genuine recommendations for this candidate based on their interview performance:
-
-Overall Score: {average_score}/10
-
-Strengths:
-{json.dumps(strengths, indent=2)}
-
-Weaknesses:
-{json.dumps(weaknesses, indent=2)}
-
-Provide 3-5 specific, actionable recommendations for:
-1. Whether to hire the candidate and at what level
-2. Any training or development needed
-3. Specific areas for improvement
-4. Next steps for the hiring process
-
-Return ONLY a valid JSON object with this exact structure:
-{{
-    "recommendations": ["recommendation1", "recommendation2", "recommendation3", "recommendation4", "recommendation5"]
-}}
-"""
-
-        try:
-            response = ollama.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.7}
-            )
-
-            result = response["message"]["content"]
-            # Parse JSON response
-            recommendations_data = json.loads(result)
-            return recommendations_data.get("recommendations", [])
-        except Exception as e:
-            print(f"Error using Qwen for recommendations: {e}")
-            # Fallback to rule-based logic
-            recommendations = []
-            if average_score >= 8.0:
-                recommendations.append("Candidate demonstrates excellent interview performance and is highly recommended for the position.")
-                recommendations.append("Consider for advanced roles or fast-track programs.")
-            elif average_score >= 6.0:
-                recommendations.append("Candidate shows good potential with solid interview performance.")
-                recommendations.append("Recommended for the position with possible mentorship program.")
-            elif average_score >= 4.0:
-                recommendations.append("Candidate shows potential but needs development in key areas.")
-                recommendations.append("Consider for junior position or internship program.")
-            else:
-                recommendations.append("Candidate needs significant development before consideration.")
-                recommendations.append("Not recommended for current position.")
-            return recommendations
-    
-    def _generate_detailed_feedback(self, questions: List, interview) -> str:
-        """Generate detailed feedback summary using Qwen AI for genuine analysis"""
-        # Prepare context for AI analysis
-        questions_context = []
-        for q in questions:
-            questions_context.append({
-                "question": q.question,
-                "answer": q.answer,
-                "score": q.score,
-                "max_score": q.max_score,
-                "feedback": q.feedback,
-                "question_type": q.question_type
-            })
-        
-        prompt = f"""
-As an expert interviewer, provide a comprehensive and genuine detailed feedback report for this candidate:
-
-Position: {interview.job_role} at {interview.company}
-Total Questions: {len(questions)}
-
-Question Details:
-{json.dumps(questions_context, indent=2)}
-
-Provide a detailed feedback summary that includes:
-1. Overall performance assessment
-2. Specific feedback on each question
-3. Areas where the candidate excelled
-4. Areas that need improvement
-5. Specific examples from their answers
-
-Return ONLY a valid JSON object with this exact structure:
-{{
-    "detailed_feedback": "comprehensive feedback text here"
-}}
-"""
-
-        try:
-            response = ollama.chat(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                options={"temperature": 0.7}
-            )
-
-            result = response["message"]["content"]
-            # Parse JSON response
-            feedback_data = json.loads(result)
-            return feedback_data.get("detailed_feedback", "Unable to generate detailed feedback")
-        except Exception as e:
-            print(f"Error using Qwen for detailed feedback: {e}")
-            # Fallback to rule-based logic
-            feedback_parts = []
-            feedback_parts.append(f"Interview for {interview.job_role} position at {interview.company}.")
-            feedback_parts.append(f"Total questions answered: {len(questions)}")
-            if questions:
-                avg_score = sum(q.score for q in questions if q.score) / len(questions)
-                feedback_parts.append(f"Overall performance: {avg_score:.1f}/10")
-            feedback_parts.append("\nQuestion-by-question feedback:")
-            for i, q in enumerate(questions, 1):
-                feedback_parts.append(f"\n{i}. {q.question[:50]}...")
-                if q.feedback:
-                    feedback_parts.append(f"   Score: {q.score}/10")
-                    feedback_parts.append(f"   Feedback: {q.feedback}")
-            return "\n".join(feedback_parts)
-    
-    def send_report_to_tpo(self, report_id: int, db) -> Dict[str, Any]:
-        """Mark report as sent to TPO/Recruiter"""
-        try:
-            from models import InterviewReport
-            
-            report = db.query(InterviewReport).filter(InterviewReport.id == report_id).first()
-            if not report:
-                return {"error": "Report not found"}
-            
-            report.sent_to_tpo = True
-            report.sent_at = datetime.utcnow()
-            db.commit()
-            
-            return {
-                "success": True,
-                "message": "Report marked as sent to TPO",
-                "sent_at": report.sent_at.isoformat()
-            }
-            
-        except Exception as e:
-            print(f"Error sending report to TPO: {e}")
-            return {"success": False, "error": str(e)}
+# Singleton
+report_agent = ReportAgent()

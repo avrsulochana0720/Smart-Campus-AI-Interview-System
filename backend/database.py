@@ -17,24 +17,17 @@ DB_NAME = os.getenv("DB_NAME", "smart_campus_interview")
 # MySQL database URL
 SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-# Fallback to SQLite if MySQL is not available (optional, but let's stick to MySQL as requested)
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./app_users.db"
-
+# Try to create a MySQL engine; if it fails, fall back to a local SQLite file for development.
 try:
-    # Create the database engine
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL
-    )
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
     # Test connection immediately
     with engine.connect() as connection:
         print(f"Successfully connected to MySQL database: {DB_NAME}")
 except Exception as e:
-    print(f"Failed to connect to MySQL: {e}")
-    print("Falling back to SQLite...")
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./app_users.db"
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-    )
+    print(f"WARNING: Failed to connect to MySQL: {e}")
+    print("Falling back to local SQLite database for development (./backend_dev.db).")
+    SQLITE_URL = f"sqlite:///./backend_dev.db"
+    engine = create_engine(SQLITE_URL, connect_args={"check_same_thread": False})
 
 # Create a session class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

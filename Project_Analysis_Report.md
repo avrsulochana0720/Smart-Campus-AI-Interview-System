@@ -22,7 +22,7 @@ The **Smart Campus AI Interview System** is a full-stack AI-powered interview pl
 | **Routing** | React Router DOM | 7.14.0 |
 | **HTTP Client** | Axios | 1.15.0 |
 | **Backend** | Python FastAPI | Latest |
-| **Database** | SQLAlchemy + SQLite | Latest |
+| **Database** | SQLAlchemy + MySQL (XAMPP/Docker) | Latest |
 | **AI Service** | OpenAI GPT-3.5 Turbo | Latest |
 | **Auth** | JWT (python-jose) + bcrypt | Latest |
 
@@ -41,7 +41,7 @@ The **Smart Campus AI Interview System** is a full-stack AI-powered interview pl
 │   Auth (JWT) │ Resume Parser │ Interview CRUD            │
 │   Question Generator │ Answer Evaluator                  │
 ├─────────────────────────────────────────────────────────┤
-│               DATABASE (SQLite/SQLAlchemy)               │
+│               DATABASE (MySQL/SQLAlchemy)                │
 │   Users │ Resumes │ Interviews │ InterviewQuestions       │
 ├─────────────────────────────────────────────────────────┤
 │                AI SERVICE (OpenAI API)                   │

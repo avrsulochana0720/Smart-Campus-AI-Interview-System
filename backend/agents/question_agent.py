@@ -1,208 +1,183 @@
 """
-Question Agent - Generates and serves interview questions with adaptive difficulty
+question_agent.py — Qwen generates 5 Tech + 5 HR questions
+Generates resume-aware, role-specific interview questions using Ollama (Qwen).
+Now enhanced with RAG context from PDF knowledge base.
 """
-from typing import Dict, Any, List
-from datetime import datetime
-import random
+import os
+import re
+import json
+import time
+from typing import List, Dict
+from dotenv import load_dotenv
+from metrics import record_metric
+
+try:
+    from gemini_helper import request_gemini
+except ImportError:
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from gemini_helper import request_gemini
+
+load_dotenv()
+
 
 class QuestionAgent:
     def __init__(self):
-        # Question database organized by difficulty and type
-        self.question_bank = {
-            "technical": {
-                "easy": [
-                    "What programming languages are you most comfortable with?",
-                    "Explain the concept of object-oriented programming.",
-                    "What is the difference between SQL and NoSQL databases?",
-                    "Describe the software development lifecycle."
-                ],
-                "medium": [
-                    "How do you handle error handling in your applications?",
-                    "Explain the concept of API design and RESTful services.",
-                    "Describe your experience with cloud platforms and services.",
-                    "How do you ensure code quality in your projects?"
-                ],
-                "hard": [
-                    "Design a scalable architecture for a high-traffic application.",
-                    "Explain how you would optimize database performance for large datasets.",
-                    "Describe your approach to solving complex technical problems.",
-                    "How do you balance technical debt with new feature development?"
-                ]
-            },
-            "behavioral": {
-                "easy": [
-                    "Tell me about yourself and your background.",
-                    "Why are you interested in this position?",
-                    "What do you know about our company?",
-                    "Describe your ideal work environment."
-                ],
-                "medium": [
-                    "Tell me about a time you had to work in a team.",
-                    "How do you handle stress and pressure?",
-                    "Describe a situation where you had to learn something new quickly.",
-                    "How do you prioritize your tasks when everything seems important?"
-                ],
-                "hard": [
-                    "Tell me about a time you had to lead a team through a difficult situation.",
-                    "How do you handle conflicts with team members?",
-                    "Describe a situation where you had to make a tough decision.",
-                    "How do you motivate team members who are struggling?"
-                ]
-            },
-            "scenario": {
-                "easy": [
-                    "How would you handle a bug that's found just before a deadline?",
-                    "What would you do if you disagreed with your manager's approach?",
-                    "How would you handle a situation where you're falling behind on a project?"
-                ],
-                "medium": [
-                    "How would you handle a situation where a key team member leaves mid-project?",
-                    "Describe how you would approach a project with unclear requirements.",
-                    "How would you handle a situation where technical constraints change suddenly?"
-                ],
-                "hard": [
-                    "How would you handle a major system outage during peak hours?",
-                    "Describe how you would manage a project with conflicting stakeholder requirements.",
-                    "How would you approach a situation where your technical solution is rejected by business stakeholders?"
-                ]
-            }
-        }
-    
-    def get_next_question(self, interview_id: int, current_index: int, difficulty: str, 
-                         candidate_type: str, job_role: str, db) -> Dict[str, Any]:
-        """Get the next question with adaptive difficulty"""
-        try:
-            from models import InterviewQuestion, Interview
-            
-            # Get interview details
-            interview = db.query(Interview).filter(Interview.id == interview_id).first()
-            if not interview:
-                return {"error": "Interview not found"}
-            
-            # Determine question type based on candidate type and current index
-            question_type = self._determine_question_type(candidate_type, current_index)
-            
-            # Get question from bank
-            question_text = self._get_question_from_bank(question_type, difficulty)
-            
-            # If no questions available, generate one dynamically
-            if not question_text:
-                question_text = self._generate_dynamic_question(question_type, difficulty, job_role)
-            
-            # Create question record
-            question_record = InterviewQuestion(
-                interview_id=interview_id,
-                question=question_text,
-                difficulty=difficulty,
-                question_type=question_type,
-                order_index=current_index,
-                max_score=10.0
-            )
-            db.add(question_record)
-            db.commit()
-            db.refresh(question_record)
-            
-            return {
-                "success": True,
-                "question_id": question_record.id,
-                "question": question_text,
-                "question_type": question_type,
-                "difficulty": difficulty,
-                "order_index": current_index,
-                "time_limit_minutes": 3  # Default time limit per question
-            }
-            
-        except Exception as e:
-            print(f"Error getting next question: {e}")
-            return {"success": False, "error": str(e)}
-    
-    def _determine_question_type(self, candidate_type: str, current_index: int) -> str:
-        """Determine question type based on candidate profile and question index"""
-        # Mix of question types based on candidate type
-        type_rotation = {
-            "IMPACT": ["technical", "scenario", "behavioral"],
-            "MOTIVE": ["behavioral", "scenario", "technical"],
-            "SYSTEM": ["technical", "technical", "scenario", "behavioral"]
-        }
+        self.model = os.getenv("OLLAMA_MODEL", "qwen3:0.6b")
+
+    def generate_questions(
+        self,
+        resume_text: str,
+        job_role: str,
+        company: str,
+        phase: str = "hr",
+        existing_questions: List[str] = None,
+        rag_context: Dict = None,
+        count: int = 5
+    ) -> List[Dict]:
+        """
+        Generate exactly count questions for a given phase (hr or technical).
+        Uses resume context + RAG PDF knowledge to tailor questions.
+        """
+        skills = self._extract_skills(resume_text)
+        skills_str = ", ".join(skills) if skills else "various technologies"
+        resume_context = resume_text[:1000] if resume_text else "No resume provided."
+        existing_str = json.dumps(existing_questions) if existing_questions else "None"
+
+        # Build RAG context string from PDF knowledge base
+        rag_section = self._build_rag_context(rag_context, phase)
         
-        rotation = type_rotation.get(candidate_type, ["technical", "behavioral", "scenario"])
-        return rotation[current_index % len(rotation)]
-    
-    def _get_question_from_bank(self, question_type: str, difficulty: str) -> str:
-        """Get a question from the question bank"""
-        try:
-            questions = self.question_bank.get(question_type, {}).get(difficulty, [])
-            if questions:
-                return random.choice(questions)
-        except:
-            pass
-        return None
-    
-    def _generate_dynamic_question(self, question_type: str, difficulty: str, job_role: str) -> str:
-        """Generate a dynamic question when bank is empty"""
-        templates = {
-            "technical": {
-                "easy": f"What technical skills do you think are most important for a {job_role} role?",
-                "medium": f"How would you apply your technical knowledge to solve a common problem in {job_role}?",
-                "hard": f"Describe a complex technical challenge you faced in {job_role} and how you solved it."
-            },
-            "behavioral": {
-                "easy": f"What interests you most about working in {job_role}?",
-                "medium": f"Describe how your personality fits well with a {job_role} role.",
-                "hard": f"Tell me about a time your behavioral skills helped you succeed in a {job_role} context."
-            },
-            "scenario": {
-                "easy": f"How would you handle a typical challenge in {job_role}?",
-                "medium": f"Describe how you would approach a complex situation in {job_role}.",
-                "hard": f"How would you handle a crisis situation as a {job_role}?"
-            }
-        }
-        
-        return templates.get(question_type, {}).get(difficulty, f"Tell me about your experience with {job_role}.")
-    
-    def adjust_difficulty(self, current_difficulty: str, previous_score: float, 
-                         adaptive_mode: bool) -> str:
-        """Adjust difficulty based on previous answer performance"""
-        if not adaptive_mode:
-            return current_difficulty
-        
-        difficulty_levels = ["easy", "medium", "hard"]
-        current_index = difficulty_levels.index(current_difficulty)
-        
-        # Increase difficulty if score is high, decrease if low
-        if previous_score >= 8.0:
-            new_index = min(current_index + 1, len(difficulty_levels) - 1)
-        elif previous_score <= 5.0:
-            new_index = max(current_index - 1, 0)
+        print(f"[QUESTION_DEBUG] Generating {count} {phase} questions for {job_role} at {company}")
+        if rag_context and rag_context.get("qa_pairs"):
+            print(f"[QUESTION_DEBUG] RAG Context provided: {len(rag_context['qa_pairs'])} reference questions")
+
+        if phase == "hr":
+            prompt = f"""/no_think
+As an AI HR Interviewer, generate exactly {count} unique, professional behavioral and HR {"questions" if count > 1 else "question"} for a candidate applying for the {job_role} position at {company}.
+
+CANDIDATE PROFILE:
+- Resume Context: {resume_context}
+- Identified Skills: {skills_str}
+
+{rag_section}
+
+GUIDELINES:
+1. NEVER copy questions directly from the Knowledge Base. Use them only for topical inspiration.
+2. PERSONALIZATION: Reference specific projects, experiences, or skills from the candidate's resume in the {"questions" if count > 1 else "question"}.
+3. DIVERSITY: Ensure the {"questions cover" if count > 1 else "question covers"} different aspects: Introduction/Motivation, Behavioral/Conflict, Leadership/Teamwork, Culture Fit, and Career Goals.
+4. EXPERIENCE LEVEL: Tailor the difficulty to the candidate's apparent experience level in their resume.
+5. NO REPETITION: Do NOT repeat these questions: {existing_str}
+6. CONCISENESS: Keep the question text extremely concise, maximum 1 to 2 sentences. Do not add conversational filler.
+
+Return ONLY a valid JSON object containing exactly {count} {"questions" if count > 1 else "question"} in the array:
+{{
+    "questions": [
+        {{
+            "question": "Personalized question text...",
+            "type": "hr",
+            "difficulty": "medium",
+            "expected_answer": "The expected answer derived/adapted from the Knowledge Base reference, or a high-quality model-generated answer if no direct reference exists."
+        }}
+    ]
+}}"""
         else:
-            new_index = current_index
-        
-        return difficulty_levels[new_index]
-    
-    def get_remaining_questions(self, interview_id: int, db) -> Dict[str, Any]:
-        """Get remaining questions for an interview"""
+            prompt = f"""/no_think
+As an AI Technical Interviewer, generate exactly {count} unique, deep technical and scenario-based {"questions" if count > 1 else "question"} for a {job_role} position at {company}.
+
+CANDIDATE PROFILE:
+- Resume Context: {resume_context}
+- Identified Skills: {skills_str}
+
+{rag_section}
+
+GUIDELINES:
+1. NEVER copy questions directly from the Knowledge Base. Use them as reference for technical standards and expected depth.
+2. PERSONALIZATION: Anchor {"technical questions" if count > 1 else "technical question"} in the candidate's projects or mentioned stack ({skills_str}).
+3. DYNAMIC SCENARIOS: Create "What if" or "How would you optimize" scenarios based on the candidate's specific background.
+4. VARIATION: Include a mix of: Technical Fundamentals, Project Deep-dive, System Design/Architecture, and Edge-case handling.
+5. NO REPETITION: Do NOT repeat these questions: {existing_str}
+6. CONCISENESS: Keep the question text extremely concise, maximum 1 to 2 sentences. Do not add conversational filler.
+
+Return ONLY a valid JSON object containing exactly {count} {"questions" if count > 1 else "question"} in the array:
+{{
+    "questions": [
+        {{
+            "question": "Personalized technical question text...",
+            "type": "technical",
+            "difficulty": "hard",
+            "expected_answer": "The technical reference answer from the Knowledge Base, adapted to the specific scenario asked."
+        }}
+    ]
+}}"""
+
         try:
-            from models import Interview, InterviewQuestion
+            start_time = time.time()
+            raw_content = request_gemini(prompt)
+            duration = time.time() - start_time
+            record_metric("generate_questions", duration)
+            print(f"[QUESTION_DEBUG] Raw AI Response received ({len(raw_content) if raw_content else 0} chars)")
             
-            interview = db.query(Interview).filter(Interview.id == interview_id).first()
-            if not interview:
-                return {"error": "Interview not found"}
-            
-            answered_questions = db.query(InterviewQuestion).filter(
-                InterviewQuestion.interview_id == interview_id,
-                InterviewQuestion.answer.isnot(None)
-            ).count()
-            
-            remaining = interview.total_questions - answered_questions
-            
-            return {
-                "success": True,
-                "total_questions": interview.total_questions,
-                "answered": answered_questions,
-                "remaining": remaining,
-                "current_index": interview.current_question_index
-            }
-            
+            # Remove thinking tags if present (Qwen3)
+            content = re.sub(r'<think>.*?</think>', '', raw_content, flags=re.DOTALL).strip()
+            content = re.sub(r'```json\n?', '', content)
+            content = re.sub(r'```\n?', '', content)
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(0)
+            result = json.loads(content)
+            questions = result.get("questions", [])
+            print("\n" + "="*80)
+            print(f"[AI GENERATED QUESTIONS - {phase.upper()} PHASE]")
+            for i, q in enumerate(questions):
+                print(f"  Q{i+1}: {q.get('question')}")
+            print("="*80 + "\n")
+            return questions
         except Exception as e:
-            print(f"Error getting remaining questions: {e}")
-            return {"success": False, "error": str(e)}
+            print(f"[QuestionAgent] Gemini generation error: {e}")
+            raise e
+
+    def _build_rag_context(self, rag_context: Dict, phase: str) -> str:
+        """Build a formatted RAG context section for the prompt."""
+        if not rag_context:
+            return ""
+
+        sections = []
+        
+        # Add relevant Q&A pairs from PDF
+        qa_pairs = rag_context.get("qa_pairs", [])
+        if qa_pairs:
+            sections.append("REFERENCE QUESTIONS FROM KNOWLEDGE BASE (use as inspiration):")
+            for i, qa in enumerate(qa_pairs[:3]):
+                sections.append(f"  Ref Q{i+1}: {qa['question']}")
+                if qa.get('answer'):
+                    # Include just a preview of the answer
+                    answer_preview = qa['answer'][:150] + "..." if len(qa.get('answer', '')) > 150 else qa['answer']
+                    sections.append(f"  Expected Answer: {answer_preview}")
+                sections.append("")
+
+        # Add relevant context chunks
+        context_chunks = rag_context.get("context_chunks", [])
+        if context_chunks:
+            sections.append("ADDITIONAL CONTEXT FROM KNOWLEDGE BASE:")
+            for chunk in context_chunks[:1]:
+                content_preview = chunk['content'][:200] if len(chunk.get('content', '')) > 200 else chunk['content']
+                sections.append(f"  {content_preview}")
+            sections.append("")
+
+        return "\n".join(sections) if sections else ""
+
+    def _extract_skills(self, resume_text: str) -> List[str]:
+        tech_keywords = [
+            'python', 'java', 'javascript', 'react', 'angular', 'vue', 'node.js',
+            'django', 'flask', 'sql', 'mongodb', 'postgresql', 'mysql', 'redis',
+            'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'machine learning',
+            'ai', 'data science', 'tensorflow', 'pytorch', 'git', 'ci/cd',
+            'agile', 'scrum', 'rest api', 'graphql', 'microservices',
+            'html', 'css', 'typescript', 'c++', 'c#', '.net', 'spring boot'
+        ]
+        resume_lower = resume_text.lower() if resume_text else ""
+        return list(set(kw for kw in tech_keywords if kw in resume_lower))
+
+
+# Singleton
+question_agent = QuestionAgent()
