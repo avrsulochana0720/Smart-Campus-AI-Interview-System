@@ -13,11 +13,11 @@ from dotenv import load_dotenv
 from metrics import record_metric
 
 try:
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 except ImportError:
     import sys
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 
 load_dotenv()
 
@@ -122,7 +122,7 @@ Return ONLY a valid JSON object:
 
         try:
             start_time = time.time()
-            content = request_gemini(prompt)
+            content = request_ollama(prompt)
             duration = time.time() - start_time
             record_metric("evaluate_answer", duration)
             content = re.sub(r'```json\n?', '', content)
@@ -368,7 +368,7 @@ Interview Data:
 Summary:"""
 
         try:
-            text = request_gemini(prompt)
+            text = request_ollama(prompt)
             # Remove thinking tags if present
             text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
             return text

@@ -11,8 +11,16 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os
+import sys
 import json
 import time
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+
+# Ensure backend package modules can be imported whether running from backend/ or workspace root
+BACKEND_DIR = Path(__file__).resolve().parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from database import engine, get_db, Base, SessionLocal
 from metrics import record_metric, get_average_metrics, get_all_metrics
@@ -48,6 +56,34 @@ async def add_process_time_header(request: Request, call_next):
     route_name = f"{request.method} {request.url.path}"
     record_metric(route_name, process_time)
     response.headers["X-Process-Time"] = str(process_time)
+
+    # Print outgoing API responses for debugging
+    try:
+        content_type = response.headers.get("content-type", "")
+        if "application/json" in content_type:
+            body = getattr(response, "body", None)
+            if body is None and hasattr(response, "body_iterator"):
+                # Force render for JSONResponse and other Starlette responses
+                body = response.body
+            if isinstance(body, bytes):
+                body_text = body.decode("utf-8", errors="replace")
+            else:
+                body_text = str(body)
+            if body_text:
+                try:
+                    parsed = json.loads(body_text)
+                    print(f"[API RESPONSE] {request.method} {request.url.path} -> {json.dumps(parsed, ensure_ascii=False)}")
+                except Exception:
+                    print(f"[API RESPONSE] {request.method} {request.url.path} -> {body_text}")
+        else:
+            body = getattr(response, "body", None)
+            if isinstance(body, (bytes, str)):
+                body_text = body.decode("utf-8", errors="replace") if isinstance(body, bytes) else body
+                if body_text:
+                    print(f"[API RESPONSE] {request.method} {request.url.path} -> {body_text}")
+    except Exception as e:
+        print(f"[API RESPONSE] failed to log response for {request.method} {request.url.path}: {e}")
+
     return response
 
 # Mount uploads for profile images & resumes
@@ -221,17 +257,79 @@ async def upload_resume(
         "user_id": new_resume.user_id,
         "uploaded_at": new_resume.uploaded_at
     }
-
-
 # ══════════════════════════════════════════════════════
 #  INTERVIEW — Create, Questions, Answers
 # ══════════════════════════════════════════════════════
-def _is_placeholder(q_text: str) -> bool:
-    if not q_text:
-        return False
-    return "AI is personalizing" in q_text or "Loading question" in q_text
+def _is_placeholder(text: str) -> bool:
+    if not text: return True
+    placeholders = [
+        "AI is personalizing",
+        "[Retrying]",
+        "Could you elaborate on your experience",
+        "Could you describe a challenging technical project",
+        "How do you approach debugging a complex issue",
+        "Can you explain a time when you had to learn a new technology",
+        "What strategies do you use to ensure your code",
+        "Describe a situation where you had to make a technical trade-off",
+        "Can you tell me about a time you had a disagreement",
+        "Where do you see your career heading",
+        "Describe a situation where you had to meet a tight deadline",
+        "What is your preferred work environment",
+        "Can you share an example of a time you took the initiative"
+    ]
+    return any(p in text for p in placeholders)
 
 _generation_locks = {}
+_BACKGROUND_EXECUTOR = ThreadPoolExecutor(max_workers=8)
+
+
+def _schedule_background_task(func, *args):
+    """Queue a heavy task on the background executor without blocking the HTTP response."""
+    try:
+        _BACKGROUND_EXECUTOR.submit(func, *args)
+        return True
+    except Exception as exc:
+        print(f"[BG-SCHED] Failed to queue task: {exc}")
+        return False
+
+
+def _preload_question_context(interview_id: int, order_index: int, phase: str):
+    """Warm RAG retrieval for the next question in parallel to reduce latency."""
+    db = SessionLocal()
+    try:
+        question_record = db.query(InterviewQuestion).filter(
+            InterviewQuestion.interview_id == interview_id,
+            InterviewQuestion.order_index == order_index
+        ).first()
+        if not question_record:
+            return
+
+        interview = db.query(Interview).filter(Interview.id == interview_id).first()
+        resume = db.query(Resume).filter(Resume.id == interview.resume_id).first() if interview and interview.resume_id else None
+        if not interview or not resume:
+            return
+
+        rag_context = rag_agent.retrieve_context(
+            resume_text=resume.resume_text,
+            job_role=interview.job_role,
+            company=interview.company,
+            phase=phase,
+            top_k=5,
+            db=db,
+        )
+        if rag_context and rag_context.get("qa_pairs"):
+            print(f"[BG-PRELOAD] Warmed RAG context for Q{order_index + 1} ({phase}) in interview {interview_id}")
+
+        if not question_record.expected_answer:
+            expected_matches = rag_agent.get_expected_answers([question_record.question], db=db)
+            if expected_matches and expected_matches[0].get("expected_answer"):
+                question_record.expected_answer = expected_matches[0]["expected_answer"]
+                db.commit()
+    except Exception as exc:
+        print(f"[BG-PRELOAD] RAG preload failed for Q{order_index + 1}: {exc}")
+    finally:
+        db.close()
+
 
 def _safe_queue_generation(background_tasks: BackgroundTasks, interview_id: int, order_index: int, phase: str):
     """Queue a background task only if it hasn't been queued in the last 60 seconds."""
@@ -240,11 +338,14 @@ def _safe_queue_generation(background_tasks: BackgroundTasks, interview_id: int,
     lock_key = (interview_id, order_index)
     last_queued = _generation_locks.get(lock_key, 0)
     
-    # Only queue if we haven't queued this exact question in the last 60 seconds
-    if now - last_queued > 60:
+    # Only queue if we haven't queued this exact question in the last 30 seconds
+    if now - last_queued > 30:
         _generation_locks[lock_key] = now
-        background_tasks.add_task(_generate_single_question_task, interview_id, order_index, phase)
+        _schedule_background_task(_generate_single_question_task, interview_id, order_index, phase)
+        _schedule_background_task(_preload_question_context, interview_id, order_index, phase)
         print(f"[BG-GEN] Safely queued Question {order_index + 1} generation (auto-heal)")
+    else:
+        print(f"[BG-GEN] Skipped Question {order_index + 1} — already queued {now - last_queued:.0f}s ago")
 
 
 def _generate_single_question_task(interview_id: int, order_index: int, phase: str):
@@ -314,8 +415,28 @@ def _generate_single_question_task(interview_id: int, order_index: int, phase: s
             iq.expected_answer = expected_ans
             db.commit()
             print(f"[BG-GEN] Successfully updated question at index {order_index} with customized AI question.")
+            
+            # Check completion status of all 10 questions
+            all_qs = db.query(InterviewQuestion).filter(
+                InterviewQuestion.interview_id == interview_id
+            ).all()
+            generated_count = sum(1 for q in all_qs if not _is_placeholder(q.question) and not q.question.startswith("ERROR:"))
+            print(f"[BG-GEN] Progress for Interview {interview_id}: {generated_count}/10 questions generated successfully.")
+            if generated_count == 10:
+                print(f"[BG-GEN SUCCESS] All 10 questions (5 Technical + 5 HR) have been successfully generated for Interview {interview_id}!")
+            
+            # ── PARALLEL CHAIN: queue next question and its RAG warm-up in parallel ──
+            next_index = order_index + 1
+            if phase == "technical" and next_index <= 4:
+                print(f"[BG-GEN] Chaining: auto-queuing Technical Q{next_index + 1} in parallel")
+                _schedule_background_task(_generate_single_question_task, interview_id, next_index, "technical")
+                _schedule_background_task(_preload_question_context, interview_id, next_index, "technical")
+            elif phase == "hr" and next_index <= 9:
+                print(f"[BG-GEN] Chaining: auto-queuing HR Q{next_index + 1} in parallel")
+                _schedule_background_task(_generate_single_question_task, interview_id, next_index, "hr")
+                _schedule_background_task(_preload_question_context, interview_id, next_index, "hr")
         else:
-            print(f"[BG-GEN WARN] No question returned by agent for index {order_index}.")
+            raise Exception(f"No question returned by agent for index {order_index}.")
 
     except Exception as e:
         print(f"[BG-GEN ERROR] Failed to generate background question for index {order_index}: {e}")
@@ -334,6 +455,55 @@ def _generate_single_question_task(interview_id: int, order_index: int, phase: s
             print(f"[BG-GEN ERROR] Could not mark question as error: {inner_e}")
     finally:
         db.close()
+
+
+def _ensure_placeholder_questions(db: Session, interview_id: int, resume_text: str, job_role: str, company: str):
+    """Create immediate placeholder question slots for the interview UI without blocking the response."""
+    existing_tech = db.query(InterviewQuestion).filter(
+        InterviewQuestion.interview_id == interview_id,
+        InterviewQuestion.question_type == "technical"
+    ).count()
+
+    if existing_tech == 0:
+        tech_fallbacks = question_agent.generate_fallback_questions(
+            resume_text,
+            job_role,
+            company,
+            phase="technical",
+            count=5,
+        )
+        for idx, q_text in enumerate(tech_fallbacks):
+            db.add(InterviewQuestion(
+                interview_id=interview_id,
+                question=q_text,
+                question_type="technical",
+                expected_answer="",
+                order_index=idx,
+            ))
+
+    existing_hr = db.query(InterviewQuestion).filter(
+        InterviewQuestion.interview_id == interview_id,
+        InterviewQuestion.question_type == "hr"
+    ).count()
+
+    if existing_hr == 0:
+        hr_fallbacks = question_agent.generate_fallback_questions(
+            resume_text,
+            job_role,
+            company,
+            phase="hr",
+            count=5,
+        )
+        for idx, q_text in enumerate(hr_fallbacks):
+            db.add(InterviewQuestion(
+                interview_id=interview_id,
+                question=q_text,
+                question_type="hr",
+                expected_answer="",
+                order_index=5 + idx,
+            ))
+
+    db.commit()
 
 
 def _pre_generate_interview_content(interview_id: int):
@@ -371,52 +541,17 @@ def _pre_generate_interview_content(interview_id: int):
             print(f"[PRE-GEN WARN] Background resume analysis failed: {e}")
 
         # 2. Create placeholder records for ALL 10 questions (for UI compatibility)
-        skills = question_agent._extract_skills(resume.resume_text)
-        
-        # Create 5 technical question placeholders (index 0-4)
-        existing_tech = db.query(InterviewQuestion).filter(
-            InterviewQuestion.interview_id == interview_id,
-            InterviewQuestion.question_type == "technical"
-        ).count()
-        
-        if existing_tech == 0:
-            for idx in range(5):
-                iq = InterviewQuestion(
-                    interview_id=interview_id,
-                    question=f"AI is personalizing your question. Please wait... [Technical Q{idx+1}]",
-                    question_type="technical",
-                    expected_answer="",
-                    order_index=idx
-                )
-                db.add(iq)
-            db.commit()
-            print("[PRE-GEN] Created 5 technical question placeholders (to be generated one-by-one).")
+        _ensure_placeholder_questions(db, interview_id, resume.resume_text, interview.job_role, interview.company)
+        print("[PRE-GEN] Seeded 10 personalized question placeholders for the interview.")
 
-        # Create 5 HR question placeholders (index 5-9)
-        existing_hr = db.query(InterviewQuestion).filter(
-            InterviewQuestion.interview_id == interview_id,
-            InterviewQuestion.question_type == "hr"
-        ).count()
-        
-        if existing_hr == 0:
-            for idx in range(5):
-                iq = InterviewQuestion(
-                    interview_id=interview_id,
-                    question=f"AI is personalizing your question. Please wait... [HR Q{idx+1}]",
-                    question_type="hr",
-                    expected_answer="",
-                    order_index=5 + idx
-                )
-                db.add(iq)
-            db.commit()
-            print("[PRE-GEN] Created 5 HR question placeholders (to be generated one-by-one).")
+        # 3. Generate Tech Q1 + HR Q6 in parallel using the background executor
+        print("[PRE-GEN] Generating FIRST technical question (chain will auto-queue Q2→Q5)...")
+        _schedule_background_task(_generate_single_question_task, interview_id, 0, "technical")
+        _schedule_background_task(_preload_question_context, interview_id, 0, "technical")
 
-        # 3. Generate Question 1 and Question 2 in background sequentially
-        print("[PRE-GEN] Generating FIRST technical question...")
-        _generate_single_question_task(interview_id, 0, "technical")
-        
-        print("[PRE-GEN] Queuing SECOND technical question...")
-        _generate_single_question_task(interview_id, 1, "technical")
+        print("[PRE-GEN] Generating FIRST HR question (chain will auto-queue Q7→Q10)...")
+        _schedule_background_task(_generate_single_question_task, interview_id, 5, "hr")
+        _schedule_background_task(_preload_question_context, interview_id, 5, "hr")
 
     except Exception as e:
         print(f"[PRE-GEN ERROR] Background generation failed: {e}")
@@ -456,6 +591,10 @@ def create_interview(
     db.add(new_interview)
     db.commit()
     db.refresh(new_interview)
+
+    resume = db.query(Resume).filter(Resume.id == resume_id).first()
+    if resume:
+        _ensure_placeholder_questions(db, new_interview.id, resume.resume_text, new_interview.job_role, new_interview.company)
 
     # Spawn concurrent background pre-generation of resume analysis, technical questions, and HR questions
     background_tasks.add_task(_pre_generate_interview_content, new_interview.id)
@@ -505,10 +644,22 @@ def generate_questions(
         
         start_idx = 0 if request.phase == "technical" else 5
         
-        for idx in range(5):
+        resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
+        if not resume:
+            raise HTTPException(status_code=404, detail="Resume not linked to interview")
+
+        fallback_questions = question_agent.generate_fallback_questions(
+            resume.resume_text,
+            interview.job_role,
+            interview.company,
+            phase=request.phase,
+            count=5,
+        )
+
+        for idx, q_text in enumerate(fallback_questions):
             iq = InterviewQuestion(
                 interview_id=request.interview_id,
-                question=f"AI is personalizing your question. Please wait... [{request.phase.capitalize()} Q{idx+1}]",
+                question=q_text,
                 question_type=request.phase,
                 expected_answer="",
                 order_index=start_idx + idx
@@ -523,41 +674,9 @@ def generate_questions(
         ).order_by(InterviewQuestion.order_index.asc()).all()
         db_time += (time.time() - db_start)
 
-    # Synchronous safety: If the first question of this phase is still a placeholder, generate it synchronously!
-    if existing and request.phase == "technical" and _is_placeholder(existing[0].question):
-        try:
-            print(f"[SYNC-GEN] Synchronously generating customized Question 1 for phase {request.phase}")
-            resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
-            rag_context = None
-            try:
-                rag_context = rag_agent.retrieve_context(
-                    resume_text=resume.resume_text,
-                    job_role=interview.job_role,
-                    company=interview.company,
-                    phase=request.phase,
-                    top_k=5,
-                    db=db
-                )
-            except Exception as rag_err:
-                print(f"[SYNC-GEN RAG] Context retrieval failed: {rag_err}")
-
-            questions = question_agent.generate_questions(
-                resume_text=resume.resume_text,
-                job_role=interview.job_role,
-                company=interview.company,
-                phase=request.phase,
-                existing_questions=[],
-                rag_context=rag_context,
-                count=1
-            )
-            if questions:
-                q = questions[0]
-                existing[0].question = q["question"] if isinstance(q, dict) else q
-                existing[0].expected_answer = q.get("expected_answer", "") if isinstance(q, dict) else ""
-                db.commit()
-                print("[SYNC-GEN] Question 1 generated successfully.")
-        except Exception as e:
-            print(f"[SYNC-GEN ERROR] Failed to synchronously generate Question 1: {e}")
+    # Synchronous safety disabled: We now rely entirely on background generation 
+    # to prevent infinite loading screens on local hardware (Ollama).
+    pass
 
     # Auto-heal: If any question is still a placeholder, safely queue it with a 60-second debounce
     # This guarantees stuck tasks (like the 3rd question) resume automatically.
@@ -596,10 +715,21 @@ def retry_question(
     if iq.interview.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Unauthorized")
         
-    iq.question = "AI is personalizing your question. Please wait... [Retrying]"
+    interview = db.query(Interview).filter(Interview.id == request.interview_id).first()
+    resume = db.query(Resume).filter(Resume.id == interview.resume_id).first() if interview and interview.resume_id else None
+
+    fallback_questions = question_agent.generate_fallback_questions(
+        resume.resume_text if resume else "",
+        interview.job_role if interview else "Applicant",
+        interview.company if interview else "Company",
+        phase=iq.question_type,
+        count=1,
+    )
+    iq.question = fallback_questions[0] + " [Retrying]"
     db.commit()
-    
-    background_tasks.add_task(_generate_single_question_task, request.interview_id, iq.order_index, iq.question_type)
+
+    _schedule_background_task(_generate_single_question_task, request.interview_id, iq.order_index, iq.question_type)
+    _schedule_background_task(_preload_question_context, request.interview_id, iq.order_index, iq.question_type)
     return {"message": "Retry initiated"}
 
 
@@ -638,6 +768,87 @@ def get_question(
     return {"message": "All questions answered", "is_complete": True}
 
 
+def _evaluate_answer_bg(answer_id: int):
+    """Background task to evaluate an answer in parallel."""
+    db = SessionLocal()
+    try:
+        # Load answer
+        answer = db.query(Answer).filter(Answer.id == answer_id).first()
+        if not answer or answer.score is not None:
+            return
+            
+        interview = db.query(Interview).filter(Interview.id == answer.interview_id).first()
+        question_record = db.query(InterviewQuestion).filter(InterviewQuestion.id == answer.question_id).first()
+        
+        # 1. Resume text
+        resume_text = ""
+        if interview.resume_id:
+            resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
+            if resume:
+                resume_text = resume.resume_text[:1000]
+                
+        # 2. RAG lookup
+        expected_answer = question_record.expected_answer
+        rag_ref_id = None
+        rag_sim_score = 0.0
+        try:
+            rag_matches = rag_agent.get_expected_answers([question_record.question], db=db)
+            if rag_matches and rag_matches[0].get("expected_answer"):
+                rag_sim_score = rag_matches[0].get("relevance_score", 0.0)
+                rag_ref_id = rag_matches[0].get("reference_id")
+                if not expected_answer:
+                    expected_answer = rag_matches[0]["expected_answer"]
+        except Exception as rag_err:
+            pass
+
+        # 3. Model Inference
+        print(f"[BG-EVAL] Evaluating answer for Q: {question_record.question[:50]}...")
+        try:
+            evaluation = eval_agent.evaluate_answer(
+                question=question_record.question,
+                user_answer=answer.answer_text,
+                job_role=interview.job_role,
+                company=interview.company,
+                resume_summary=resume_text,
+                expected_answer=expected_answer,
+                question_type=question_record.question_type
+            )
+        except Exception as e:
+            print(f"[BG-EVAL] Eval error: {e}")
+            evaluation = eval_agent._fallback_evaluation(
+                question_record.question, answer.answer_text,
+                interview.job_role, interview.company,
+                question_record.question_type
+            )
+            
+        # 4. Save Score
+        answer.score = evaluation["score"]
+        answer.feedback = evaluation["feedback"]
+        answer.evaluated_at = datetime.utcnow()
+        answer.rag_reference_id = rag_ref_id
+        answer.rag_similarity_score = max(rag_sim_score, evaluation.get("matching_score", 0) / 100.0)
+        
+        if question_record.question_type == "technical":
+            answer.accuracy_score = evaluation.get("accuracy", 5)
+            answer.concept_understanding_score = evaluation.get("concept_understanding", 5)
+            answer.problem_solving_score = evaluation.get("problem_solving", 5)
+            answer.communication_clarity_score = evaluation.get("communication_clarity", 5)
+            answer.code_quality_score = evaluation.get("code_quality", 5)
+        else:
+            answer.communication_skills_score = evaluation.get("communication_skills", 5)
+            answer.confidence_score = evaluation.get("confidence", 5)
+            answer.professionalism_score = evaluation.get("professionalism", 5)
+            answer.adaptability_score = evaluation.get("adaptability", 5)
+            answer.team_collaboration_score = evaluation.get("team_collaboration", 5)
+            
+        db.commit()
+        print(f"[BG-EVAL] Successfully completed evaluation for Answer ID {answer_id} (Score: {answer.score})")
+    except Exception as e:
+        print(f"[BG-EVAL ERROR] Failed to evaluate answer ID {answer_id}: {e}")
+    finally:
+        db.close()
+
+
 # ── Submit Answer (eval_agent) ────────────────────────
 @app.post("/submit-answer")
 def submit_answer(
@@ -646,11 +857,7 @@ def submit_answer(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Submit an answer → eval_agent scores it 0-10 → return feedback + next question with profiling."""
-    total_start = time.time()
-    
-    # 1. DB Retrieve time
-    db_retrieve_start = time.time()
+    """Submit an answer, queue it for background evaluation, and instantly return the next question."""
     interview = db.query(Interview).filter(Interview.id == answer_req.interview_id).first()
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
@@ -664,17 +871,13 @@ def submit_answer(
     if not question_record:
         raise HTTPException(status_code=404, detail="Question not found")
 
-    # Check for duplicate answer — return existing evaluation if already answered
     existing_answer = db.query(Answer).filter(
         Answer.question_id == answer_req.question_id,
         Answer.interview_id == answer_req.interview_id
     ).first()
-    db_retrieve_time = time.time() - db_retrieve_start
-    record_metric("DB Retrieval (submit-answer)", db_retrieve_time)
 
     if existing_answer:
-        # Already answered — return cached evaluation
-        db_cache_start = time.time()
+        # Cache hit
         answered_ids = db.query(Answer.question_id).filter(
             Answer.interview_id == answer_req.interview_id
         ).subquery()
@@ -682,27 +885,18 @@ def submit_answer(
             InterviewQuestion.interview_id == answer_req.interview_id,
             ~InterviewQuestion.id.in_(answered_ids)
         ).order_by(InterviewQuestion.order_index.asc()).first()
-        db_cache_time = time.time() - db_cache_start
-        record_metric("DB Next Question (Cached-Path)", db_cache_time)
         
-        # Generate next questions on-demand in cached path too!
+        # Ensure generation continues
         if next_q:
-            # Check if next question is placeholder - generate it
             if _is_placeholder(next_q.question):
-                background_tasks.add_task(_generate_single_question_task, answer_req.interview_id, next_q.order_index, next_q.question_type)
-                print(f"[BG-GEN CACHED] Queued generation for Question {next_q.order_index + 1}")
-            
-            # Also queue next-next question
+                _safe_queue_generation(background_tasks, answer_req.interview_id, next_q.order_index, next_q.question_type)
             next_next_q = db.query(InterviewQuestion).filter(
                 InterviewQuestion.interview_id == answer_req.interview_id,
                 InterviewQuestion.order_index == next_q.order_index + 1
             ).first()
             if next_next_q and _is_placeholder(next_next_q.question):
-                background_tasks.add_task(_generate_single_question_task, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
+                _safe_queue_generation(background_tasks, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
         
-        total_time = time.time() - total_start
-        record_metric("Total submit-answer (Cached)", total_time)
-        print(f"[PERF_LOG] /submit-answer completed in {total_time:.4f}s (Cache/Duplicate Hit)")
         return {
             "message": "Answer already recorded",
             "score": existing_answer.score or 0,
@@ -712,8 +906,7 @@ def submit_answer(
             "is_complete": next_q is None
         }
 
-    # Step 1: Store the candidate answer in the database
-    db_store_start = time.time()
+    # Step 1: Store the candidate answer in the database instantly
     new_answer = Answer(
         question_id=answer_req.question_id,
         interview_id=answer_req.interview_id,
@@ -723,93 +916,13 @@ def submit_answer(
     db.add(new_answer)
     db.commit()
     db.refresh(new_answer)
-    db_store_time = time.time() - db_store_start
-    record_metric("DB Answer Storage", db_store_time)
 
-    # Step 2: Get resume text for context
-    db_resume_start = time.time()
-    resume_text = answer_req.resume_summary
-    if not resume_text and interview.resume_id:
-        resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
-        if resume:
-            resume_text = resume.resume_text[:1000]
-    db_resume_time = time.time() - db_resume_start
-    record_metric("DB Resume Context Lookup", db_resume_time)
+    # Step 2: Queue evaluation and context warm-up in parallel without blocking the UI
+    _schedule_background_task(_evaluate_answer_bg, new_answer.id)
+    # Step 5: Transition logic removed to prevent infinite loading.
+    pass
 
-    # Step 2b: Expected Answer RAG Lookup
-    rag_start = time.time()
-    expected_answer = question_record.expected_answer
-    rag_ref_id = None
-    rag_sim_score = 0.0
-    
-    # Try retrieving unified expected answer RAG reference metadata
-    try:
-        rag_matches = rag_agent.get_expected_answers([question_record.question], db=db)
-        if rag_matches and rag_matches[0].get("expected_answer"):
-            rag_sim_score = rag_matches[0].get("relevance_score", 0.0)
-            rag_ref_id = rag_matches[0].get("reference_id")
-            if not expected_answer:
-                expected_answer = rag_matches[0]["expected_answer"]
-                print(f"[EVAL_DEBUG] RAG lookup found answer for Q{question_record.id}")
-    except Exception as rag_err:
-        print(f"[EVAL_DEBUG] Unified RAG reference lookup failed: {rag_err}")
-    rag_time = time.time() - rag_start
-    record_metric("RAG Expected Answer Lookup", rag_time)
-
-    # Step 3: eval_agent scores the answer (with Qwen Model Inference)
-    eval_start = time.time()
-    try:
-        print(f"[EVAL_DEBUG] Evaluating answer for Q: {question_record.question[:50]}...")
-        evaluation = eval_agent.evaluate_answer(
-            question=question_record.question,
-            user_answer=answer_req.answer,
-            job_role=answer_req.job_role or interview.job_role,
-            company=answer_req.company or interview.company,
-            resume_summary=resume_text,
-            expected_answer=expected_answer,
-            question_type=question_record.question_type
-        )
-        print(f"[EVAL_DEBUG] Score: {evaluation['score']} | Matching: {evaluation.get('matching_score', 0)}")
-    except Exception as e:
-        print(f"[submit-answer] Eval error: {e}")
-        evaluation = eval_agent._fallback_evaluation(
-            question_record.question, answer_req.answer,
-            interview.job_role, interview.company,
-            question_record.question_type
-        )
-    eval_time = time.time() - eval_start
-    record_metric("Model Answer Evaluation Inference", eval_time)
-
-    # Step 4: Update database answer record with score and feedback (DB Save Evaluation)
-    db_save_start = time.time()
-    new_answer.score = evaluation["score"]
-    new_answer.feedback = evaluation["feedback"]
-    new_answer.evaluated_at = datetime.utcnow()
-    
-    # Save unified RAG reference metadata
-    new_answer.rag_reference_id = rag_ref_id
-    new_answer.rag_similarity_score = max(rag_sim_score, evaluation.get("matching_score", 0) / 100.0)
-    
-    # Save individual factor scores based on question type
-    if question_record.question_type == "technical":
-        new_answer.accuracy_score = evaluation.get("accuracy", 5)
-        new_answer.concept_understanding_score = evaluation.get("concept_understanding", 5)
-        new_answer.problem_solving_score = evaluation.get("problem_solving", 5)
-        new_answer.communication_clarity_score = evaluation.get("communication_clarity", 5)
-        new_answer.code_quality_score = evaluation.get("code_quality", 5)
-    else:
-        new_answer.communication_skills_score = evaluation.get("communication_skills", 5)
-        new_answer.confidence_score = evaluation.get("confidence", 5)
-        new_answer.professionalism_score = evaluation.get("professionalism", 5)
-        new_answer.adaptability_score = evaluation.get("adaptability", 5)
-        new_answer.team_collaboration_score = evaluation.get("team_collaboration", 5)
-        
-    db.commit()
-    db_save_time = time.time() - db_save_start
-    record_metric("DB Save Evaluation", db_save_time)
-
-    # Step 5: Get next question
-    db_next_start = time.time()
+    # Step 3: Get next question
     answered_ids = db.query(Answer.question_id).filter(
         Answer.interview_id == answer_req.interview_id
     ).subquery()
@@ -818,73 +931,27 @@ def submit_answer(
         InterviewQuestion.interview_id == answer_req.interview_id,
         ~InterviewQuestion.id.in_(answered_ids)
     ).order_by(InterviewQuestion.order_index.asc()).first()
-    db_next_time = time.time() - db_next_start
-    record_metric("DB Next Question Lookup", db_next_time)
 
-    # Strictly queue ONLY next-next question (index N+2) generation in background!
-    # While user is answering Question N+1, Question N+2 is generated in background.
+    # Step 4: Keep pipeline full
     if next_q:
+        if _is_placeholder(next_q.question):
+            _safe_queue_generation(background_tasks, answer_req.interview_id, next_q.order_index, next_q.question_type)
+        else:
+            _schedule_background_task(_preload_question_context, answer_req.interview_id, next_q.order_index, next_q.question_type)
         next_next_q = db.query(InterviewQuestion).filter(
             InterviewQuestion.interview_id == answer_req.interview_id,
             InterviewQuestion.order_index == next_q.order_index + 1
         ).first()
         if next_next_q and _is_placeholder(next_next_q.question):
-            background_tasks.add_task(_generate_single_question_task, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
-            print(f"[BG-GEN] Strictly queued Question {next_next_q.order_index + 1} generation in background.")
+            _safe_queue_generation(background_tasks, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
+        elif next_next_q:
+            _schedule_background_task(_preload_question_context, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
     
-    # If user just finished all technical questions, generate first HR question synchronously to avoid flashing placeholders
-    if next_q and next_q.question_type == "hr" and question_record.question_type == "technical":
-        if _is_placeholder(next_q.question):
-            try:
-                print("[SYNC-GEN] Synchronously generating first HR question as user transitions from technical phase")
-                resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
-                rag_context = None
-                try:
-                    rag_context = rag_agent.retrieve_context(
-                        resume_text=resume.resume_text,
-                        job_role=interview.job_role,
-                        company=interview.company,
-                        phase="hr",
-                        top_k=5,
-                        db=db
-                    )
-                except Exception as rag_err:
-                    print(f"[SYNC-GEN RAG] Context retrieval failed: {rag_err}")
-
-                questions = question_agent.generate_questions(
-                    resume_text=resume.resume_text,
-                    job_role=interview.job_role,
-                    company=interview.company,
-                    phase="hr",
-                    existing_questions=[],
-                    rag_context=rag_context,
-                    count=1
-                )
-                if questions:
-                    q = questions[0]
-                    next_q.question = q["question"] if isinstance(q, dict) else q
-                    next_q.expected_answer = q.get("expected_answer", "") if isinstance(q, dict) else ""
-                    db.commit()
-                    print("[SYNC-GEN] First HR question generated synchronously.")
-            except Exception as e:
-                print(f"[SYNC-GEN ERROR] Failed to synchronously generate first HR question: {e}")
-
-    total_time = time.time() - total_start
-    record_metric("Total submit-answer Endpoint Time", total_time)
-    
-    print(f"[PERF_LOG] /submit-answer completed in {total_time:.4f}s")
-    print(f"  - DB Retrieval: {db_retrieve_time:.4f}s")
-    print(f"  - DB Storage (Raw): {db_store_time:.4f}s")
-    print(f"  - DB Context Lookups: {db_resume_time:.4f}s")
-    print(f"  - RAG Expected Answer Lookup: {rag_time:.4f}s")
-    print(f"  - Model Inference (Qwen): {eval_time:.4f}s")
-    print(f"  - DB Save Evaluation: {db_save_time:.4f}s")
-    print(f"  - DB Next Question: {db_next_time:.4f}s")
 
     return {
-        "message": "Answer received",
-        "score": evaluation["score"],
-        "feedback": evaluation["feedback"],
+        "message": "Answer received and queued for evaluation",
+        "score": 0,
+        "feedback": "",
         "next_question": next_q.question if next_q else None,
         "question_id": next_q.id if next_q else None,
         "is_complete": next_q is None
@@ -1018,6 +1085,21 @@ def _generate_report_bg(interview_id: int, report_id: int):
         if not interview:
             return
 
+        # Step 0: Give in-flight answer evaluations a short grace period to finish,
+        # then continue with the best available factor scores already stored in DB.
+        import time as time_mod
+        wait_start = time_mod.time()
+        while time_mod.time() - wait_start < 8:
+            db.commit()
+            pending_answers = db.query(Answer).filter(
+                Answer.interview_id == interview_id,
+                Answer.score == None
+            ).count()
+            if pending_answers == 0:
+                break
+            print(f"[REPORT] Waiting briefly for {pending_answers} background evaluations to complete...")
+            time_mod.sleep(1)
+
         # Step 1: Gather Q&A data from DB
         questions = db.query(InterviewQuestion).filter(
             InterviewQuestion.interview_id == interview_id
@@ -1036,7 +1118,17 @@ def _generate_report_bg(interview_id: int, report_id: int):
                 "answer": ans.answer_text if ans else "Not answered",
                 "score": ans.score if ans and ans.score is not None else 0,
                 "feedback": ans.feedback if ans and ans.feedback else "",
-                "expected_answer": q.expected_answer  # USE PRE-STORED REFERENCE
+                "expected_answer": q.expected_answer,  # USE PRE-STORED REFERENCE
+                "accuracy_score": ans.accuracy_score if ans else 0,
+                "concept_understanding_score": ans.concept_understanding_score if ans else 0,
+                "problem_solving_score": ans.problem_solving_score if ans else 0,
+                "communication_clarity_score": ans.communication_clarity_score if ans else 0,
+                "code_quality_score": ans.code_quality_score if ans else 0,
+                "communication_skills_score": ans.communication_skills_score if ans else 0,
+                "confidence_score": ans.confidence_score if ans else 0,
+                "professionalism_score": ans.professionalism_score if ans else 0,
+                "adaptability_score": ans.adaptability_score if ans else 0,
+                "team_collaboration_score": ans.team_collaboration_score if ans else 0,
             })
 
         # Step 2: Get resume text
@@ -1057,17 +1149,14 @@ def _generate_report_bg(interview_id: int, report_id: int):
             else:
                 print("[REPORT_DEBUG] All questions have pre-stored expected answers. skipping RAG lookup.")
 
-            # Step 4: Run bulk RAG evaluation using the SAME SLM model
-            print(f"[REPORT_DEBUG] Running comprehensive RAG evaluation for {len(qa_data)} answers...")
-            rag_evaluation = eval_agent.evaluate_with_rag(
-                questions_answers=qa_data,
-                job_role=interview.job_role,
-                company=interview.company,
-                resume_text=resume_text
-            )
-            print(f"[RAG] Report evaluation: tech={rag_evaluation.get('technical_score')}, "
-                  f"hr={rag_evaluation.get('hr_score')}, match={rag_evaluation.get('matching_score')}, "
-                  f"confidence={rag_evaluation.get('confidence_score')}")
+            # Step 4: Skip duplicate RAG evaluation because individual answers were evaluated in background
+            print(f"[REPORT_DEBUG] Skipping duplicate comprehensive RAG evaluation...")
+            rag_evaluation = {
+                "technical_score": 0,
+                "hr_score": 0,
+                "matching_score": 0,
+                "confidence_score": 0
+            }
         except Exception as rag_err:
             print(f"[RAG] Report evaluation failed (non-fatal): {rag_err}")
             import traceback
@@ -1076,17 +1165,7 @@ def _generate_report_bg(interview_id: int, report_id: int):
         # Step 5: Get proctoring summary
         proctor_summary = proctor_agent.get_proctoring_summary(interview_id, db)
 
-        # Step 6: Generate comprehensive report (Qwen)
-        report_data = report_agent.generate_report(
-            job_role=interview.job_role,
-            company=interview.company,
-            qa_data=qa_data,
-            resume_text=resume_text,
-            proctoring_summary=proctor_summary,
-            rag_evaluation=rag_evaluation
-        )
-
-        # Calculate factor averages from individual Answer records in DB
+        # Step 6: Calculate factor averages from individual Answer records in DB
         answers = db.query(Answer).filter(Answer.interview_id == interview_id).all()
         
         tech_answers = [a for a in answers if a.question_type == "technical" and a.answer_text != "Not answered"]
@@ -1121,6 +1200,35 @@ def _generate_report_bg(interview_id: int, report_id: int):
             final_score = overall_hr
         else:
             final_score = 0.0
+
+        factor_evaluation = {
+            "technical": {
+                "accuracy": round(tech_accuracy / 10, 2),
+                "concept_understanding": round(tech_concept / 10, 2),
+                "problem_solving": round(tech_solving / 10, 2),
+                "communication_clarity": round(tech_comm / 10, 2),
+                "code_quality": round(tech_code / 10, 2),
+            },
+            "hr": {
+                "communication_skills": round(hr_comm / 10, 2),
+                "confidence": round(hr_conf / 10, 2),
+                "professionalism": round(hr_prof / 10, 2),
+                "adaptability": round(hr_adapt / 10, 2),
+                "team_collaboration": round(hr_team / 10, 2),
+            },
+            "overall_technical_score": round(overall_tech, 2),
+            "overall_hr_score": round(overall_hr, 2),
+        }
+
+        report_data = report_agent.generate_report(
+            job_role=interview.job_role,
+            company=interview.company,
+            qa_data=qa_data,
+            resume_text=resume_text,
+            proctoring_summary=proctor_summary,
+            rag_evaluation=rag_evaluation,
+            factor_evaluation=factor_evaluation
+        )
 
         # Step 7: Save report to DB with all enhanced fields
         report = db.query(InterviewReport).filter(InterviewReport.id == report_id).first()

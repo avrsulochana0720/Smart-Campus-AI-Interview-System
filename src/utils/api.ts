@@ -104,10 +104,10 @@ export const resumeAPI = {
 const questionCache: Record<number, string> = {};
 let pollingInterval: any = null;
 let isPolling = false;
-const listeners: (() => void)[] = [];
+const listeners: ((techData?: any, hrData?: any) => void)[] = [];
 
-const notifyListeners = () => {
-  listeners.forEach(cb => cb());
+const notifyListeners = (techData?: any, hrData?: any) => {
+  listeners.forEach(cb => cb(techData, hrData));
 };
 
 const startPollingQuestions = (interviewId: number) => {
@@ -115,7 +115,24 @@ const startPollingQuestions = (interviewId: number) => {
   
   const isPlaceholder = (text: string) => {
     if (!text) return false;
-    return text.includes("AI is personalizing") || text.includes("Loading question");
+    const placeholders = [
+      "AI is personalizing",
+      "[Retrying]",
+      "Could you elaborate on your experience",
+      "Could you describe a challenging technical project",
+      "How do you approach debugging a complex issue",
+      "Can you explain a time when you had to learn a new technology",
+      "What strategies do you use to ensure your code",
+      "Describe a situation where you had to make a technical trade-off",
+      "Can you tell me about a time you had a disagreement",
+      "Where do you see your career heading",
+      "Describe a situation where you had to meet a tight deadline",
+      "What is your preferred work environment",
+      "Can you share an example of a time you took the initiative",
+      "Loading question",
+      "ERROR:"
+    ];
+    return placeholders.some(p => text.includes(p));
   };
 
   pollingInterval = setInterval(async () => {
@@ -150,7 +167,7 @@ const startPollingQuestions = (interviewId: number) => {
       processQuestions(hrRes.data);
       
       if (updated) {
-        notifyListeners();
+        notifyListeners(techRes.data, hrRes.data);
       }
       
       // Stop background polling immediately when all questions are AI-customized to prevent DDoS on Uvicorn
@@ -173,7 +190,7 @@ const stopPollingQuestions = () => {
 };
 
 export const interviewAPI = {
-  onQuestionUpdate: (callback: () => void) => {
+  onQuestionUpdate: (callback: (techData?: any, hrData?: any) => void) => {
     listeners.push(callback);
     return () => {
       const index = listeners.indexOf(callback);

@@ -210,26 +210,36 @@ class RAGAgent:
         }
 
     def _build_refined_query(self, resume_text: str, job_role: str, company: str, phase: str) -> str:
-        """Extract only the most important terms to avoid diluting the search."""
-        # 1. Job Role & Company are high priority
+        """Build a refined search query weighted by role, company, and resume skills."""
+        # 1. Job Role & Company are high priority (triple-weight for TF-IDF)
         core_terms = f"{job_role} {company}"
         
-        # 2. Extract technical skills/projects from resume
+        # 2. Extract technical skills/projects from resume (more skills = better matching)
         skills = self._extract_key_terms(resume_text)
+        top_skills = skills[:8]  # Increased from 5 to 8 for richer matching
         
-        # 3. Limit skills to top 5 to keep query focused
-        top_skills = skills[:5]
-        
-        # 4. Phase-specific keywords
-        phase_keywords = ""
+        # 3. Phase-specific keywords with more variety
         if phase == "hr":
-            phase_keywords = "behavioral leadership teamwork culture fit values"
+            phase_keywords = "behavioral leadership teamwork culture fit values motivation conflict career goals"
         else:
-            phase_keywords = "technical fundamentals problem solving architecture"
+            phase_keywords = "technical fundamentals problem solving architecture system design optimization debugging"
 
-        # Combine into a weighted-style query string
-        # We repeat core terms to give them more "weight" in TF-IDF
-        refined_query = f"{core_terms} {core_terms} {' '.join(top_skills)} {phase_keywords}"
+        # 4. Extract domain-specific terms from resume for better specificity
+        domain_terms = []
+        resume_lower = (resume_text or "").lower()
+        domain_patterns = {
+            'web': ['frontend', 'backend', 'fullstack', 'full stack', 'web'],
+            'data': ['data science', 'machine learning', 'analytics', 'data engineering'],
+            'mobile': ['android', 'ios', 'mobile', 'flutter', 'react native'],
+            'devops': ['devops', 'ci/cd', 'deployment', 'infrastructure'],
+            'cloud': ['aws', 'azure', 'gcp', 'cloud', 'serverless'],
+        }
+        for domain, keywords in domain_patterns.items():
+            if any(kw in resume_lower for kw in keywords):
+                domain_terms.append(domain)
+
+        # Combine: core terms triple-weighted, skills, phase keywords, domain
+        refined_query = f"{core_terms} {core_terms} {core_terms} {' '.join(top_skills)} {phase_keywords} {' '.join(domain_terms)}"
         return refined_query.strip()
 
     def get_expected_answers(
@@ -691,8 +701,21 @@ class RAGAgent:
         print(f"[RAG_DEBUG] Refined Query: {query}")
         print(f"[RAG_DEBUG] Searching across {len(self._json_entries_cache)} JSON entries and {len(self._qa_cache)} PDF Q&A pairs")
         
-        # Search JSON entries (fast TF-IDF)
-        json_results = self._search_json_entries(query, phase, top_k)
+        # Search JSON entries (fast TF-IDF with role/experience awareness)
+        # Extract experience level from resume for better matching
+        exp_level = ""
+        resume_lower = (resume_text or "").lower()
+        import re as _re
+        year_match = _re.search(r'(\d+)\+?\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp)', resume_lower)
+        if year_match:
+            years = int(year_match.group(1))
+            exp_level = "senior" if years >= 5 else ("mid" if years >= 2 else "fresher")
+        elif any(w in resume_lower for w in ['senior', 'lead', 'architect']):
+            exp_level = "senior"
+        elif any(w in resume_lower for w in ['intern', 'fresher', 'student']):
+            exp_level = "fresher"
+        
+        json_results = self._search_json_entries(query, phase, top_k, job_role=job_role, experience_level=exp_level)
         
         # Search PDF Q&A pairs (limit to remaining slots)
         remaining_k = max(2, top_k - len(json_results))
@@ -727,8 +750,9 @@ class RAGAgent:
         self._context_query_cache[cache_key] = result
         return result
 
-    def _search_json_entries(self, query: str, question_type: Optional[str] = None, top_k: int = 5) -> List[Dict]:
-        """Search JSON knowledge base entries using optimized in-memory TF-IDF index."""
+    def _search_json_entries(self, query: str, question_type: Optional[str] = None, top_k: int = 5, 
+                             job_role: str = "", experience_level: str = "") -> List[Dict]:
+        """Search JSON knowledge base with role/experience filtering and category diversity."""
         if not self._json_initialized or not self._json_entries_cache or not hasattr(self, '_json_matrix'):
             return self._search_json_entries_fallback(query, question_type, top_k)
         
@@ -740,12 +764,15 @@ class RAGAgent:
             sorted_indices = similarities.argsort()[::-1]
             
             results = []
+            seen_categories = {}  # Track category diversity
+            max_per_category = max(2, top_k // 2)  # At most half from same category
+            
             for idx in sorted_indices:
                 if len(results) >= top_k:
                     break
                 
                 score = float(similarities[idx])
-                if score < 0.03:  # Threshold
+                if score < 0.02:  # Slightly lower threshold for more diversity
                     continue
                 
                 entry = self._json_entries_cache[idx]
@@ -754,13 +781,34 @@ class RAGAgent:
                 if question_type and entry.get("question_type") != question_type:
                     continue
                 
+                # Role-based boosting: boost entries matching the job role
+                entry_role = entry.get("role", "").lower()
+                role_lower = job_role.lower()
+                if entry_role and role_lower:
+                    if any(term in entry_role for term in role_lower.split()) or \
+                       any(term in role_lower for term in entry_role.split()):
+                        score *= 1.5  # 50% boost for role match
+                
+                # Experience-level boosting
+                entry_exp = entry.get("experience", "").lower()
+                if experience_level and entry_exp:
+                    if experience_level in entry_exp:
+                        score *= 1.3  # 30% boost for experience match
+                
+                # Category diversity enforcement
+                category = entry.get("category", "general")
+                if category in seen_categories and seen_categories[category] >= max_per_category:
+                    continue  # Skip to ensure diversity
+                seen_categories[category] = seen_categories.get(category, 0) + 1
+                
                 results.append({
                     "question": entry["question"],
                     "answer": entry["ideal_answer"],
                     "type": entry.get("source_type", "json"),
                     "source": "json",
-                    "category": entry.get("category", ""),
+                    "category": category,
                     "difficulty": entry.get("difficulty", ""),
+                    "role": entry.get("role", ""),
                     "hints": entry.get("hints", []),
                     "relevance_score": round(score, 4)
                 })

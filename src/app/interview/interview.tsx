@@ -21,6 +21,7 @@ const Interview: React.FC = () => {
   const [answer, setAnswer] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const answerRef = useRef('');
+  const hasSpokenRef = useRef(-1);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -39,9 +40,16 @@ const Interview: React.FC = () => {
   }, [isCompleted, interviewId]);
 
   useEffect(() => {
-    const unsubscribe = interviewAPI.onQuestionUpdate?.(() => {
-      // Force re-render so components read the updated question getters
-      setQuestions(prev => [...prev]);
+    const unsubscribe = interviewAPI.onQuestionUpdate?.((techData, hrData) => {
+      if (techData && hrData) {
+        const combinedQuestions = [
+          ...(techData.questions || []),
+          ...(hrData.questions || [])
+        ].sort((a: any, b: any) => a.order_index - b.order_index);
+        setQuestions(combinedQuestions);
+      } else {
+        setQuestions(prev => [...prev]);
+      }
     });
     return unsubscribe;
   }, []);
@@ -161,18 +169,23 @@ const Interview: React.FC = () => {
   }, [isRecording]);
 
   // Real-time Dual Interviewer Voice + Highlight Synchronization
+  const currentQuestionText = questions[currentQuestionIndex]?.question;
+  
   useEffect(() => {
-    const currentQuestion = questions[currentQuestionIndex]?.question;
-    if (!currentQuestion || isLoading || isCompleted || isPlaceholderQuestion(currentQuestion) || isErrorQuestion(currentQuestion)) return;
+    if (!currentQuestionText || isLoading || isCompleted || isPlaceholderQuestion(currentQuestionText) || isErrorQuestion(currentQuestionText)) return;
+    
+    // Check if we already spoke this question to prevent continuous repeating bugs
+    if (hasSpokenRef.current === currentQuestionIndex) return;
+    hasSpokenRef.current = currentQuestionIndex;
 
-    const qType = (questions[currentQuestionIndex].type || questions[currentQuestionIndex].question_type || '').toLowerCase();
+    const qType = (questions[currentQuestionIndex]?.type || questions[currentQuestionIndex]?.question_type || '').toLowerCase();
     const speakerToActivate = (qType === 'hr' || qType === 'behavioral') ? 'hr' : 'technical';
     
     const speak = () => {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(currentQuestion);
+      const utterance = new SpeechSynthesisUtterance(currentQuestionText);
       
       // Find a professional-sounding voice
       const voices = window.speechSynthesis.getVoices();
@@ -214,7 +227,7 @@ const Interview: React.FC = () => {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
     };
-  }, [currentQuestionIndex, questions, isLoading, isCompleted]);
+  }, [currentQuestionIndex, currentQuestionText, isLoading, isCompleted]);
 
   const loadInterviewData = async (id: number) => {
     try {
@@ -222,12 +235,11 @@ const Interview: React.FC = () => {
       setActiveSpeaker('technical');
       setInterviewPhase('technical');
 
-      // Get interview report/details first
-      const report = await interviewAPI.getReport(id);
+      // Use localStorage for details since report doesn't exist yet
       setInterviewDetails({
-        job_role: report.job_role,
-        company: report.company,
-        created_at: report.created_at
+        job_role: localStorage.getItem('job_role') || 'Applicant',
+        company: localStorage.getItem('company') || 'Company',
+        created_at: new Date().toISOString()
       });
 
       // 1. Generate/Get Technical questions first

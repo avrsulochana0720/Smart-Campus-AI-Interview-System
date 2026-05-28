@@ -10,11 +10,11 @@ from typing import Dict, List
 from dotenv import load_dotenv
 
 try:
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 except ImportError:
     import sys
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 
 load_dotenv()
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:0.6b")
@@ -103,7 +103,7 @@ Return ONLY a valid JSON object:
 }}"""
 
         try:
-            content = request_gemini(prompt)
+            content = request_ollama(prompt)
             content = content.strip()
             content = re.sub(r'```json\n?', '', content)
             content = re.sub(r'```\n?', '', content)
@@ -114,7 +114,7 @@ Return ONLY a valid JSON object:
                 content = json_match.group(0)
             return json.loads(content)
         except Exception as e:
-            print(f"[ResumeAgent] Gemini analysis error: {e}")
+            print(f"[ResumeAgent] Ollama analysis error: {e}")
             return {
                 "experience_level": "mid",
                 "strengths": skills[:3] if skills else ["General knowledge"],

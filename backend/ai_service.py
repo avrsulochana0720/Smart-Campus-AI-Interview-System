@@ -5,11 +5,11 @@ import json
 from dotenv import load_dotenv
 
 try:
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 except ImportError:
     import sys
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 
 # Load environment variables
 load_dotenv()
@@ -123,7 +123,7 @@ Exact Structure:
 """
         
         try:
-            content = request_gemini(prompt)
+            content = request_ollama(prompt)
             content = content.strip()
             
             # Clean up JSON response
@@ -146,7 +146,7 @@ Exact Structure:
             return questions
             
         except Exception as e:
-            print(f"Error generating questions with Gemini: {e}")
+            print(f"Error generating questions with Ollama: {e}")
             raise e
 
 class AnswerEvaluator:
@@ -187,7 +187,7 @@ Return ONLY a valid JSON object with this exact structure:
 """
         
         try:
-            content = request_gemini(prompt)
+            content = request_ollama(prompt)
             content = content.strip()
             content = re.sub(r'```json\n?', '', content)
             content = re.sub(r'```\n?', '', content)
@@ -205,7 +205,7 @@ Return ONLY a valid JSON object with this exact structure:
             }
             
         except Exception as e:
-            print(f"Error evaluating answer with Gemini: {e}")
+            print(f"Error evaluating answer with Ollama: {e}")
             return {"score": 5, "feedback": "Answer recorded.", "next_question": "Continue"}
 
     def evaluate_template_answer(
@@ -251,12 +251,12 @@ Summary:
 """
         
         try:
-            content = request_gemini(prompt)
+            content = request_ollama(prompt)
             content = content.strip()
             content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
             return content
         except Exception as e:
-            print(f"Error generating summary with Gemini: {e}")
+            print(f"Error generating summary with Ollama: {e}")
             return "Narrative summary unavailable."
 
     def generate_interview_report(
@@ -333,7 +333,7 @@ Based on the interview data above, generate a professional interview performance
 Format the response as a professional report with clear sections. Be specific and reference examples from the interview answers."""
         
         try:
-            content = request_gemini(prompt)
+            content = request_ollama(prompt)
             narrative = content.strip()
             narrative = re.sub(r'<think>.*?</think>', '', narrative, flags=re.DOTALL)
             
@@ -346,7 +346,7 @@ Format the response as a professional report with clear sections. Be specific an
             }
             
         except Exception as e:
-            print(f"Error generating interview report with Gemini: {e}")
+            print(f"Error generating interview report with Ollama: {e}")
             return {
                 "narrative_summary": "Interview report could not be generated at this time. Please try again later.",
                 "average_score": int(average_score),

@@ -21,26 +21,19 @@ from dotenv import load_dotenv
 from metrics import record_metric
 
 try:
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 except ImportError:
     import sys
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from gemini_helper import request_gemini
+    from ollama_helper import request_ollama
 
 load_dotenv()
 
-# Gemini config
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-
-# Ollama fallback
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3:0.6b")
-
+# Ollama config
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
 
 class ReportAgent:
     def __init__(self):
-        self.gemini_key = GEMINI_API_KEY
-        self.gemini_model = GEMINI_MODEL
         self.ollama_model = OLLAMA_MODEL
 
     def generate_report(
@@ -50,7 +43,8 @@ class ReportAgent:
         qa_data: List[Dict],
         resume_text: str = "",
         proctoring_summary: Dict = None,
-        rag_evaluation: Dict = None
+        rag_evaluation: Dict = None,
+        factor_evaluation: Dict = None
     ) -> Dict:
         """
         Generate a comprehensive interview performance report.
@@ -110,6 +104,13 @@ class ReportAgent:
             eval_weaknesses = rag_evaluation.get("weaknesses", [])
             eval_missing = rag_evaluation.get("missing_concepts", [])
 
+        # Build factor-aware context from the stored answer factor scores when available.
+        factor_ctx = ""
+        if factor_evaluation:
+            factor_ctx = self._format_factor_context(factor_evaluation)
+        else:
+            factor_ctx = self._format_factor_context(self._summarize_factor_scores(qa_data))
+
         # Build QA transcript with expected answers
         qa_transcript = ""
         for i, qa in enumerate(qa_data):
@@ -161,6 +162,7 @@ Company: {company}
 Total Questions: {total_questions}
 Questions Answered: {answered_questions}
 Average Score: {avg_score:.1f}/10
+{factor_ctx}
 {rag_ctx}
 CANDIDATE RESUME:
 {resume_context}
@@ -193,63 +195,9 @@ Return ONLY a valid JSON object:
     "improvement_suggestions": "Comma-separated improvement suggestions"
 }}"""
 
-        # Route to high-speed cloud Gemini API instead of slow local Ollama
-        start_time = time.time()
-        report_text = request_gemini(prompt)
-        duration = time.time() - start_time
-        record_metric("generate_report", duration)
-
-        if report_text:
-            try:
-                # Try to parse as JSON
-                cleaned = re.sub(r'```json\n?', '', report_text)
-                cleaned = re.sub(r'```\n?', '', cleaned)
-                # Remove thinking tags if present
-                cleaned = re.sub(r'<think>.*?</think>', '', cleaned, flags=re.DOTALL)
-                json_match = re.search(r'\{.*\}', cleaned, re.DOTALL)
-                if json_match:
-                    cleaned = json_match.group(0)
-                parsed = json.loads(cleaned)
-
-                return {
-                    "narrative_summary": parsed.get("narrative_summary", report_text),
-                    "average_score": int(avg_score),
-                    "total_questions": total_questions,
-                    "answered_questions": answered_questions,
-                    "strengths": parsed.get("strengths", ", ".join(eval_strengths) if eval_strengths else ""),
-                    "weaknesses": parsed.get("weaknesses", ", ".join(eval_weaknesses) if eval_weaknesses else ""),
-                    "recommendation": parsed.get("recommendation", ""),
-                    "technical_score": tech_score or round(avg_score, 1),
-                    "hr_score": hr_score or round(avg_score, 1),
-                    "confidence_score": parsed.get("confidence_score", confidence_from_eval or 0),
-                    "missing_concepts": parsed.get("missing_concepts", ", ".join(eval_missing) if eval_missing else ""),
-                    "improvement_suggestions": parsed.get("improvement_suggestions", ""),
-                    "rag_matching_data": json.dumps({
-                        "matching_score": matching_score,
-                        "per_question": rag_evaluation.get("per_question", []) if rag_evaluation else []
-                    }),
-                    "status": "completed"
-                }
-            except json.JSONDecodeError:
-                # If JSON parsing fails, use raw text as narrative
-                return {
-                    "narrative_summary": report_text,
-                    "average_score": int(avg_score),
-                    "total_questions": total_questions,
-                    "answered_questions": answered_questions,
-                    "strengths": ", ".join(eval_strengths) if eval_strengths else "",
-                    "weaknesses": ", ".join(eval_weaknesses) if eval_weaknesses else "",
-                    "recommendation": "",
-                    "technical_score": tech_score,
-                    "hr_score": hr_score,
-                    "confidence_score": confidence_from_eval,
-                    "missing_concepts": ", ".join(eval_missing) if eval_missing else "",
-                    "improvement_suggestions": "",
-                    "rag_matching_data": "",
-                    "status": "completed"
-                }
-
-        # Complete fallback — no AI available
+        # Use the factor-aware deterministic report path for stable completion.
+        # This keeps report generation responsive and uses the already-computed
+        # evaluation factors from the answer-scoring pipeline.
         return self._rule_based_report_full(
             job_role, company, qa_data, avg_score,
             total_questions, answered_questions,
@@ -257,18 +205,79 @@ Return ONLY a valid JSON object:
             matching_score, eval_strengths, eval_weaknesses, eval_missing
         )
 
-    # ── Gemini Call ───────────────────────────────────
+    def _format_factor_context(self, factor_evaluation: Dict) -> str:
+        """Build a concise factor-based summary for the report prompt."""
+        if not factor_evaluation:
+            return ""
+
+        lines = ["FACTOR-BASED EVALUATION SUMMARY:"]
+        technical = factor_evaluation.get("technical", {})
+        hr = factor_evaluation.get("hr", {})
+
+        if technical:
+            lines.append("- Technical factors (0-10):")
+            for name, value in technical.items():
+                lines.append(f"  * {name}: {value:.1f}")
+
+        if hr:
+            lines.append("- HR factors (0-10):")
+            for name, value in hr.items():
+                lines.append(f"  * {name}: {value:.1f}")
+
+        if factor_evaluation.get("overall_technical_score") is not None:
+            lines.append(f"- Overall technical score: {factor_evaluation['overall_technical_score']:.1f}/100")
+        if factor_evaluation.get("overall_hr_score") is not None:
+            lines.append(f"- Overall HR score: {factor_evaluation['overall_hr_score']:.1f}/100")
+
+        return "\n".join(lines)
+
+    def _summarize_factor_scores(self, qa_data: List[Dict]) -> Dict:
+        """Summarize factor scores already present on answer records for deterministic report context."""
+        technical = {}
+        hr = {}
+
+        for qa in qa_data:
+            qtype = qa.get("question_type", "technical")
+            if qtype == "technical":
+                technical["accuracy"] = technical.get("accuracy", 0) + float(qa.get("accuracy_score", 0) or 0)
+                technical["concept_understanding"] = technical.get("concept_understanding", 0) + float(qa.get("concept_understanding_score", 0) or 0)
+                technical["problem_solving"] = technical.get("problem_solving", 0) + float(qa.get("problem_solving_score", 0) or 0)
+                technical["communication_clarity"] = technical.get("communication_clarity", 0) + float(qa.get("communication_clarity_score", 0) or 0)
+                technical["code_quality"] = technical.get("code_quality", 0) + float(qa.get("code_quality_score", 0) or 0)
+            else:
+                hr["communication_skills"] = hr.get("communication_skills", 0) + float(qa.get("communication_skills_score", 0) or 0)
+                hr["confidence"] = hr.get("confidence", 0) + float(qa.get("confidence_score", 0) or 0)
+                hr["professionalism"] = hr.get("professionalism", 0) + float(qa.get("professionalism_score", 0) or 0)
+                hr["adaptability"] = hr.get("adaptability", 0) + float(qa.get("adaptability_score", 0) or 0)
+                hr["team_collaboration"] = hr.get("team_collaboration", 0) + float(qa.get("team_collaboration_score", 0) or 0)
+
+        tech_count = sum(1 for qa in qa_data if qa.get("question_type") == "technical")
+        hr_count = sum(1 for qa in qa_data if qa.get("question_type") == "hr")
+
+        if technical:
+            technical = {k: (v / tech_count) if tech_count else 0 for k, v in technical.items()}
+        if hr:
+            hr = {k: (v / hr_count) if hr_count else 0 for k, v in hr.items()}
+
+        return {
+            "technical": technical,
+            "hr": hr,
+            "overall_technical_score": sum(technical.values()) / len(technical) if technical else 0,
+            "overall_hr_score": sum(hr.values()) / len(hr) if hr else 0,
+        }
+
+    # ── Ollama Call ───────────────────────────────────
     def _call_ollama(self, prompt: str) -> str:
-        """Call Gemini."""
+        """Call Ollama."""
         try:
             full_prompt = f"/no_think\n{prompt}"
-            text = request_gemini(full_prompt)
+            text = request_ollama(full_prompt)
             text = text.strip()
             # Remove thinking tags if present
             text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
             return text
         except Exception as e:
-            print(f"[ReportAgent] Gemini error: {e}")
+            print(f"[ReportAgent] Ollama error: {e}")
             return None
 
     # ── Rule-based Fallback ───────────────────────────

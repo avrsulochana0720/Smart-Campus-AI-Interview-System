@@ -20,7 +20,7 @@ from models import User
 # ── Config ────────────────────────────────────────────
 SECRET_KEY = "your-secret-key-here"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 180
 
 # Bearer token scheme
 oauth2_scheme = HTTPBearer()
