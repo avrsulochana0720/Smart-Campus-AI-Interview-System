@@ -1,8 +1,7 @@
 .footer {
   padding: 2.5rem 2rem;
-  border-top: 2px solid rgba(59, 130, 246, 0.15);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  backdrop-filter: blur(20px);
+  border-top: 1px solid #E2E8F0;
+  background: #FAF6EE;
 }
 
 .footer-container {
@@ -22,7 +21,7 @@
 }
 
 .footer-copy {
-  color: #000000;
+  color: #0F172A;
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -40,24 +39,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
-  border: 2px solid rgba(59, 130, 246, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  transition: all 0.2s ease;
 }
 
 .footer-icon:hover {
-  transform: scale(1.15) translateY(-2px);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: #F3ECE0;
+  transform: scale(1.05);
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
 }
 
 .footer-icon-svg {
-  color: #000000;
-  transition: color 0.3s ease;
+  color: #0F172A;
+  transition: color 0.2s ease;
   font-weight: 700;
 }
 
 .footer-icon:hover .footer-icon-svg {
-  color: #3b82f6;
+  color: #DC2626;
 }

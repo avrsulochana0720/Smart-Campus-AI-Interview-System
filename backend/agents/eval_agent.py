@@ -141,6 +141,33 @@ Return ONLY a valid JSON object:
                 comm = max(0, min(10, int(result.get("communication_clarity", 5))))
                 code = max(0, min(10, int(result.get("code_quality", 5))))
                 
+                # Ensure unique scores among the factors by adjusting duplicate values
+                factor_scores = {
+                    "accuracy": accuracy,
+                    "concept_understanding": concept,
+                    "problem_solving": problem,
+                    "communication_clarity": comm,
+                    "code_quality": code
+                }
+                used_scores = set()
+                for k in sorted(factor_scores.keys()):
+                    val = factor_scores[k]
+                    orig_val = val
+                    direction = 1 if val < 8 else -1
+                    while val in used_scores:
+                        val += direction
+                        if val > 10 or val < 1:
+                            direction = -direction
+                            val = orig_val + direction
+                    factor_scores[k] = val
+                    used_scores.add(val)
+                
+                accuracy = factor_scores["accuracy"]
+                concept = factor_scores["concept_understanding"]
+                problem = factor_scores["problem_solving"]
+                comm = factor_scores["communication_clarity"]
+                code = factor_scores["code_quality"]
+                
                 # Calculate weighted overall score (0-10 scale)
                 overall = accuracy * 0.30 + concept * 0.25 + problem * 0.20 + comm * 0.15 + code * 0.10
                 overall_score = max(0, min(10, int(round(overall))))
@@ -162,6 +189,33 @@ Return ONLY a valid JSON object:
                 prof = max(0, min(10, int(result.get("professionalism", 5))))
                 adapt = max(0, min(10, int(result.get("adaptability", 5))))
                 team = max(0, min(10, int(result.get("team_collaboration", 5))))
+                
+                # Ensure unique scores among the factors by adjusting duplicate values
+                factor_scores = {
+                    "communication_skills": comm_skills,
+                    "confidence": confidence,
+                    "professionalism": prof,
+                    "adaptability": adapt,
+                    "team_collaboration": team
+                }
+                used_scores = set()
+                for k in sorted(factor_scores.keys()):
+                    val = factor_scores[k]
+                    orig_val = val
+                    direction = 1 if val < 8 else -1
+                    while val in used_scores:
+                        val += direction
+                        if val > 10 or val < 1:
+                            direction = -direction
+                            val = orig_val + direction
+                    factor_scores[k] = val
+                    used_scores.add(val)
+                
+                comm_skills = factor_scores["communication_skills"]
+                confidence = factor_scores["confidence"]
+                prof = factor_scores["professionalism"]
+                adapt = factor_scores["adaptability"]
+                team = factor_scores["team_collaboration"]
                 
                 # Calculate weighted overall score (0-10 scale)
                 overall = comm_skills * 0.30 + confidence * 0.20 + prof * 0.20 + adapt * 0.15 + team * 0.15
@@ -199,28 +253,48 @@ Return ONLY a valid JSON object:
             feedback = "Good answer with adequate detail. Consider structuring your response more clearly."
 
         if question_type == "technical":
+            # Map fallback score to completely unique factor scores to avoid duplicates
+            if score == 2:
+                accuracy, concept, problem, comm, code = 3, 1, 4, 2, 5
+            elif score == 4:
+                accuracy, concept, problem, comm, code = 5, 3, 6, 4, 2
+            elif score == 6:
+                accuracy, concept, problem, comm, code = 7, 5, 8, 6, 4
+            else: # score == 7
+                accuracy, concept, problem, comm, code = 8, 6, 9, 7, 5
+
             return {
                 "score": score,
                 "feedback": feedback,
                 "next_question": f"Based on your experience, how would you handle a complex challenge in {job_role}?",
                 "matching_score": 0,
-                "accuracy": score,
-                "concept_understanding": score,
-                "problem_solving": score,
-                "communication_clarity": score,
-                "code_quality": score
+                "accuracy": accuracy,
+                "concept_understanding": concept,
+                "problem_solving": problem,
+                "communication_clarity": comm,
+                "code_quality": code
             }
         else:
+            # Map fallback score to completely unique factor scores to avoid duplicates
+            if score == 2:
+                comm_skills, confidence, prof, adapt, team = 3, 1, 4, 2, 5
+            elif score == 4:
+                comm_skills, confidence, prof, adapt, team = 5, 3, 6, 4, 2
+            elif score == 6:
+                comm_skills, confidence, prof, adapt, team = 7, 5, 8, 6, 4
+            else: # score == 7
+                comm_skills, confidence, prof, adapt, team = 8, 6, 9, 7, 5
+
             return {
                 "score": score,
                 "feedback": feedback,
                 "next_question": f"Based on your experience, how would you handle a complex challenge in {job_role}?",
                 "matching_score": 0,
-                "communication_skills": score,
-                "confidence": score,
-                "professionalism": score,
-                "adaptability": score,
-                "team_collaboration": score
+                "communication_skills": comm_skills,
+                "confidence": confidence,
+                "professionalism": prof,
+                "adaptability": adapt,
+                "team_collaboration": team
             }
 
     def evaluate_with_rag(

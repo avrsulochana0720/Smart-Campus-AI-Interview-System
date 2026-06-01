@@ -8,6 +8,9 @@ export default function ResumeUploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [analysis, setAnalysis] = useState({ impact: "", motive: "", system: "" });
+  const [resumeUploaded, setResumeUploaded] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
   const navigate = useNavigate();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,17 +31,30 @@ export default function ResumeUploadPage() {
       return;
     }
 
+    if (resumeUploaded) {
+      navigate("/job");
+      return;
+    }
+
     setUploading(true);
     setError("");
+    setUploadMessage("");
 
     try {
       const result = await resumeAPI.upload(selectedFile);
-      // Store resume_id for use when creating interview
       if (result?.resume_id || result?.id) {
         localStorage.setItem("resume_id", String(result?.resume_id || result?.id));
       }
+
+      const analysisData = result?.analysis || {};
+      setAnalysis({
+        impact: analysisData.impact || "Upload your resume to see the strongest achievement.",
+        motive: analysisData.motive || "Upload your resume to see your career motivation.",
+        system: analysisData.system || "Upload your resume to see the technical system strengths.",
+      });
+      setResumeUploaded(true);
+      setUploadMessage("Resume uploaded and analyzed. Click continue to proceed to job setup.");
       setUploading(false);
-      navigate("/job");
     } catch (err: any) {
       console.error("Upload failed:", err);
       const errorMessage = err.response?.data?.detail || err.message || "Upload failed. Please try again.";
@@ -73,7 +89,7 @@ export default function ResumeUploadPage() {
             />
             <button onClick={handleBrowseClick}>Browse Files</button>
             {selectedFile && (
-              <p style={{ marginTop: "1rem", color: "#3B82F6" }}>
+              <p style={{ marginTop: "1rem", color: "#DC2626" }}>
                 Selected: {selectedFile.name}
               </p>
             )}
@@ -105,11 +121,21 @@ export default function ResumeUploadPage() {
         <section className={styles.profileCard}>
           <h3>{localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token')!.split('.')[1])).name || 'User' : 'Guest'}</h3>
           <p>Candidate Profile</p>
-          <div className={styles.tags}>
-            <span>IMPACT</span>
-            <span>MOTIVE</span>
-            <span>SYSTEM</span>
+          <div className={styles.analysisButtons}>
+            <button type="button" className={styles.analysisButton}>
+              <span className={styles.insightLabel}>Impact</span>
+              <strong>{analysis.impact || "Upload a resume to surface your key impact."}</strong>
+            </button>
+            <button type="button" className={styles.analysisButton}>
+              <span className={styles.insightLabel}>Motive</span>
+              <strong>{analysis.motive || "Upload a resume to surface your career motive."}</strong>
+            </button>
+            <button type="button" className={styles.analysisButton}>
+              <span className={styles.insightLabel}>System</span>
+              <strong>{analysis.system || "Upload a resume to surface your system strengths."}</strong>
+            </button>
           </div>
+          {uploadMessage && <p className={styles.analysisNote}>{uploadMessage}</p>}
           <div className={styles.actions}>
             <label>
               <input type="checkbox" /> Re-upload
@@ -119,7 +145,7 @@ export default function ResumeUploadPage() {
               onClick={handleContinue}
               disabled={uploading}
             >
-              {uploading ? "Uploading..." : "Confirm & Continue"}
+              {uploading ? "Uploading..." : resumeUploaded ? "Continue to Job Setup" : "Upload & Analyze"}
             </button>
           </div>
         </section>

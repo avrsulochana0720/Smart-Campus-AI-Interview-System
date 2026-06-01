@@ -123,6 +123,49 @@ Return ONLY a valid JSON object:
                 "summary": "Resume analysis could not be completed via AI. Skills extracted via keyword matching."
             }
 
+    def summarize_resume(self, resume_text: str) -> Dict[str, str]:
+        """Generate short resume insights for impact, motive, and system fit."""
+        resume_context = resume_text[:2500] if resume_text else "No resume content."
+        skills = self.extract_skills(resume_text)
+        skills_str = ", ".join(skills) if skills else "not identified"
+
+        prompt = f"""You are an expert resume analyst. Read the resume text and return a JSON object with the following fields:
+        {{
+            "impact": "A short sentence describing the candidate's strongest achievement or impact.",
+            "motive": "A short sentence describing what motivates the candidate and career focus.",
+            "system": "A short sentence describing the systems, technical strengths, or operational domain the candidate excels in."
+        }}
+
+Resume Text:
+{resume_context}
+
+Identified Skills: {skills_str}
+
+Return only valid JSON with keys 'impact', 'motive', and 'system'."""
+
+        try:
+            content = request_ollama(prompt)
+            content = content.strip()
+            content = re.sub(r'```json\n?', '', content)
+            content = re.sub(r'```\n?', '', content)
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(0)
+            parsed = json.loads(content)
+            return {
+                "impact": parsed.get("impact", "Highlights candidate impact and accomplishments."),
+                "motive": parsed.get("motive", "Highlights career motivation and goals."),
+                "system": parsed.get("system", "Highlights systems and technical strengths.")
+            }
+        except Exception as e:
+            print(f"[ResumeAgent] summary analysis error: {e}")
+            return {
+                "impact": f"Key skills identified: {skills_str}.",
+                "motive": "Driven by building strong, scalable solutions and advancing technical impact.",
+                "system": f"Strong in {skills_str if skills_str != 'not identified' else 'core technical domains'}."
+            }
+
 
 # Singleton
 resume_agent = ResumeAgent()

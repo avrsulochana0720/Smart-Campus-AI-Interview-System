@@ -8,8 +8,8 @@
 html, body {
   height: 100%;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  color: #000000;
+  background: #FAF6EE;
+  color: #0F172A;
   line-height: 1.6;
   min-height: 100vh;
   font-weight: 600;
@@ -24,90 +24,86 @@ html, body {
 
 /* Global link styles */
 a {
-  color: #3b82f6;
+  color: #DC2626;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: #2563eb;
+  color: #EF4444;
 }
 
-/* Headings */
+/* Headings - Solid Flat Crimson Code */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   line-height: 1.2;
   margin-bottom: 1rem;
-  color: #000000;
+  color: #0F172A;
 }
 
 h1 {
   font-size: 3rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #DC2626;
 }
 
 h2 {
   font-size: 2.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0F172A;
 }
 
 h3 {
   font-size: 1.75rem;
-  color: #3b82f6;
+  color: #DC2626;
 }
 
 /* Paragraphs */
 p {
   margin-bottom: 1rem;
-  color: #000000;
+  color: #0F172A;
   font-weight: 600;
 }
 
-/* Buttons - Modern gradient design */
+/* Buttons - Premium Flat Neumorphic Bright Beige */
 button {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  color: #fff;
+  background: #DC2626;
+  color: #FFFFFF;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.75rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
 }
 
 button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  background: #EF4444;
+  transform: translateY(-1px);
 }
 
 button:active {
   transform: translateY(0);
+  box-shadow: inset 4px 4px 8px rgba(185, 28, 28, 0.4), inset -4px -4px 8px #FFFFFF;
 }
 
-/* Inputs */
+/* Inputs - Neumorphic Inset Tactile Bright Beige */
 input, textarea, select {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #E2E8F0;
   border-radius: 0.75rem;
-  background: #fff;
-  color: #000000;
+  background: #FAF6EE;
+  color: #0F172A;
   font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  border-color: #DC2626;
+  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
 }
 
 input::placeholder, textarea::placeholder {
@@ -119,20 +115,20 @@ section {
   padding: 5rem 2rem;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - Flat Crimson */
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: #FAF6EE;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #f472b6 0%, #8b5cf6 100%);
+  background: #DC2626;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #ec4899 0%, #7c3aed 100%);
+  background: #EF4444;
 }

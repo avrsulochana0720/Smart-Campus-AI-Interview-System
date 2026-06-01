@@ -5,10 +5,9 @@
   right: 0;
   z-index: 50;
   padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 2px solid rgba(59, 130, 246, 0.15);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+  background: #FAF6EE;
+  border-bottom: 1px solid #E2E8F0;
+  box-shadow: 0 4px 10px rgba(139, 120, 95, 0.08);
 }
 
 .navbar-container {
@@ -34,25 +33,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: #DC2626;
+  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
 }
 
 .navbar-icon-inner {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 0.5rem;
-  border: 2.5px solid rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #FFFFFF;
+  background: transparent;
 }
 
 .navbar-title {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #DC2626;
 }
 
 /* Links */
@@ -65,10 +61,10 @@
 }
 
 .navbar-links a {
-  color: #000000;
+  color: #0F172A;
   font-weight: 700;
   font-size: 0.95rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
   padding: 0.5rem 0;
 }
@@ -80,12 +76,12 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-  transition: width 0.3s ease;
+  background: #DC2626;
+  transition: width 0.2s ease;
 }
 
 .navbar-links a:hover {
-  color: #3b82f6;
+  color: #DC2626;
 }
 
 .navbar-links a:hover::after {
@@ -99,13 +95,16 @@
   justify-content: center;
   padding: 0.5rem;
   border-radius: 9999px;
-  transition: all 0.3s ease;
+  background: #FAF6EE;
+  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .navbar-profile:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
-  transform: scale(1.05);
+  background: #F3ECE0;
+  transform: scale(1.02);
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
 }
 
 .navbar-profile-image {
@@ -114,14 +113,13 @@
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-  transition: all 0.3s ease;
+  border: 2px solid #DC2626;
+  box-shadow: 2px 2px 5px rgba(185, 28, 28, 0.15);
+  transition: all 0.2s ease;
 }
 
 .navbar-profile:hover .navbar-profile-image {
-  border-color: #8b5cf6;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  border-color: #EF4444;
 }
 
 .profile-avatar {
@@ -139,38 +137,35 @@
   height: 100%;
   font-size: 1.5rem;
   font-weight: 800;
-  color: #3b82f6;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  color: #DC2626;
+  background: #F3ECE0;
 }
 
-/* Button */
+/* Button - Neumorphic Primary */
 .navbar-button {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  color: #fff;
+  background: #DC2626;
+  color: #FFFFFF;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.75rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
 }
 
 .navbar-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  background: #EF4444;
+  transform: translateY(-1px);
+}
+
+.navbar-button:active {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
 }
 
 .navbar-button-hover {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.1);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.navbar-button:hover .navbar-button-hover {
-  opacity: 1;
+  display: none;
 }
 
 /* Mobile menu */
@@ -187,7 +182,7 @@
     display: block;
     background: none;
     border: none;
-    color: #000000;
+    color: #0F172A;
     font-size: 1.5rem;
     cursor: pointer;
     font-weight: 700;

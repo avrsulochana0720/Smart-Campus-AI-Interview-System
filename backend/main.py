@@ -24,7 +24,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 from database import engine, get_db, Base, SessionLocal
 from metrics import record_metric, get_average_metrics, get_all_metrics
-from models import User, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk
+from models import User, UserSettings, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk
 from auth import router as auth_router, get_current_user
 
 # Import agents
@@ -212,9 +212,48 @@ def get_users(current_user: User = Depends(get_current_user), db: Session = Depe
     return [{"id": u.id, "name": u.name, "email": u.email, "profile_image": u.profile_image} for u in users]
 
 
+@app.get("/me")
+def get_current_profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    settings_record = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "profile_image": current_user.profile_image,
+        "settings": settings_record.settings if settings_record else {}
+    }
+
+
+@app.post("/user-settings")
+def save_user_settings(payload: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    settings_payload = payload.get("settings") if isinstance(payload, dict) else None
+    if settings_payload is None:
+        raise HTTPException(status_code=400, detail="Missing settings payload")
+
+    profile_data = settings_payload.get("profile") or {}
+    if profile_data.get("email") and profile_data["email"] != current_user.email:
+        existing = db.query(User).filter(User.email == profile_data["email"]).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email is already in use")
+        current_user.email = profile_data["email"]
+    if profile_data.get("name"):
+        current_user.name = profile_data["name"]
+    db.add(current_user)
+
+    settings_record = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if not settings_record:
+        settings_record = UserSettings(user_id=current_user.id, settings=settings_payload)
+        db.add(settings_record)
+    else:
+        settings_record.settings = settings_payload
+    db.commit()
+    db.refresh(settings_record)
+    return {"status": "success", "settings": settings_record.settings}
+
+
 # ══════════════════════════════════════════════════════
 #  RESUME — Uses resume_agent
-# ══════════════════════════════════════════════════════
+# ══════════════════════════════════════════════
 @app.post("/upload-resume")
 async def upload_resume(
     file: UploadFile = File(...),
@@ -247,13 +286,15 @@ async def upload_resume(
     db.commit()
     db.refresh(new_resume)
 
-    # Step 4: Qwen analysis (async-safe — runs in background but we wait)
-    # We don't block the upload on AI analysis; just store text + skills
+    # Step 4: Resume insight analysis
+    analysis = resume_agent.summarize_resume(extracted_text)
+
     return {
         "id": new_resume.id,
         "resume_id": new_resume.id,
         "text_preview": extracted_text[:500],
         "skills": skills,
+        "analysis": analysis,
         "user_id": new_resume.user_id,
         "uploaded_at": new_resume.uploaded_at
     }

@@ -3,9 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-              linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  background: #FAF6EE;
   padding: 0.25rem 0.5rem;
   font-family: "Segoe UI", sans-serif;
   position: relative;
@@ -13,13 +11,13 @@
 }
 
 .jobCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
   border-radius: 1.5rem;
   padding: 3rem;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.15), -8px -8px 24px #FFFFFF;
   animation: slideUp 0.5s ease-out;
 }
 
@@ -42,16 +40,12 @@
 .jobTitle {
   font-size: 2rem;
   font-weight: 800;
-  color: #000;
+  color: #DC2626;
   margin: 0 0 1rem 0;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .jobHelper {
-  color: #000;
+  color: #0F172A;
   font-size: 1rem;
   margin: 0;
   line-height: 1.5;
@@ -73,7 +67,7 @@
 }
 
 .formLabel {
-  color: #3b82f6;
+  color: #DC2626;
   font-size: 0.95rem;
   font-weight: 600;
 }
@@ -89,9 +83,9 @@
 
 .selectButton {
   width: 100%;
-  background: #fff;
-  border: 2px solid #e2e8f0;
-  color: #000;
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
   font-size: 1rem;
@@ -99,34 +93,35 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
   transition: all 0.2s ease;
 }
 
 .selectButton:hover {
-  background: #fff;
-  border-color: rgba(59, 130, 246, 0.5);
+  background: #F3ECE0;
+  border-color: #DC2626;
 }
 
 .selectButton:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: #DC2626;
+  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
 }
 
 .selectValue {
   text-align: left;
   flex: 1;
-  color: #000;
+  color: #0F172A;
 }
 
 .selectButton:hover .selectValue {
-  color: #000;
+  color: #0F172A;
 }
 
 .selectIcon {
   width: 20px;
   height: 20px;
-  color: #9ca3af;
+  color: #9CA3AF;
   margin-left: 0.5rem;
   transition: transform 0.2s ease;
   flex-shrink: 0;
@@ -141,11 +136,11 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
-  border: 2px solid #e2e8f0;
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
   border-top: none;
   border-radius: 0 0 0.75rem 0.75rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 4px 10px rgba(139, 120, 95, 0.15);
   margin-top: -1px;
   overflow: hidden;
   animation: dropdownSlide 0.2s ease-out;
@@ -164,23 +159,23 @@
 
 .searchInput {
   width: 100%;
-  background: #fff;
+  background: #FAF6EE;
   border: none;
-  border-bottom: 2px solid #e2e8f0;
-  color: #000;
+  border-bottom: 1px solid #E2E8F0;
+  color: #0F172A;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
   box-sizing: border-box;
 }
 
 .searchInput::placeholder {
-  color: #94a3b8;
+  color: #94A3B8;
 }
 
 .searchInput:focus {
   outline: none;
-  background: #fff;
-  border-color: #3b82f6;
+  background: #FAF6EE;
+  border-color: #DC2626;
 }
 
 .dropdownList {
@@ -197,19 +192,19 @@
 }
 
 .dropdownList::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.2);
+  background: #DC2626;
   border-radius: 3px;
 }
 
 .dropdownList::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.3);
+  background: #EF4444;
 }
 
 .dropdownItem {
   width: 100%;
   background: none;
   border: none;
-  color: #000;
+  color: #0F172A;
   padding: 0.75rem 1.25rem;
   text-align: left;
   cursor: pointer;
@@ -219,48 +214,49 @@
 }
 
 .dropdownItem:hover {
-  background: rgba(59, 130, 246, 0.05);
-  color: #3b82f6;
+  background: #F3ECE0;
+  color: #DC2626;
 }
 
 .dropdownItemActive {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border-left-color: #3b82f6;
+  background: #F3ECE0;
+  color: #DC2626;
+  border-left-color: #DC2626;
 }
 
 .textInput {
   width: 100%;
-  background: #fff;
-  border: 2px solid #e2e8f0;
-  color: #000;
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
   font-size: 1rem;
   transition: all 0.2s ease;
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
   box-sizing: border-box;
 }
 
 .textInput::placeholder {
-  color: #94a3b8;
+  color: #94A3B8;
 }
 
 .textInput:hover {
-  background: #fff;
-  border-color: rgba(59, 130, 246, 0.5);
+  background: #FAF6EE;
+  border-color: #DC2626;
 }
 
 .textInput:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: #DC2626;
+  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
 }
 
 .toggleCustom {
   align-self: flex-start;
   background: none;
   border: none;
-  color: #3B82F6;
+  color: #DC2626;
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0;
@@ -270,34 +266,35 @@
 }
 
 .toggleCustom:hover {
-  color: #8B5CF6;
+  color: #EF4444;
 }
 
 .startButton {
   width: 100%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  color: #fff;
+  background: #DC2626;
+  color: #FFFFFF;
   padding: 1rem;
   border: none;
   border-radius: 1rem;
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
 }
 
 .startButton:hover:not(:disabled) {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.4);
+  background: #EF4444;
+  transform: translateY(-2px);
 }
 
 .startButton:active:not(:disabled) {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
 }
 
 .startButton:disabled {
@@ -316,7 +313,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border-top-color: #FFFFFF;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

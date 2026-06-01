@@ -81,9 +81,9 @@ export default function Hero() {
               <svg width="40" height="40" viewBox="0 0 40 40" className="avatar-svg-nav">
                 <defs>
                   <linearGradient id="avatarGradientNav" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#3b82f6', stopOpacity: 1}} />
-                    <stop offset="50%" style={{stopColor: '#8b5cf6', stopOpacity: 1}} />
-                    <stop offset="100%" style={{stopColor: '#ec4899', stopOpacity: 1}} />
+                    <stop offset="0%" style={{stopColor: '#DC2626', stopOpacity: 1}} />
+                    <stop offset="50%" style={{stopColor: '#EF4444', stopOpacity: 1}} />
+                    <stop offset="100%" style={{stopColor: '#F59E0B', stopOpacity: 1}} />
                   </linearGradient>
                 </defs>
                 <circle cx="20" cy="20" r="18" fill="url(#avatarGradientNav)" />

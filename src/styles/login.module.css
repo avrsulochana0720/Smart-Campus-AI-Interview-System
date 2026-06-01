@@ -3,9 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-              linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  background: #FAF6EE;
   padding: 2rem;
   font-family: "Segoe UI", sans-serif;
   position: relative;
@@ -13,13 +11,13 @@
 }
 
 .card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
   border-radius: 1.5rem;
   padding: 3rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.15), -8px -8px 24px #FFFFFF;
   animation: slideUp 0.5s ease-out;
 }
 
@@ -37,10 +35,7 @@
 .title {
   font-size: 2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #DC2626;
   margin-bottom: 2rem;
   text-align: center;
 }
@@ -59,38 +54,39 @@
 
 .label {
   font-weight: 600;
-  color: #3b82f6;
+  color: #DC2626;
   font-size: 0.95rem;
 }
 
 .input {
   width: 100%;
   padding: 0.875rem 1.25rem;
-  border: 2px solid #e2e8f0;
+  border: 1px solid #E2E8F0;
   border-radius: 0.75rem;
   font-size: 1rem;
-  background: #fff;
-  color: #000;
+  background: #FAF6EE;
+  color: #0F172A;
   transition: all 0.2s ease;
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
   box-sizing: border-box;
 }
 
 .input::placeholder {
-  color: #94a3b8;
+  color: #94A3B8;
 }
 
 .input:hover {
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: #DC2626;
 }
 
 .input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  border-color: #DC2626;
+  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
 }
 
 .error {
-  color: #ef4444;
+  color: #DC2626;
   font-size: 0.875rem;
   font-weight: 600;
   margin-top: -0.5rem;
@@ -99,24 +95,25 @@
 .button {
   width: 100%;
   padding: 0.875rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  color: #fff;
+  background: #DC2626;
+  color: #FFFFFF;
   border: none;
   border-radius: 1rem;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
 }
 
 .button:hover:not(:disabled) {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.4);
+  background: #EF4444;
+  transform: translateY(-2px);
 }
 
 .button:active:not(:disabled) {
-  transform: translateY(-1px) scale(0.98);
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
 }
 
 .button:disabled {
@@ -127,18 +124,18 @@
 .registerText {
   text-align: center;
   margin-top: 1.5rem;
-  color: #64748b;
+  color: #64748B;
   font-weight: 600;
   font-size: 0.95rem;
 }
 
 .registerText a {
-  color: #3b82f6;
+  color: #DC2626;
   text-decoration: none;
   font-weight: 700;
   transition: color 0.2s ease;
 }
 
 .registerText a:hover {
-  color: #8b5cf6;
+  color: #EF4444;
 }

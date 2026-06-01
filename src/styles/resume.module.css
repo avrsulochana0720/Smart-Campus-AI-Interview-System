@@ -1,8 +1,6 @@
 .container {
-  background: radial-gradient(ellipse at top, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
-              linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-  color: #000;
+  background: #FAF6EE;
+  color: #0F172A;
   min-height: 100vh;
   padding: 0.25rem 0.5rem;
   font-family: "Segoe UI", sans-serif;
@@ -18,14 +16,11 @@
   margin-bottom: 0.5rem;
   margin-top: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .title {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #DC2626;
   font-size: 3rem;
   font-weight: 800;
   margin-bottom: 1rem;
@@ -33,7 +28,7 @@
 }
 
 .subtitle {
-  color: #000;
+  color: #0F172A;
   font-size: 1.1rem;
   max-width: 600px;
   margin: 0 auto;
@@ -53,11 +48,11 @@
 .navbar li {
   cursor: pointer;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .navbar li:hover {
-  color: #3B82F6;
+  color: #DC2626;
 }
 
 /* Upload Section */
@@ -70,31 +65,37 @@
 }
 
 .uploadBox {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
   padding: 3rem 2rem;
   border-radius: 1.5rem;
   text-align: center;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
 }
 
 .uploadBox button {
-  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
-  color: #fff;
+  background: #DC2626;
+  color: #FFFFFF;
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
   margin-top: 1rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  transition: all 0.2s ease;
 }
 
 .uploadBox button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  background: #EF4444;
+  transform: translateY(-1px);
+}
+
+.uploadBox button:active {
+  transform: translateY(0);
+  box-shadow: inset 2px 2px 4px rgba(185, 28, 28, 0.4), inset -2px -2px 4px #FFFFFF;
 }
 
 /* Modules */
@@ -108,49 +109,205 @@
 }
 
 .moduleCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
   padding: 2rem 2.5rem;
   border-radius: 1.5rem;
   text-align: center;
   flex: 1;
   min-width: 200px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 0 25px rgba(59, 130, 246, 0.1);
+  transition: all 0.2s ease;
+  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
+}
+
+.agentPanel {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  padding: 1.75rem 2rem;
+  border-radius: 1.5rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.12), -6px -6px 16px #FFFFFF;
+}
+
+.agentHeader {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.stepBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #DC2626;
+  color: #FFFFFF;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.agentList {
+  display: grid;
+  gap: 1rem;
+}
+
+.agentItem {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid #E5E7EB;
+  background: #F8FAFC;
+}
+
+.agentItem span {
+  color: #DC2626;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.agentItem strong {
+  display: block;
+  color: #0F172A;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.agentItem p {
+  margin: 0;
+  color: #64748B;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .moduleCard:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 25px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
 }
 
 .moduleCard h2 {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #DC2626;
   margin-bottom: 0.5rem;
   font-weight: 700;
+}
+
+.agentPanel {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 1.5rem;
+  box-shadow: 6px 6px 20px rgba(139, 120, 95, 0.08), -6px -6px 20px #FFFFFF;
+  padding: 2rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.agentPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.stepBadge {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #DC2626;
+  color: #FFFFFF;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+}
+
+.agentSectionTitle {
+  font-size: 1.95rem;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.agentSectionSubtitle {
+  margin: 0.5rem 0 0;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.agentCards {
+  display: grid;
+  gap: 1rem;
+}
+
+.agentCard {
+  background: #F8FAFC;
+  border: 1px solid #E5E7EB;
+  border-radius: 1rem;
+  padding: 1.35rem 1.5rem;
+  box-shadow: 2px 4px 12px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.agentCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.agentCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.agentIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #FEE2E2;
+  color: #DC2626;
+  font-weight: 800;
+}
+
+.agentCard h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0F172A;
+}
+
+.agentCard p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.96rem;
+  line-height: 1.8;
 }
 
 /* Profile Card Styling */
 .profileCard h3 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #000;
+  color: #0F172A;
   margin: 0 0 0.5rem 0;
 }
 
 .profileCard p {
-  color: #64748b;
+  color: #64748B;
   font-size: 1rem;
   margin: 0 0 1rem 0;
 }
 
 /* Profile Card */
 .profileCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
   padding: 2.5rem 3rem;
   border-radius: 1.5rem;
   text-align: center;
@@ -158,25 +315,57 @@
   margin-top: 2rem;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
 }
 
-.tags {
-  display: flex;
-  justify-content: center;
+.analysisButtons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   margin: 1.5rem 0;
-  flex-wrap: wrap;
 }
 
-.tags span {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: #3b82f6;
-  font-weight: 600;
+.analysisButton {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #FECACA;
+  background: #FFFFFF;
+  border-radius: 1rem;
+  padding: 1rem 1.15rem;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 2px 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.analysisButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 4px 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.insightLabel {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  color: #DC2626;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.analysisButton strong {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.analysisNote {
+  margin-top: 0.75rem;
+  color: #475569;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
 .actions {
@@ -189,20 +378,25 @@
 }
 
 .confirm {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
-  color: #fff;
+  background: #DC2626;
+  color: #FFFFFF;
   padding: 0.8rem 2rem;
   border: none;
   border-radius: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
 }
 
 .confirm:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.4);
+  background: #EF4444;
+  transform: translateY(-2px);
+}
+
+.confirm:active {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
 }
 
 /* Footer */
@@ -210,7 +404,7 @@
   margin-top: auto;
   padding-top: 4rem;
   padding-bottom: 2rem;
-  border-top: 1px solid rgba(59, 130, 246, 0.1);
+  border-top: 1px solid #E2E8F0;
 }
 
 .footerContent {
@@ -230,16 +424,12 @@
 .footerBrand h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #000;
+  color: #DC2626;
   margin: 0;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .footerBrand p {
-  color: #64748b;
+  color: #64748B;
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
@@ -252,15 +442,15 @@
 }
 
 .socialLinks a {
-  color: #64748b;
+  color: #64748B;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .socialLinks a:hover {
-  color: #3B82F6;
+  color: #DC2626;
 }
 
 .footerColumn {
@@ -270,7 +460,7 @@
 }
 
 .footerColumn h4 {
-  color: #000;
+  color: #0F172A;
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
@@ -286,20 +476,20 @@
 }
 
 .footerColumn li a {
-  color: #64748b;
+  color: #64748B;
   text-decoration: none;
   font-size: 0.9rem;
-  transition: color 0.3s ease;
+  transition: color 0.2s ease;
 }
 
 .footerColumn li a:hover {
-  color: #3B82F6;
+  color: #DC2626;
 }
 
 .footerDivider {
   width: 100%;
   height: 1px;
-  background: rgba(59, 130, 246, 0.1);
+  background: #E2E8F0;
   margin: 2rem 0;
 }
 
@@ -313,7 +503,7 @@
 }
 
 .footerBottom p {
-  color: #64748b;
+  color: #64748B;
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.5;

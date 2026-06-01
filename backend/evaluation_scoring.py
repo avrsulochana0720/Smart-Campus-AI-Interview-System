@@ -91,6 +91,20 @@ class EvaluationScoring:
             "code_quality": self._score_code_quality(candidate_answer, question_topic)
         }
         
+        # Ensure unique scores among the factors by adjusting duplicate values
+        used_scores = set()
+        for k in sorted(factor_scores.keys()):
+            val = factor_scores[k]
+            orig_val = val
+            direction = 1 if val < 8 else -1
+            while val in used_scores:
+                val += direction
+                if val > 10 or val < 1:
+                    direction = -direction
+                    val = orig_val + direction
+            factor_scores[k] = val
+            used_scores.add(val)
+        
         # Convert to 0-100 scale
         factor_scores_100 = {k: v * 10 for k, v in factor_scores.items()}
         
@@ -152,6 +166,20 @@ class EvaluationScoring:
             "adaptability": self._score_adaptability(candidate_answer, question),
             "team_collaboration": self._score_team_collaboration(candidate_answer, question)
         }
+        
+        # Ensure unique scores among the factors by adjusting duplicate values
+        used_scores = set()
+        for k in sorted(factor_scores.keys()):
+            val = factor_scores[k]
+            orig_val = val
+            direction = 1 if val < 8 else -1
+            while val in used_scores:
+                val += direction
+                if val > 10 or val < 1:
+                    direction = -direction
+                    val = orig_val + direction
+            factor_scores[k] = val
+            used_scores.add(val)
         
         # Convert to 0-100 scale
         factor_scores_100 = {k: v * 10 for k, v in factor_scores.items()}
