@@ -1,0 +1,141 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FAF6EE;
+  padding: 2rem;
+  font-family: "Segoe UI", sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.card {
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
+  border-radius: 1.5rem;
+  padding: 3rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.15), -8px -8px 24px #FFFFFF;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #DC2626;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 600;
+  color: #DC2626;
+  font-size: 0.95rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  background: #FAF6EE;
+  color: #0F172A;
+  transition: all 0.2s ease;
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: #94A3B8;
+}
+
+.input:hover {
+  border-color: #DC2626;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #DC2626;
+  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+}
+
+.error {
+  color: #DC2626;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: -0.5rem;
+}
+
+.button {
+  width: 100%;
+  padding: 0.875rem;
+  background: #DC2626;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+}
+
+.button:hover:not(:disabled) {
+  background: #EF4444;
+  transform: translateY(-2px);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.registerText {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #64748B;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.registerText a {
+  color: #DC2626;
+  text-decoration: none;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.registerText a:hover {
+  color: #EF4444;
+}

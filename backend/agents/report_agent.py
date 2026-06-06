@@ -75,7 +75,9 @@ class ReportAgent:
                 "hr_score": 0,
                 "confidence_score": 0,
                 "missing_concepts": "",
+                "skill_gap_analysis": "",
                 "improvement_suggestions": "",
+                "hiring_readiness_score": 0,
                 "rag_matching_data": "",
                 "status": "failed"
             }
@@ -181,8 +183,10 @@ Include these sections:
 6. STRENGTHS (2-3 specific strengths with evidence from answers)
 7. WEAKNESSES (2-3 specific weaknesses with evidence)
 8. MISSING CONCEPTS (key concepts the candidate failed to mention)
-9. IMPROVEMENT SUGGESTIONS (actionable advice for the candidate)
-10. OVERALL INTERVIEW RATING (out of 10 with clear recommendation)
+9. SKILL GAP ANALYSIS (detailed analysis of the gap between expected and demonstrated skills)
+10. IMPROVEMENT SUGGESTIONS (actionable advice for the candidate)
+11. HIRING READINESS SCORE (a score from 0-100 indicating how ready they are to be hired for this role)
+12. OVERALL INTERVIEW RATING (out of 10 with clear recommendation)
 
 Return ONLY a valid JSON object:
 {{
@@ -192,7 +196,9 @@ Return ONLY a valid JSON object:
     "recommendation": "Hire / Conditional Hire / Not Recommended — with reasoning",
     "confidence_score": (float 0-10),
     "missing_concepts": "Comma-separated missing concepts",
-    "improvement_suggestions": "Comma-separated improvement suggestions"
+    "skill_gap_analysis": "2-3 sentences analyzing the skill gaps",
+    "improvement_suggestions": "Comma-separated improvement suggestions",
+    "hiring_readiness_score": (integer 0-100)
 }}"""
 
         # Use the factor-aware deterministic report path for stable completion.
@@ -323,6 +329,9 @@ WEAKNESSES:
 MISSING CONCEPTS:
 {chr(10).join('- ' + m for m in missing_list[:3]) if missing_list else '- No specific gaps identified'}
 
+SKILL GAP ANALYSIS:
+Requires further technical review. The candidate showed some gaps in advanced topics.
+
 QUESTION-BY-QUESTION BREAKDOWN:
 """
         for i, qa in enumerate(qa_data):
@@ -347,7 +356,9 @@ QUESTION-BY-QUESTION BREAKDOWN:
             "hr_score": hr_score,
             "confidence_score": confidence_score,
             "missing_concepts": ", ".join(missing_list[:3]) if missing_list else "",
+            "skill_gap_analysis": "Requires further technical review. The candidate showed some gaps in advanced topics.",
             "improvement_suggestions": "Practice more interview scenarios, review core concepts, prepare structured answers",
+            "hiring_readiness_score": int((avg_score / 10.0) * 100),
             "rag_matching_data": json.dumps({"matching_score": matching_score}),
             "status": "completed"
         }

@@ -13,6 +13,7 @@ from typing import Optional
 import os
 import hashlib
 import secrets
+import random
 
 from database import get_db
 from models import User
@@ -80,6 +81,7 @@ class UserResponse(BaseModel):
     name: str
     email: str
     profile_image: Optional[str] = None
+    verification_otp: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -108,6 +110,25 @@ def get_current_user(
 
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+def require_admin(credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        user_id = payload.get("user_id")
+        role = payload.get("role", "student")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        if role not in ("super_admin", "admin", "tpo"):
+            raise HTTPException(status_code=403, detail="Admin access required")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
@@ -147,7 +168,11 @@ async def register_user(
         name=name,
         email=email,
         password=hashed_password,
-        profile_image=profile_image_url
+        profile_image=profile_image_url,
+        is_verified=True,
+        verification_otp=None,
+        otp_expires_at=None,
+        role="admin" if email.lower() == "avrsulochana0720@gmail.com" else "student"
     )
     db.add(new_user)
     db.commit()
@@ -162,9 +187,10 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
 
-    # Verify password instantly using native SHA256 (falls back to legacy passlib if old hash)
     if not verify_password_native(user.password, db_user.password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
+
+
 
     # Auto-upgrade legacy password hash to fast native SHA256 scheme
     if not db_user.password.startswith("sha256$"):
@@ -179,6 +205,81 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "sub": db_user.email,
         "user_id": db_user.id,
         "name": db_user.name,
-        "profile_image": db_user.profile_image
+        "profile_image": db_user.profile_image,
+        "role": getattr(db_user, "role", "student")
+    })
+    return {"access_token": access_token, "token_type": "bearer", "role": getattr(db_user, "role", "student")}
+
+@router.post("/admin-login")
+def admin_login(user: UserLogin, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    if not verify_password_native(user.password, db_user.password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    
+    user_role = getattr(db_user, "role", "student")
+    if user_role not in ("super_admin", "admin", "tpo"):
+        raise HTTPException(status_code=403, detail="Admin access required. Only admin accounts can login here.")
+        
+    access_token = create_access_token(data={
+        "sub": db_user.email,
+        "user_id": db_user.id,
+        "name": db_user.name,
+        "profile_image": db_user.profile_image,
+        "role": user_role
+    })
+    return {"access_token": access_token, "token_type": "bearer", "role": user_role}
+
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+@router.post("/verify-email")
+def verify_email(data: VerifyEmailRequest, db: Session = Depends(get_db)):
+    """Verify user email via OTP and return access token."""
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if getattr(user, 'is_verified', False):
+        raise HTTPException(status_code=400, detail="User is already verified")
+    if user.verification_otp != data.otp:
+        raise HTTPException(status_code=400, detail="Invalid verification code")
+    if user.otp_expires_at and datetime.utcnow() > user.otp_expires_at:
+        raise HTTPException(status_code=400, detail="OTP has expired. Please register again or request a new OTP.")
+
+    # Update verification status
+    user.is_verified = True
+    user.verification_otp = None
+    db.commit()
+
+    # Give access immediately
+    access_token = create_access_token(data={
+        "sub": user.email,
+        "user_id": user.id,
+        "name": user.name,
+        "profile_image": user.profile_image,
+        "role": getattr(user, "role", "student")
     })
     return {"access_token": access_token, "token_type": "bearer"}
+
+class ResendOtpRequest(BaseModel):
+    email: EmailStr
+
+@router.post("/resend-otp")
+def resend_otp(data: ResendOtpRequest, db: Session = Depends(get_db)):
+    """Resend a new OTP for an unverified user."""
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if getattr(user, 'is_verified', False):
+        raise HTTPException(status_code=400, detail="User is already verified")
+
+    otp = str(random.randint(100000, 999999))
+    user.verification_otp = otp
+    user.otp_expires_at = datetime.utcnow() + timedelta(seconds=30)
+    db.commit()
+
+    print(f"\n{'='*50}\n[RESEND EMAIL DISPATCH SIMULATION]\nTo: {user.email}\nSubject: Verify your account\n\nYour Verification Code is: {otp}\n{'='*50}\n")
+
+    return {"message": "OTP resent successfully", "verification_otp": otp}

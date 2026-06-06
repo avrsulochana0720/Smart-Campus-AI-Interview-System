@@ -11,6 +11,11 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     password = Column(String(255), nullable=False)
     profile_image = Column(String(500), nullable=True)
+    is_verified = Column(Boolean, default=False)
+    verification_otp = Column(String(10), nullable=True)
+    otp_expires_at = Column(DateTime, nullable=True)
+    role = Column(String(50), default='student')
+    department = Column(String(200), nullable=True)
 
 
 class UserSettings(Base):
@@ -110,6 +115,7 @@ class InterviewReport(Base):
     hr_score = Column(Float, nullable=True)
     confidence_score = Column(Float, nullable=True)
     missing_concepts = Column(Text, nullable=True)
+    skill_gap_analysis = Column(Text, nullable=True)      # Detailed skill gap
     improvement_suggestions = Column(Text, nullable=True)
     rag_matching_data = Column(Text, nullable=True)       # JSON: match scores per question
     
@@ -131,6 +137,7 @@ class InterviewReport(Base):
     
     # Final Score: (Technical 70% + HR 30%)
     final_interview_score = Column(Float, nullable=True)
+    hiring_readiness_score = Column(Integer, nullable=True) # 0-100 score
     
     # Evaluation metadata
     evaluation_method = Column(String(50), default="json_rag")  # json_rag, pdf_rag, hybrid
@@ -243,3 +250,72 @@ class JSONEntry(Base):
     usage_score = Column(Float, default=0.0)             # Relevance score
     
     indexed_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Assessment(Base):
+    __tablename__ = "assessments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    department = Column(String(200), nullable=True)
+    job_role = Column(String(200), nullable=True)
+    difficulty = Column(String(50), nullable=True)
+    questions_count = Column(Integer, default=5)
+    avg_duration = Column(String(50), nullable=True)
+    completion_rate = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)
+    weights = Column(JSON, nullable=True)
+    skills = Column(JSON, nullable=True)
+    ai_insights = Column(JSON, nullable=True)
+    questions = Column(JSON, nullable=True)
+    score_distribution = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    type = Column(String(50), nullable=False)
+    target = Column(String(200), nullable=False)
+    rating = Column(Float, nullable=False)
+    comment = Column(Text, nullable=True)
+    tag = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Company(Base):
+    __tablename__ = 'companies'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, unique=True)
+    industry = Column(String(200), nullable=True)
+    description = Column(Text, nullable=True)
+    required_skills = Column(Text, nullable=True)  # JSON string
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class JobRoleTemplate(Base):
+    __tablename__ = 'job_role_templates'
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey('companies.id'), nullable=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    required_skills = Column(Text, nullable=True)  # JSON string
+    interview_template = Column(Text, nullable=True)  # JSON string
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class QuestionBank(Base):
+    __tablename__ = 'question_bank'
+    id = Column(Integer, primary_key=True, index=True)
+    question = Column(Text, nullable=False)
+    question_type = Column(String(50), default='technical')  # technical, hr
+    category = Column(String(100), nullable=True)
+    difficulty = Column(String(50), default='medium')  # easy, medium, hard
+    expected_answer = Column(Text, nullable=True)
+    source = Column(String(200), nullable=True)
+    created_by = Column(Integer, ForeignKey('users.id'), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

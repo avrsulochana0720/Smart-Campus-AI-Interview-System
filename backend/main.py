@@ -24,8 +24,9 @@ if str(BACKEND_DIR) not in sys.path:
 
 from database import engine, get_db, Base, SessionLocal
 from metrics import record_metric, get_average_metrics, get_all_metrics
-from models import User, UserSettings, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk
+from models import User, UserSettings, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk, Assessment, Feedback
 from auth import router as auth_router, get_current_user
+from admin_routes import router as admin_router
 
 # Import agents
 from agents.resume_agent import resume_agent
@@ -92,6 +93,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Include auth routes (register, login)
 app.include_router(auth_router)
+app.include_router(admin_router)
 
 @app.get("/metrics")
 def get_metrics():
@@ -145,6 +147,21 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.on_event("startup")
 def startup_event():
     Base.metadata.create_all(bind=engine, checkfirst=True)
+    
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            try:
+                conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'student'"))
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE users ADD COLUMN department VARCHAR(200)"))
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"[WARN] Failed to auto-migrate users table: {e}")
+        
     # Auto-migrate missing columns from schema upgrades
     try:
         from migrate_db import migrate
@@ -249,6 +266,60 @@ def save_user_settings(payload: dict, current_user: User = Depends(get_current_u
     db.commit()
     db.refresh(settings_record)
     return {"status": "success", "settings": settings_record.settings}
+
+
+# ── Assessments ─────────────────────────────────────────
+@app.get("/assessments")
+def get_assessments(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    assessments = db.query(Assessment).filter(Assessment.user_id == current_user.id).order_by(Assessment.created_at.desc()).all()
+    return assessments
+
+@app.post("/assessments")
+def create_assessment(payload: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    new_assessment = Assessment(
+        user_id=current_user.id,
+        name=payload.get("name", "New Assessment"),
+        department=payload.get("department", ""),
+        job_role=payload.get("job_role", ""),
+        difficulty=payload.get("difficulty", "Medium"),
+        questions_count=payload.get("questions_count", 5),
+        avg_duration=payload.get("avg_duration", "20m"),
+        completion_rate=payload.get("completion_rate", 0),
+        is_active=payload.get("is_active", True),
+        is_archived=payload.get("is_archived", False),
+        weights=payload.get("weights", {}),
+        skills=payload.get("skills", {}),
+        ai_insights=payload.get("ai_insights", []),
+        questions=payload.get("questions", []),
+        score_distribution=payload.get("score_distribution", [])
+    )
+    db.add(new_assessment)
+    db.commit()
+    db.refresh(new_assessment)
+    return new_assessment
+
+
+# ── Feedbacks ─────────────────────────────────────────
+@app.get("/feedbacks")
+def get_feedbacks(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    feedbacks = db.query(Feedback).filter(Feedback.user_id == current_user.id).order_by(Feedback.created_at.desc()).all()
+    return feedbacks
+
+@app.post("/feedbacks")
+def create_feedback(payload: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    new_feedback = Feedback(
+        user_id=current_user.id,
+        type=payload.get("type", "Evaluator"),
+        target=payload.get("target", ""),
+        rating=float(payload.get("rating", 0)),
+        comment=payload.get("comment", ""),
+        tag=payload.get("tag", "")
+    )
+    db.add(new_feedback)
+    db.commit()
+    db.refresh(new_feedback)
+    return new_feedback
+
 
 
 # ══════════════════════════════════════════════════════
@@ -1038,11 +1109,11 @@ def get_interview_report(
             "question": q.question,
             "answer": ans.answer_text if ans else "Not answered",
             "score": ans.score if ans and ans.score is not None else 0,
-            "feedback": ans.feedback if ans and ans.feedback else ""
+            "feedback": ans.feedback if ans and ans.feedback else "",
+            "question_type": q.question_type or (ans.question_type if ans else "technical")
         })
 
-    answered = [qa for qa in qa_list if qa["answer"] != "Not answered"]
-    avg_score = sum(qa["score"] for qa in answered) / len(answered) if answered else 0
+    avg_score = sum(qa["score"] for qa in qa_list) / len(qa_list) if qa_list else 0
 
     # Generate narrative
     try:
@@ -1098,7 +1169,7 @@ def generate_report(
                 "status": "pending"
             }
 
-    # Create pending report immediately
+    # Create a pending report placeholder and generate it immediately.
     new_report = InterviewReport(
         interview_id=interview_id,
         status="pending"
@@ -1107,8 +1178,35 @@ def generate_report(
     db.commit()
     db.refresh(new_report)
 
-    # Spawn background task
-    background_tasks.add_task(_generate_report_bg, interview_id, new_report.id)
+    try:
+        # Generate the report synchronously so the frontend can reliably fetch
+        # a completed report immediately after calling this endpoint.
+        _generate_report_bg(interview_id, new_report.id)
+    except Exception as exc:
+        print(f"[REPORT] Synchronous generation failed: {exc}")
+        # Fall back to background generation if synchronous generation fails.
+        background_tasks.add_task(_generate_report_bg, interview_id, new_report.id)
+        return {
+            "message": "Report generation started in background",
+            "report_id": new_report.id,
+            "status": "pending",
+            "interview_id": interview_id
+        }
+
+    # Re-fetch the report after generation completes
+    completed_report = db.query(InterviewReport).filter(InterviewReport.id == new_report.id).first()
+    if completed_report:
+        return {
+            "message": "Report generated and saved successfully",
+            "report_id": completed_report.id,
+            "interview_id": interview_id,
+            "status": completed_report.status,
+            "narrative_summary": completed_report.narrative_summary,
+            "average_score": completed_report.average_score,
+            "total_questions": completed_report.total_questions,
+            "answered_questions": completed_report.answered_questions,
+            "generated_at": completed_report.generated_at,
+        }
 
     return {
         "message": "Report generation started in background",
@@ -1415,11 +1513,11 @@ def get_interview_history(
                 "question": q.question,
                 "answer": ans.answer_text if ans else "Not answered",
                 "score": ans.score if ans and ans.score is not None else 0,
-                "feedback": ans.feedback if ans and ans.feedback else ""
+                "feedback": ans.feedback if ans and ans.feedback else "",
+                "question_type": q.question_type or (ans.question_type if ans else "technical")
             })
 
-        answered = [qa for qa in qa_list if qa["answer"] != "Not answered"]
-        total_score = sum(qa["score"] for qa in answered)
+        total_score = sum(qa["score"] for qa in qa_list)
 
         # Get saved report details if available
         saved_report = db.query(InterviewReport).filter(
@@ -1433,7 +1531,7 @@ def get_interview_history(
             "date": str(interview.created_at),
             "qa_list": qa_list,
             "total_score": total_score,
-            "average_score": total_score / len(answered) if answered else 0,
+            "average_score": total_score / len(qa_list) if qa_list else 0,
             "report": {
                 "narrative_summary": saved_report.narrative_summary if saved_report else "",
                 "strengths": saved_report.strengths if saved_report else "",
@@ -1443,13 +1541,103 @@ def get_interview_history(
                 "hr_score": saved_report.hr_score if saved_report else 0,
                 "confidence_score": saved_report.confidence_score if saved_report else 0,
                 "missing_concepts": saved_report.missing_concepts if saved_report else "",
+                "skill_gap_analysis": saved_report.skill_gap_analysis if saved_report else "",
                 "improvement_suggestions": saved_report.improvement_suggestions if saved_report else "",
+                "hiring_readiness_score": saved_report.hiring_readiness_score if saved_report else 0,
                 "proctoring_analysis": json.loads(saved_report.proctoring_analysis) if saved_report and saved_report.proctoring_analysis else None
             }
         })
 
     history.sort(key=lambda x: x["interview_id"], reverse=True)
     return history
+
+@app.get("/all-interviews")
+def get_all_interviews(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all interview history for all users (for TPO Dashboard)."""
+    # Assuming current_user is TPO or has permissions. In production, add role check.
+    interviews = db.query(Interview).all()
+    if not interviews:
+        return []
+
+    history = []
+    for interview in interviews:
+        user = db.query(User).filter(User.id == interview.user_id).first()
+        questions = db.query(InterviewQuestion).filter(
+            InterviewQuestion.interview_id == interview.id
+        ).order_by(InterviewQuestion.order_index.asc()).all()
+
+        qa_list = []
+        if questions:
+            for q in questions:
+                ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+                qa_list.append({
+                    "question": q.question,
+                    "answer": ans.answer_text if ans else "Not answered",
+                    "score": ans.score if ans and ans.score is not None else 0,
+                    "feedback": ans.feedback if ans and ans.feedback else "",
+                    "question_type": q.question_type or (ans.question_type if ans else "technical")
+                })
+
+        total_score = sum(qa["score"] for qa in qa_list)
+
+        saved_report = db.query(InterviewReport).filter(
+            InterviewReport.interview_id == interview.id
+        ).first()
+        
+        history.append({
+            "interview_id": interview.id,
+            "student_name": user.name if user else "Unknown",
+            "student_email": user.email if user else "Unknown",
+            "job_role": interview.job_role,
+            "company": interview.company,
+            "date": str(interview.created_at),
+            "qa_list": qa_list,
+            "total_score": total_score,
+            "average_score": total_score / len(qa_list) if qa_list else 0,
+            "status": interview.status,
+            "report": {
+                "narrative_summary": saved_report.narrative_summary if saved_report else "",
+                "strengths": saved_report.strengths if saved_report else "",
+                "weaknesses": saved_report.weaknesses if saved_report else "",
+                "recommendation": saved_report.recommendation if saved_report else "",
+                "technical_score": saved_report.technical_score if saved_report else 0,
+                "hr_score": saved_report.hr_score if saved_report else 0,
+                "confidence_score": saved_report.confidence_score if saved_report else 0,
+                "missing_concepts": saved_report.missing_concepts if saved_report else "",
+                "skill_gap_analysis": saved_report.skill_gap_analysis if saved_report else "",
+                "improvement_suggestions": saved_report.improvement_suggestions if saved_report else "",
+                "hiring_readiness_score": saved_report.hiring_readiness_score if saved_report else 0
+            }
+        })
+
+    history.sort(key=lambda x: x["interview_id"], reverse=True)
+    return history
+
+
+@app.post("/send-report-email/{interview_id}")
+def send_report_email(
+    interview_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Simulate sending the interview report via email."""
+    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+        
+    report = db.query(InterviewReport).filter(InterviewReport.interview_id == interview_id).first()
+    if not report or report.status != "completed":
+        raise HTTPException(status_code=400, detail="Report not ready yet")
+        
+    # Simulate email sending logic here
+    print(f"[EMAIL] Sending report for interview {interview_id} to {current_user.email}...")
+    print(f"[EMAIL] Readiness Score: {report.hiring_readiness_score}")
+    print(f"[EMAIL] Recommendation: {report.recommendation}")
+    
+    return {"message": "Email notification sent successfully", "status": "sent"}
 
 
 # ══════════════════════════════════════════════════════

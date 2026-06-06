@@ -1,0 +1,546 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 2rem;
+  background: #FAF6EE;
+  position: relative;
+  overflow: hidden;
+  padding-top: 80px;
+}
+
+.hero::before {
+  display: none;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #FAF6EE;
+  border-bottom: 1px solid #E2E8F0;
+  z-index: 100;
+  box-shadow: 0 4px 10px rgba(139, 120, 95, 0.08);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #DC2626;
+}
+
+.navbar-profile {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: #DC2626;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link:hover {
+  color: #EF4444;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #DC2626;
+  transition: width 0.2s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-button-primary {
+  padding: 0.6rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #FFFFFF;
+  background: #DC2626;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+}
+
+.nav-button-primary:hover {
+  background: #EF4444;
+  transform: translateY(-1px);
+}
+
+.nav-button-primary:active {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.mobile-menu-toggle span {
+  width: 24px;
+  height: 2px;
+  background: #DC2626;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  background: #FAF6EE;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 1.5rem;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 99;
+  box-shadow: 0 4px 15px rgba(139, 120, 95, 0.08);
+}
+
+.mobile-nav-link {
+  color: #DC2626;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-link:hover {
+  background: #F3ECE0;
+  color: #EF4444;
+}
+
+.mobile-nav-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #FFFFFF;
+  background: #DC2626;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  margin-top: 0.5rem;
+}
+
+.mobile-nav-button:hover {
+  background: #EF4444;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .mobile-menu {
+    display: flex;
+  }
+
+  .nav-button-primary {
+    display: none;
+  }
+}
+
+.profile-avatar-nav {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  border: 2px solid #DC2626;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.profile-avatar-nav:hover {
+  transform: scale(1.05);
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+}
+
+.avatar-svg-nav {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-content {
+  max-width: 70rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  color: #DC2626;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  color: #0F172A;
+  margin-bottom: 3rem;
+  max-width: 50rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.7;
+  font-weight: 600;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .hero-buttons {
+    flex-direction: row;
+  }
+}
+
+.hero-button-primary {
+  padding: 1rem 2.5rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #FFFFFF;
+  background: #DC2626;
+  border: none;
+  box-shadow: 6px 6px 15px rgba(185, 28, 28, 0.3), -6px -6px 15px #FFFFFF;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-button-primary::before {
+  display: none;
+}
+
+.hero-button-primary:hover {
+  background: #EF4444;
+  transform: translateY(-2px);
+}
+
+.hero-button-primary:active {
+  transform: translateY(0);
+  box-shadow: inset 4px 4px 8px rgba(185, 28, 28, 0.4), inset -4px -4px 8px #FFFFFF;
+}
+
+.hero-button-secondary {
+  padding: 1rem 2.5rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #DC2626;
+  border: 1px solid #E2E8F0;
+  background: #FAF6EE;
+  box-shadow: 6px 6px 15px rgba(139, 120, 95, 0.15), -6px -6px 15px #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.hero-button-secondary:hover {
+  background: #F3ECE0;
+  transform: translateY(-2px);
+}
+
+.hero-button-secondary:active {
+  transform: translateY(0);
+  box-shadow: inset 4px 4px 8px rgba(139, 120, 95, 0.15), inset -4px -4px 8px #FFFFFF;
+}
+
+.hero-image {
+  margin: 3rem auto;
+  max-width: 700px;
+}
+
+.hero-img {
+  width: 100%;
+  height: auto;
+  border-radius: 1.5rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.18), -8px -8px 24px #FFFFFF;
+}
+
+/* Authentication Modal Styles - Neumorphic tactile */
+.auth-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.auth-modal-content {
+  background: #FAF6EE;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 12px 12px 30px rgba(139, 120, 95, 0.2), -12px -12px 30px #FFFFFF;
+}
+
+.auth-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header h2 {
+  color: #DC2626;
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.auth-close {
+  background: #FAF6EE;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.auth-close:hover {
+  background: #F3ECE0;
+  transform: rotate(90deg);
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  text-align: left;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  color: #DC2626;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.form-group input {
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #E2E8F0;
+  background: #FAF6EE;
+  color: #0F172A;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+}
+
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #DC2626;
+  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+}
+
+.auth-submit {
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  border: none;
+  background: #DC2626;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-submit::before {
+  display: none;
+}
+
+.auth-submit:hover {
+  background: #EF4444;
+  transform: translateY(-2px);
+}
+
+.auth-submit:active {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+}
+
+/* Profile Photo Upload Styles */
+.profile-photo-upload {
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.profile-photo-preview {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #DC2626;
+  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.2), -4px -4px 10px #FFFFFF;
+}
+
+.profile-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #DC2626;
+  border: 2px solid #FFFFFF;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.3);
+}
+
+.remove-photo-btn:hover {
+  background: #EF4444;
+  transform: scale(1.05);
+}
+
+.profile-photo-placeholder {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 2px dashed #DC2626;
+  background: #FAF6EE;
+  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.profile-photo-placeholder:hover {
+  border-color: #EF4444;
+  background: #F3ECE0;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.profile-photo-placeholder span {
+  font-size: 0.75rem;
+  color: #0F172A;
+  font-weight: 600;
+  text-align: center;
+}
+
+.profile-photo-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}

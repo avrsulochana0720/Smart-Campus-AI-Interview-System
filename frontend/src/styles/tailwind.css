@@ -1,0 +1,17 @@
+/* Tailwind core layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* You can also add your own custom styles here */
+:root {
+  --brand-primary: #DC2626; /* crimson red */
+  --brand-secondary: #EF4444; /* coral red */
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #0a0f1e;
+  color: #ffffff;
+}
