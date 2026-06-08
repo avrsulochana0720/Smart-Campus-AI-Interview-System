@@ -477,9 +477,13 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
                 rows={4}
                 placeholder="Write your feedback here..."
                 value={feedbackForm.comment}
-                onChange={e => setFeedbackForm(prev => ({ ...prev, comment: e.target.value }))}
+                onChange={e => {
+                  setFeedbackForm(prev => ({ ...prev, comment: e.target.value }));
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
                 className="cd-input"
-                style={{ minHeight: '110px' }}
+                style={{ minHeight: '110px', overflow: 'hidden', resize: 'none' }}
                 required
               />
               <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>

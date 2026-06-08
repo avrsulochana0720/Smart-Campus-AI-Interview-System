@@ -30,9 +30,9 @@ export default function Hero() {
       await authAPI.register(registerData.name, registerData.email, registerData.password);
       alert("Registration successful! Please login.");
       setShowRegister(false);
-      setShowLogin(true);
       setRegisterData({ name: '', email: '', password: '', profilePhoto: null });
       setProfilePhotoPreview(null);
+      navigate('/login');
     } catch (err: any) {
       const errorMessage = err.response?.data?.detail || 'Registration failed';
       alert(errorMessage);
@@ -208,6 +208,9 @@ export default function Hero() {
                 <button type="submit" className="auth-submit">
                   Create Account
                 </button>
+                <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#64748B' }}>
+                  Already have an account? <span onClick={() => { setShowRegister(false); setShowLogin(true); }} style={{ color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>Login</span>
+                </p>
               </form>
           </div>
         </div>
@@ -247,6 +250,9 @@ export default function Hero() {
               <button type="submit" className="auth-submit">
                 Login
               </button>
+              <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#64748B' }}>
+                Don't have an account? <span onClick={() => { setShowLogin(false); setShowRegister(true); }} style={{ color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>Register</span>
+              </p>
             </form>
           </div>
         </div>

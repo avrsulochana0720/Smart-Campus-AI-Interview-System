@@ -121,26 +121,26 @@ export default function ResumeUploadPage() {
         <section className={styles.profileCard}>
           <h3>{localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token')!.split('.')[1])).name || 'User' : 'Guest'}</h3>
           <p>Candidate Profile</p>
-          <div className={styles.analysisButtons} style={{ gridTemplateColumns: '1fr', gap: '1.5rem', textAlign: 'left' }}>
-            <div className={styles.analysisButton} style={{ cursor: 'default', background: '#FAF6EE', borderColor: '#DC2626' }}>
-              <span className={styles.insightLabel} style={{ fontSize: '1rem', color: '#DC2626', textTransform: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🎯 <strong>Skills Match</strong></span>
-              <p style={{ fontSize: '0.9rem', color: '#DC2626', margin: '0.5rem 0', fontWeight: 600 }}>Analyze technical skills, tools, programming languages, certifications, and role alignment.</p>
-              <div style={{ borderLeft: '4px solid #DC2626', paddingLeft: '1rem', marginTop: '1rem' }}>
-                <strong style={{ color: '#DC2626', fontWeight: 500, fontSize: '0.9rem' }}>{analysis.skills_match || "Upload a resume to identify your key skills and job-fit strengths."}</strong>
+          <div className={styles.analysisButtons}>
+            <div className={styles.analysisButton}>
+              <span className={styles.insightLabel}>🎯 <strong>Skills Match</strong></span>
+              <p className={styles.analysisDesc}>Analyze technical skills, tools, programming languages, certifications, and role alignment.</p>
+              <div className={styles.analysisContent}>
+                <strong>{analysis.skills_match || "Upload a resume to identify your key skills and job-fit strengths."}</strong>
               </div>
             </div>
-            <div className={styles.analysisButton} style={{ cursor: 'default', background: '#FAF6EE', borderColor: '#DC2626' }}>
-              <span className={styles.insightLabel} style={{ fontSize: '1rem', color: '#DC2626', textTransform: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>📈 <strong>Experience & Projects</strong></span>
-              <p style={{ fontSize: '0.9rem', color: '#DC2626', margin: '0.5rem 0', fontWeight: 600 }}>Analyze internships, projects, achievements, leadership, and practical experience.</p>
-              <div style={{ borderLeft: '4px solid #DC2626', paddingLeft: '1rem', marginTop: '1rem' }}>
-                <strong style={{ color: '#DC2626', fontWeight: 500, fontSize: '0.9rem' }}>{analysis.experience || "Upload a resume to evaluate your experience and project impact."}</strong>
+            <div className={styles.analysisButton}>
+              <span className={styles.insightLabel}>📈 <strong>Experience & Projects</strong></span>
+              <p className={styles.analysisDesc}>Analyze internships, projects, achievements, leadership, and practical experience.</p>
+              <div className={styles.analysisContent}>
+                <strong>{analysis.experience || "Upload a resume to evaluate your experience and project impact."}</strong>
               </div>
             </div>
-            <div className={styles.analysisButton} style={{ cursor: 'default', background: '#FAF6EE', borderColor: '#DC2626' }}>
-              <span className={styles.insightLabel} style={{ fontSize: '1rem', color: '#DC2626', textTransform: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🚀 <strong>Interview Readiness</strong></span>
-              <p style={{ fontSize: '0.9rem', color: '#DC2626', margin: '0.5rem 0', fontWeight: 600 }}>Analyze overall profile strength, resume quality, and interview preparedness.</p>
-              <div style={{ borderLeft: '4px solid #DC2626', paddingLeft: '1rem', marginTop: '1rem' }}>
-                <strong style={{ color: '#DC2626', fontWeight: 500, fontSize: '0.9rem' }}>{analysis.readiness || "Upload a resume to assess your interview readiness and improvement areas."}</strong>
+            <div className={styles.analysisButton}>
+              <span className={styles.insightLabel}>🚀 <strong>Interview Readiness</strong></span>
+              <p className={styles.analysisDesc}>Analyze overall profile strength, resume quality, and interview preparedness.</p>
+              <div className={styles.analysisContent}>
+                <strong>{analysis.readiness || "Upload a resume to assess your interview readiness and improvement areas."}</strong>
               </div>
             </div>
           </div>

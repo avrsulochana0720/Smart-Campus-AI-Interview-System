@@ -315,56 +315,68 @@
   margin-top: 2rem;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
 }
 
 .analysisButtons {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  text-align: left;
 }
 
 .analysisButton {
   width: 100%;
   text-align: left;
-  border: 1px solid #FECACA;
-  background: #FFFFFF;
+  border: 1px solid #DC2626;
+  background: transparent;
   border-radius: 1rem;
-  padding: 1rem 1.15rem;
+  padding: 1.5rem;
   cursor: default;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 2px 6px 18px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .analysisButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 4px 10px 24px rgba(15, 23, 42, 0.08);
+  background: #FEE2E2;
 }
 
 .insightLabel {
-  display: inline-block;
-  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #DC2626;
-  font-size: 0.72rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin-bottom: 0.5rem;
 }
 
-.analysisButton strong {
+.analysisDesc {
+  font-size: 0.95rem;
+  color: #DC2626;
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.analysisContent {
+  border-left: 4px solid #DC2626;
+  padding-left: 1rem;
+  margin-top: 1rem;
+}
+
+.analysisContent strong {
   display: block;
-  margin-top: 0.5rem;
   font-size: 0.95rem;
   line-height: 1.6;
-  color: #0F172A;
-  font-weight: 700;
+  color: #DC2626;
+  font-weight: 500;
 }
 
 .analysisNote {
   margin-top: 0.75rem;
-  color: #475569;
+  color: #DC2626;
   font-size: 0.95rem;
+  font-weight: 600;
   text-align: center;
 }
 

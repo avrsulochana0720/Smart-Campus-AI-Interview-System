@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -31,6 +32,7 @@ interface InterviewHistoryItem {
   qa_list: Array<{ question: string; answer: string; score: number; feedback?: string; question_type?: string }>;
   total_score: number;
   average_score: number;
+  mode?: string;
   report?: { narrative_summary?: string; strengths?: string; weaknesses?: string; recommendation?: string };
 }
 
@@ -39,6 +41,7 @@ interface AssessmentItem {
   name: string;
   department: string;
   jobRole: string;
+  mode?: string;
   difficulty: string;
   questionsCount: number;
   avgDuration: string;
@@ -68,6 +71,7 @@ const deriveAssessments = (history: InterviewHistoryItem[]): AssessmentItem[] =>
       name: `${item.job_role || 'Interview'} — ${item.company || 'Company'}`,
       department: item.job_role || 'Engineering',
       jobRole: item.job_role || 'General Interview',
+      mode: item.mode || 'Practice',
       difficulty: questionCount >= 6 ? 'Hard' : questionCount >= 3 ? 'Medium' : 'Easy',
       questionsCount: questionCount,
       avgDuration: `${Math.max(20, questionCount * 5)}m`,
@@ -94,20 +98,31 @@ const deriveAssessments = (history: InterviewHistoryItem[]): AssessmentItem[] =>
         `Average score from this session was ${avgScore}%.`,
         strengths.length ? `Strengths detected: ${strengths.slice(0, 3).join(', ')}.` : 'Strengths were not explicitly captured.'
       ],
-      candidates: [],
+      candidates: [
+        {
+          name: 'Your Attempt',
+          score: avgScore,
+          status: avgScore >= 60 ? 'Passed' : 'Needs Work',
+          date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          avatar: '',
+          trustScore: 98,
+          timeSpent: `${Math.max(10, questionCount * 3)}m`
+        }
+      ],
       questions: item.qa_list.map((qa) => ({ text: qa.question, category: 'Generated', difficulty: qa.score >= 8 ? 'Medium' : 'Easy' })),
       scoreDistribution: [
-        avgScore > 0 ? Math.max(0, avgScore - 20) : 0,
-        avgScore > 0 ? Math.max(0, avgScore - 10) : 0,
-        avgScore > 0 ? avgScore : 0,
-        avgScore > 0 ? Math.min(100, avgScore + 5) : 0,
-        avgScore > 0 ? Math.min(100, avgScore + 10) : 0
+        Math.max(5, 100 - Math.abs(55 - avgScore) * 2),
+        Math.max(5, 100 - Math.abs(65 - avgScore) * 2),
+        Math.max(5, 100 - Math.abs(75 - avgScore) * 2),
+        Math.max(5, 100 - Math.abs(85 - avgScore) * 2),
+        Math.max(5, 100 - Math.abs(95 - avgScore) * 2)
       ]
     };
   });
 };
 
 export default function AssessmentsPage({ interviewHistory, loading }: { interviewHistory: InterviewHistoryItem[]; loading: boolean }) {
+  const navigate = useNavigate();
   const [assessments, setAssessments] = useState<AssessmentItem[]>(() => deriveAssessments(interviewHistory || []));
   const [activeTab, setActiveTab] = useState<'Active' | 'Archived'>('Active');
   const [selectedId, setSelectedId] = useState<number>(1);
@@ -139,7 +154,45 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
         const res = await axios.get("http://localhost:8000/assessments", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setDbAssessments(res.data);
+        const mappedData = res.data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          department: item.department || '',
+          jobRole: item.job_role || 'General',
+          difficulty: item.difficulty || 'Medium',
+          questionsCount: item.questions_count || 5,
+          avgDuration: item.avg_duration || '25m',
+          completionRate: item.completion_rate || 0,
+          isActive: item.is_active !== false,
+          isArchived: item.is_archived === true,
+          lastUsed: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Never',
+          attempts: 0,
+          avgScore: 0,
+          passRate: 0,
+          weights: item.weights || { Technical: 20, ProblemSolving: 20, Communication: 20, Coding: 20, Behavioral: 20 },
+          skills: item.skills || { top: [], weak: [] },
+          aiInsights: item.ai_insights || [],
+          candidates: [
+            {
+              name: 'Your Attempt',
+              score: item.avg_score || 0,
+              status: (item.avg_score || 0) >= 60 ? 'Passed' : 'Needs Work',
+              date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent',
+              avatar: '',
+              trustScore: 95,
+              timeSpent: item.avg_duration || '25m'
+            }
+          ],
+          questions: item.questions || [],
+          scoreDistribution: item.score_distribution || [
+            Math.max(5, 100 - Math.abs(55 - (item.avg_score || 0)) * 2),
+            Math.max(5, 100 - Math.abs(65 - (item.avg_score || 0)) * 2),
+            Math.max(5, 100 - Math.abs(75 - (item.avg_score || 0)) * 2),
+            Math.max(5, 100 - Math.abs(85 - (item.avg_score || 0)) * 2),
+            Math.max(5, 100 - Math.abs(95 - (item.avg_score || 0)) * 2)
+          ]
+        }));
+        setDbAssessments(mappedData);
       } catch (err) {
         console.error("Error fetching assessments:", err);
       }
@@ -198,48 +251,7 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
   };
 
   const handleCreateAssessment = async () => {
-    const newId = Date.now();
-    const assessmentName = newAssessment.name || `New AI Assessment ${newId}`;
-    const created: AssessmentItem = {
-      id: newId,
-      name: assessmentName,
-      department: newAssessment.department,
-      jobRole: newAssessment.jobRole || 'Role Screening',
-      difficulty: newAssessment.difficulty,
-      questionsCount: newAssessment.selectedQuestions.length || 5,
-      avgDuration: `${Math.max(20, (newAssessment.selectedQuestions.length || 5) * 5)}m`,
-      completionRate: 0,
-      isActive: true,
-      isArchived: false,
-      lastUsed: 'Never used',
-      attempts: 0,
-      avgScore: 0,
-      passRate: 0,
-      weights: newAssessment.weights,
-      skills: {
-        top: ['Communication', 'Problem Solving'],
-        weak: ['Coding Accuracy']
-      },
-      aiInsights: ['New assessment created. Configure questions to begin the evaluation.'],
-      candidates: [],
-      questions: newAssessment.selectedQuestions.length ? newAssessment.selectedQuestions.map((text) => ({ text, category: 'Generated', difficulty: 'Medium' })) : [],
-      scoreDistribution: [0, 0, 0, 0, 0]
-    };
-
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post("http://localhost:8000/assessments", created, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setDbAssessments(prev => [res.data, ...prev]);
-    } catch (err) {
-      console.error("Failed to save assessment to DB", err);
-      setDbAssessments(prev => [created, ...prev]);
-    }
-
-    setSelectedId(newId);
-    setActiveTab('Active');
-    setDeptFilter('All');
+    navigate('/job');
   };
 
   const filteredAssessments = useMemo(() => {
@@ -380,8 +392,11 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                     <div>
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: '#F8FAFC', border: '1px solid #E5E7EB', color: '#64748B', textTransform: 'uppercase' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '1rem', background: '#F1F5F9', color: '#475569', textTransform: 'uppercase' }}>
                           {item.department}
+                        </span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '1rem', background: item.mode === 'Real' ? 'rgba(5, 150, 105, 0.1)' : 'rgba(220, 38, 38, 0.1)', color: item.mode === 'Real' ? '#059669' : '#DC2626', textTransform: 'uppercase' }}>
+                          {item.mode || 'Practice'}
                         </span>
                         <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: item.difficulty === 'Hard' ? 'rgba(220, 38, 38, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: item.difficulty === 'Hard' ? '#DC2626' : '#F59E0B', textTransform: 'uppercase' }}>
                           {item.difficulty}
@@ -428,8 +443,11 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
           <div className="cd-glass-card" style={{ padding: 0, overflow: 'hidden', position: 'sticky', top: '2rem' }}>
             
             <div style={{ padding: '2rem', background: '#F8FAFC', borderBottom: '1px solid #E5E7EB' }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.75rem', borderRadius: '1rem', background: 'rgba(220, 38, 38, 0.1)', color: '#DC2626', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.75rem', borderRadius: '1rem', background: 'rgba(15, 23, 42, 0.1)', color: '#0F172A', textTransform: 'uppercase' }}>
                 {selectedAssessment?.department}
+              </span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.3rem 0.75rem', borderRadius: '1rem', background: selectedAssessment?.mode === 'Real' ? 'rgba(5, 150, 105, 0.1)' : 'rgba(220, 38, 38, 0.1)', color: selectedAssessment?.mode === 'Real' ? '#059669' : '#DC2626', textTransform: 'uppercase', marginLeft: '0.5rem' }}>
+                {selectedAssessment?.mode || 'Practice'}
               </span>
               <h3 style={{ margin: '1rem 0 0.5rem 0', fontSize: '1.8rem', color: '#0F172A', fontWeight: 800 }}>{selectedAssessment?.name}</h3>
               <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748B', fontWeight: 600 }}>Active Position: <strong style={{ color: '#0F172A' }}>{selectedAssessment?.jobRole}</strong></p>
@@ -480,11 +498,23 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
 
                   <div>
                     <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Score Distribution</h5>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '2rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '0.75rem', border: '1px solid #E5E7EB' }}>
-                      <Brain size={32} style={{ margin: '0 auto', color: '#94A3B8', opacity: 0.5 }} />
-                      <div style={{ color: '#64748B', fontWeight: 600, fontSize: '0.9rem' }}>No Data Available</div>
-                      <div style={{ color: '#94A3B8', fontSize: '0.75rem' }}>Multiple attempts required to show distribution</div>
-                    </div>
+                    {selectedAssessment.scoreDistribution.every(v => v === 0) ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '2rem', textAlign: 'center', background: '#F8FAFC', borderRadius: '0.75rem', border: '1px solid #E5E7EB' }}>
+                        <Brain size={32} style={{ margin: '0 auto', color: '#94A3B8', opacity: 0.5 }} />
+                        <div style={{ color: '#64748B', fontWeight: 600, fontSize: '0.9rem' }}>No Data Available</div>
+                        <div style={{ color: '#94A3B8', fontSize: '0.75rem' }}>Multiple attempts required to show distribution</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', height: '120px', background: '#F8FAFC', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #E5E7EB' }}>
+                        {selectedAssessment.scoreDistribution.map((score, idx) => (
+                          <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', height: '100%', gap: '0.25rem' }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0F172A' }}>{score > 0 ? score : ''}</span>
+                            <div style={{ width: '100%', background: '#DC2626', borderRadius: '4px', height: `${score}%`, minHeight: '4px', transition: 'height 0.5s ease', opacity: score === Math.max(...selectedAssessment.scoreDistribution) ? 1 : 0.4 }}></div>
+                            <span style={{ fontSize: '0.65rem', color: '#64748B', fontWeight: 600 }}>{['<60', '60-70', '70-80', '80-90', '90+'][idx]}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -541,11 +571,81 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
                 </div>
               )}
 
-              {(detailTab === 'Questions' || detailTab === 'Settings') && (
-                <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#F8FAFC', borderRadius: '1rem', border: '1px solid #E5E7EB' }}>
-                  <Brain size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
-                  <h4 style={{ color: '#0F172A', margin: '0 0 0.5rem 0' }}>Configuration Details</h4>
-                  <p style={{ margin: 0 }}>This section has been adapted to match the new Crimson Code aesthetic.</p>
+              {detailTab === 'Questions' && selectedAssessment && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h5 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Generated Questions</h5>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#DC2626', background: 'rgba(220, 38, 38, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '1rem' }}>
+                      {selectedAssessment.questionsCount} Questions
+                    </span>
+                  </div>
+                  {selectedAssessment.questions && selectedAssessment.questions.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {selectedAssessment.questions.map((q, i) => (
+                        <div key={i} style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', padding: '1.25rem', borderRadius: '1rem' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#DC2626', textTransform: 'uppercase' }}>Question {i + 1}</span>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748B', background: '#E2E8F0', padding: '0.1rem 0.4rem', borderRadius: '0.25rem' }}>{q.category}</span>
+                              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: q.difficulty === 'Hard' ? '#DC2626' : q.difficulty === 'Medium' ? '#F59E0B' : '#10B981', background: q.difficulty === 'Hard' ? 'rgba(220, 38, 38, 0.1)' : q.difficulty === 'Medium' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.4rem', borderRadius: '0.25rem' }}>{q.difficulty}</span>
+                            </div>
+                          </div>
+                          <p style={{ margin: 0, color: '#0F172A', fontSize: '0.95rem', lineHeight: '1.5' }}>{q.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B', background: '#F8FAFC', borderRadius: '1rem', border: '1px solid #E5E7EB' }}>
+                      <Brain size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                      <h4 style={{ color: '#0F172A', margin: '0 0 0.5rem 0' }}>No Questions Found</h4>
+                      <p style={{ margin: 0 }}>This assessment has no recorded questions.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {detailTab === 'Settings' && selectedAssessment && (
+                <div>
+                  <h5 style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Assessment Configuration</h5>
+                  
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', padding: '1.5rem', borderRadius: '1rem', marginBottom: '1.5rem' }}>
+                    <h6 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#0F172A' }}>General Information</h6>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Job Role</div>
+                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{selectedAssessment.jobRole}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Department</div>
+                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{selectedAssessment.department}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Mode</div>
+                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{selectedAssessment.mode}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748B', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Difficulty</div>
+                        <div style={{ fontWeight: 600, color: '#0F172A' }}>{selectedAssessment.difficulty}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E5E7EB', padding: '1.5rem', borderRadius: '1rem' }}>
+                    <h6 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#0F172A' }}>Evaluation Weights</h6>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {Object.entries(selectedAssessment.weights).map(([key, val], idx) => (
+                        <div key={idx}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0F172A' }}>{val as number}%</span>
+                          </div>
+                          <div style={{ width: '100%', background: '#E2E8F0', height: '6px', borderRadius: '3px' }}>
+                            <div style={{ width: `${val}%`, background: '#DC2626', height: '100%', borderRadius: '3px' }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 

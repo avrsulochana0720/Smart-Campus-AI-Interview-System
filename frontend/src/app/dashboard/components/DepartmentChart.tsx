@@ -34,12 +34,7 @@ const COLORS = ['#DC2626', '#EF4444', '#F59E0B', '#0F172A'];
 
 const buildDeptData = (interviews: Interview[]) => {
   if (interviews.length === 0) {
-    return [
-      { name: 'Computer Science', value: 35 },
-      { name: 'Electronics', value: 25 },
-      { name: 'Mechanical', value: 20 },
-      { name: 'Other Departments', value: 20 },
-    ];
+    return [];
   }
 
   const grouped: Record<string, number> = {};

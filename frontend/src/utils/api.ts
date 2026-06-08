@@ -74,11 +74,7 @@ export const authAPI = {
     if (photo) {
       formData.append('photo', photo);
     }
-    const response = await axios.post(`${API_BASE_URL}/register`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await axios.post(`${API_BASE_URL}/register`, formData);
     return response.data;
   },
   verifyEmail: async (email: string, otp: string) => {
@@ -215,7 +211,7 @@ export const interviewAPI = {
       if (index > -1) listeners.splice(index, 1);
     };
   },
-  create: async (jobRole: string, company: string, resumeId?: number) => {
+  create: async (jobRole: string, company: string, resumeId?: number, mode: string = "Practice") => {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('Please login first');
@@ -224,6 +220,7 @@ export const interviewAPI = {
       job_role: jobRole,
       company,
       resume_id: resumeId,
+      mode: mode,
     });
     return response.data;
   },

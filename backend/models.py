@@ -46,6 +46,7 @@ class Interview(Base):
     resume_id = Column(Integer, ForeignKey("resumes.id"), nullable=True)
     job_role = Column(String(200), nullable=False)
     company = Column(String(200), nullable=False)
+    mode = Column(String(50), default="Practice")
     status = Column(String(50), default="in_progress")    # in_progress, completed, failed
     summary = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -93,11 +93,12 @@ const Interview: React.FC = () => {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        setCandidateInfo({
-          name: payload.name || payload.sub?.split('@')[0] || 'Candidate',
-          role: localStorage.getItem('job_role') || 'Applicant',
-          profile_image: payload.profile_image || null
-        });
+          setCandidateInfo({
+            name: payload.name || payload.sub?.split('@')[0] || 'Candidate',
+            role: localStorage.getItem('job_role') || 'Applicant',
+            mode: localStorage.getItem('interview_mode') || 'Practice',
+            profile_image: payload.profile_image || null
+          });
       } catch (e) {
         console.error("Failed to decode token", e);
       }
@@ -623,8 +624,8 @@ const Interview: React.FC = () => {
               </div>
               <span className={styles.candidateName}>{candidateInfo.name}</span>
               <span className={styles.candidateRole}>{candidateInfo.role}</span>
-              <button className={styles.aiInterviewerButton}>
-                Interviewee
+              <button className={styles.aiInterviewerButton} style={{ background: candidateInfo.mode === 'Real' ? '#059669' : '#DC2626' }}>
+                {candidateInfo.mode === 'Real' ? 'Real Interview' : 'Practice Test'}
               </button>
             </div>
 

@@ -31,18 +31,7 @@ interface RecentInterviewsProps {
   onViewAll: () => void;
 }
 
-const NAMES = [
-  'Arjun Mehta',
-  'Priya Sharma',
-  'Rohan Verma',
-  'Sneha Iyer',
-  'Karan Singh',
-  'Ananya Reddy',
-  'Vikram Patel',
-  'Neha Gupta',
-];
 
-const getName = (id: number) => NAMES[id % NAMES.length];
 
 function RecentInterviews({ interviews, onViewAll }: RecentInterviewsProps) {
   const recentList = interviews.slice(0, 5);
@@ -78,7 +67,7 @@ function RecentInterviews({ interviews, onViewAll }: RecentInterviewsProps) {
 
       <div className="space-y-4">
         {recentList.map((interview) => {
-          const candidateName = getName(interview.interview_id);
+          const candidateName = `Candidate #${interview.interview_id}`;
           const answered = interview.qa_list.filter((qa) => qa.answer !== 'Not answered').length;
           const isCompleted = answered === interview.qa_list.length;
           const formattedDate = new Date(interview.date).toLocaleDateString('en-US', {

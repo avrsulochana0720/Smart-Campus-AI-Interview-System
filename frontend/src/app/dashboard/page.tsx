@@ -114,9 +114,11 @@ export default function DashboardPage() {
     y += 16;
     doc.text(`QA Volume: ${qaVolume}`, margin, y);
     y += 16;
-    doc.text(`Avg Score: ${overallAvg > 0 ? `${overallAvg.toFixed(1)} / 10` : 'N/A'}`, margin, y);
+    doc.text(`Overall Score: ${overallPct > 0 ? `${overallPct}%` : 'N/A'}`, margin, y);
     y += 16;
-    doc.text(`Overall Performance: ${overallPct > 0 ? `${overallPct}%` : 'N/A'}`, margin, y);
+    doc.text(`Technical Score: ${techPct > 0 ? `${techPct}%` : 'N/A'}`, margin, y);
+    y += 16;
+    doc.text(`HR Score: ${hrPct > 0 ? `${hrPct}%` : 'N/A'}`, margin, y);
     y += 16;
     doc.text(`Pass Rate: ${passRate > 0 ? `${passRate}%` : 'N/A'}`, margin, y);
     y += 30;
@@ -131,7 +133,7 @@ export default function DashboardPage() {
       y += 16;
       doc.text(`Date: ${new Date(latest.date).toLocaleDateString()}`, margin, y);
       y += 16;
-      doc.text(`Average Score: ${Math.round(latest.average_score * 10)}%`, margin, y);
+      doc.text(`Latest Interview Score: ${Math.round(latest.average_score * 10)}%`, margin, y);
       y += 30;
       doc.setFontSize(11);
       doc.text('Top Feedback', margin, y);
@@ -192,6 +194,8 @@ export default function DashboardPage() {
   const hrQa = allQa.filter(qa => qa.question_type === 'hr');
   const techAvg = techQa.length > 0 ? techQa.reduce((sum, qa) => sum + (qa.score || 0), 0) / techQa.length : 0;
   const hrAvg = hrQa.length > 0 ? hrQa.reduce((sum, qa) => sum + (qa.score || 0), 0) / hrQa.length : 0;
+  const techPct = Math.round(techAvg * 10);
+  const hrPct = Math.round(hrAvg * 10);
 
   return (
     <>
@@ -342,10 +346,10 @@ export default function DashboardPage() {
                           <circle cx="12" cy="12" r="6" />
                           <circle cx="12" cy="12" r="2" />
                         </svg>
-                        Avg Score
+                        Overall Score
                       </div>
                       <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#DC2626' }}>
-                        {overallAvg > 0 ? `${overallAvg.toFixed(1)}/10` : 'N/A'}
+                        {overallPct > 0 ? `${overallPct}%` : 'N/A'}
                       </span>
                     </div>
 
@@ -375,10 +379,10 @@ export default function DashboardPage() {
                           <polyline points="16 18 22 12 16 6" />
                           <polyline points="8 6 2 12 8 18" />
                         </svg>
-                        Tech Score
+                        Technical Score
                       </div>
                       <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0EA5E9' }}>
-                        {techAvg > 0 ? `${techAvg.toFixed(1)}/10` : 'N/A'}
+                        {techPct > 0 ? `${techPct}%` : 'N/A'}
                       </span>
                     </div>
 
@@ -394,7 +398,7 @@ export default function DashboardPage() {
                         HR Score
                       </div>
                       <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#8B5CF6' }}>
-                        {hrAvg > 0 ? `${hrAvg.toFixed(1)}/10` : 'N/A'}
+                        {hrPct > 0 ? `${hrPct}%` : 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -492,7 +496,7 @@ export default function DashboardPage() {
                         <strong>Date:</strong> {new Date(interviewHistory[0].date).toLocaleDateString()}
                       </div>
                       <div className={styles.alert}>
-                        <strong>Average Score:</strong> {interviewHistory[0].average_score.toFixed(1)}/10 ({Math.round(interviewHistory[0].average_score * 10)}%)
+                        <strong>Latest Interview Score:</strong> {Math.round(interviewHistory[0].average_score * 10)}%
                       </div>
                     </>
                   )}
@@ -641,7 +645,7 @@ export default function DashboardPage() {
                         <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "500" }}>Last Interview Score</label>
                         <input
                           type="text"
-                          value={interviewHistory[0].average_score.toFixed(1) + ' / 10 (' + (interviewHistory[0].average_score * 10).toFixed(0) + '%)'}
+                          value={`${Math.round(interviewHistory[0].average_score * 10)}%`}
                           readOnly
                           style={{
                             width: "100%",

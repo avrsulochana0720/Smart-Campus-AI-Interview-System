@@ -10,6 +10,7 @@ from fastapi import Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import Optional, List, Dict, Any, Union
 import os
 import sys
 import json
@@ -63,19 +64,17 @@ async def add_process_time_header(request: Request, call_next):
         content_type = response.headers.get("content-type", "")
         if "application/json" in content_type:
             body = getattr(response, "body", None)
-            if body is None and hasattr(response, "body_iterator"):
-                # Force render for JSONResponse and other Starlette responses
-                body = response.body
-            if isinstance(body, bytes):
-                body_text = body.decode("utf-8", errors="replace")
-            else:
-                body_text = str(body)
-            if body_text:
-                try:
-                    parsed = json.loads(body_text)
-                    print(f"[API RESPONSE] {request.method} {request.url.path} -> {json.dumps(parsed, ensure_ascii=False)}")
-                except Exception:
-                    print(f"[API RESPONSE] {request.method} {request.url.path} -> {body_text}")
+            if body is not None:
+                if isinstance(body, bytes):
+                    body_text = body.decode("utf-8", errors="replace")
+                else:
+                    body_text = str(body)
+                if body_text:
+                    try:
+                        parsed = json.loads(body_text)
+                        print(f"[API RESPONSE] {request.method} {request.url.path} -> {json.dumps(parsed, ensure_ascii=False)}")
+                    except Exception:
+                        print(f"[API RESPONSE] {request.method} {request.url.path} -> {body_text}")
         else:
             body = getattr(response, "body", None)
             if isinstance(body, (bytes, str)):
@@ -105,9 +104,10 @@ def get_metrics():
 
 # ── Pydantic Schemas ──────────────────────────────────
 class CreateInterviewRequest(BaseModel):
+    resume_id: Optional[int] = None
     job_role: str
     company: str
-    resume_id: int = None
+    mode: Optional[str] = "Practice"
 
 class GenerateQuestionsRequest(BaseModel):
     interview_id: int
@@ -698,7 +698,8 @@ def create_interview(
         user_id=current_user.id,
         resume_id=resume_id,
         job_role=request.job_role,
-        company=request.company
+        company=request.company,
+        mode=request.mode
     )
     db.add(new_interview)
     db.commit()
@@ -1528,6 +1529,7 @@ def get_interview_history(
             "interview_id": interview.id,
             "job_role": interview.job_role,
             "company": interview.company,
+            "mode": interview.mode,
             "date": str(interview.created_at),
             "qa_list": qa_list,
             "total_score": total_score,

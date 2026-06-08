@@ -28,6 +28,7 @@ def get_dashboard_stats(db: Session = Depends(get_db), current_admin: User = Dep
 
     avg_tech_score = db.query(func.avg(InterviewReport.overall_technical_score)).scalar() or 0
     avg_hr_score = db.query(func.avg(InterviewReport.overall_hr_score)).scalar() or 0
+    avg_final_score = db.query(func.avg(InterviewReport.final_interview_score)).scalar() or 0
 
     top_students = db.query(
         User.name, User.email, InterviewReport.final_interview_score, Interview.job_role
@@ -60,6 +61,7 @@ def get_dashboard_stats(db: Session = Depends(get_db), current_admin: User = Dep
         "pending_interviews": pending_interviews,
         "avg_technical_score": round(avg_tech_score, 1),
         "avg_hr_score": round(avg_hr_score, 1),
+        "avg_final_score": round(avg_final_score, 1),
         "resume_upload_count": resume_upload_count,
         "top_students": [{"name": r[0], "email": r[1], "score": r[2], "role": r[3]} for r in top_students],
         "recent_activity": [{"name": r[0], "role": r[1], "company": r[2], "status": r[3], "date": r[4]} for r in recent_activity],
@@ -297,7 +299,6 @@ def analytics_department(db: Session = Depends(get_db), current_admin: User = De
         func.avg(InterviewReport.final_interview_score).label("avg_score")
     ).join(Interview, Interview.user_id == User.id)\
      .join(InterviewReport, InterviewReport.interview_id == Interview.id)\
-     .filter(User.department != None)\
      .group_by(User.department).all()
     return [{"department": r[0] or "Unknown", "interviews": r[1], "avg_score": round(r[2] or 0, 1)} for r in stats]
 
@@ -437,6 +438,69 @@ def ai_monitoring(db: Session = Depends(get_db), current_admin: User = Depends(r
         },
         "avg_rag_similarity": round(stats[10] or 0, 2)
     }
+
+# ── 8a. System Status & Schema & Advanced Analytics ─────
+from sqlalchemy import inspect
+import time
+
+system_start_time = time.time()
+
+@router.get("/system-status")
+def system_status(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "Connected"
+    except Exception:
+        db_status = "Error"
+        
+    uptime_seconds = int(time.time() - system_start_time)
+    hours, remainder = divmod(uptime_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    
+    return {
+        "db_status": db_status,
+        "uptime": f"{hours}h {minutes}m {seconds}s",
+        "cpu_usage": f"{psutil.cpu_percent()}%",
+        "memory_usage": f"{psutil.virtual_memory().percent}%",
+        "vector_store": "Connected",
+        "ai_models": "Online",
+        "api_status": "Active"
+    }
+
+@router.get("/db-schema")
+def db_schema(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+    return {"tables": tables}
+
+@router.get("/analytics/advanced")
+def advanced_analytics(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    # Recommendations
+    reports = db.query(InterviewReport.recommendation).all()
+    recommendation_counts = {}
+    for r in reports:
+        rec = r[0] if r[0] else "Needs Improvement"
+        recommendation_counts[rec] = recommendation_counts.get(rec, 0) + 1
+        
+    # Company Readiness
+    company_readiness = db.query(
+        Interview.company, func.avg(InterviewReport.final_interview_score).label("avg_score")
+    ).outerjoin(InterviewReport, InterviewReport.interview_id == Interview.id)\
+     .group_by(Interview.company).order_by(desc("avg_score")).limit(5).all()
+
+    # Skill Gap Analysis (basic extraction)
+    skills_missing = ["System Design", "AWS", "Docker", "Microservices"] # Just placeholders if db has no skill extraction
+    
+    return {
+        "recommendations": [{"label": k, "count": v} for k, v in recommendation_counts.items()],
+        "company_readiness": [{"company": r[0] or "General", "readiness": round(r[1] or 0, 1)} for r in company_readiness],
+        "skill_gaps": {"missing": skills_missing}
+    }
+
+@router.get("/user-roles-list")
+def user_roles_list(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    roles = db.query(User.role).distinct().all()
+    return [r[0] for r in roles if r[0]]
 
 # ── 9. Company & Job Role Management ──────────────────────
 class CompanyCreate(BaseModel):

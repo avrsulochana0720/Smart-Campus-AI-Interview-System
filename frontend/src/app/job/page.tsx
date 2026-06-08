@@ -31,6 +31,7 @@ export default function JobPage() {
   const navigate = useNavigate();
   const [jobRole, setJobRole] = useState("");
   const [company, setCompany] = useState("");
+  const [interviewMode, setInterviewMode] = useState("Practice");
   const [customCompany, setCustomCompany] = useState(false);
   const [customJobRole, setCustomJobRole] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,10 +64,11 @@ export default function JobPage() {
     setIsLoading(true);
     try {
       const resumeId = localStorage.getItem("resume_id");
-      const result = await interviewAPI.create(jobRole, company, resumeId ? parseInt(resumeId) : undefined);
+      const result = await interviewAPI.create(jobRole, company, resumeId ? parseInt(resumeId) : undefined, interviewMode);
       localStorage.setItem("interview_id", String(result.interview_id));
       localStorage.setItem("job_role", jobRole);
       localStorage.setItem("company", company);
+      localStorage.setItem("interview_mode", interviewMode);
       navigate("/instructions");
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.response?.data?.message || "Interview creation failed. Please make sure you have uploaded a resume.";
@@ -251,6 +253,35 @@ export default function JobPage() {
             >
               {customCompany ? "Choose from list" : "Enter custom company"}
             </button>
+          </div>
+
+          {/* Interview Mode Selection */}
+          <div className={styles.formGroup} style={{ marginTop: '1rem' }}>
+            <label className={styles.formLabel}>Interview Mode</label>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: '#1E293B', fontWeight: 500 }}>
+                <input 
+                  type="radio" 
+                  name="interviewMode" 
+                  value="Practice" 
+                  checked={interviewMode === "Practice"} 
+                  onChange={(e) => setInterviewMode(e.target.value)}
+                  style={{ accentColor: '#DC2626', width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Practice Test
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: '#1E293B', fontWeight: 500 }}>
+                <input 
+                  type="radio" 
+                  name="interviewMode" 
+                  value="Real" 
+                  checked={interviewMode === "Real"} 
+                  onChange={(e) => setInterviewMode(e.target.value)}
+                  style={{ accentColor: '#DC2626', width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                Real Interview
+              </label>
+            </div>
           </div>
         </div>
 
