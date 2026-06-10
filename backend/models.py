@@ -320,3 +320,31 @@ class QuestionBank(Base):
     created_by = Column(Integer, ForeignKey('users.id'), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class Batch(Base):
+    __tablename__ = 'batches'
+    id = Column(Integer, primary_key=True, index=True)
+    batch_id = Column(String(50), nullable=False, unique=True)
+    name = Column(String(200), nullable=False)
+    students_count = Column(Integer, default=0)
+    interviews_done = Column(Integer, default=0)
+    avg_score = Column(Float, default=0.0)
+    status = Column(String(50), default='Active')  # Active, Completed
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Integration(Base):
+    __tablename__ = 'integrations'
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    desc = Column(Text, nullable=True)
+    icon = Column(String(500), nullable=True)
+    status = Column(String(50), default='Not Connected')  # Connected, Not Connected
+    color = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class SystemSettings(Base):
+    __tablename__ = 'system_settings'
+    id = Column(Integer, primary_key=True, index=True)
+    setting_key = Column(String(100), nullable=False, unique=True)
+    setting_value = Column(Text, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

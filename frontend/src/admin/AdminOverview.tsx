@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -6,52 +6,7 @@ import {
   BarChart, Bar, CartesianGrid
 } from 'recharts';
 import { Video, Users, BrainCircuit, Star, TrendingUp, Trophy, AlertTriangle, Clock, Plus, UserPlus, FileText, Settings, Activity, Server, Database, CheckCircle2, Calendar } from 'lucide-react';
-
-const sparklineData1 = [{ v: 30 }, { v: 45 }, { v: 35 }, { v: 50 }, { v: 40 }, { v: 60 }, { v: 55 }];
-const sparklineData2 = [{ v: 20 }, { v: 35 }, { v: 25 }, { v: 45 }, { v: 30 }, { v: 55 }, { v: 50 }];
-const sparklineData3 = [{ v: 40 }, { v: 30 }, { v: 50 }, { v: 35 }, { v: 55 }, { v: 45 }, { v: 60 }];
-const sparklineData4 = [{ v: 60 }, { v: 50 }, { v: 70 }, { v: 65 }, { v: 80 }, { v: 75 }, { v: 85 }];
-
-const areaData = [
-  { name: 'May 14', value: 80 }, { name: 'May 15', value: 120 },
-  { name: 'May 16', value: 100 }, { name: 'May 17', value: 186 },
-  { name: 'May 18', value: 140 }, { name: 'May 19', value: 130 },
-  { name: 'May 20', value: 170 }
-];
-
-const pieData = [
-  { name: 'Computer Science', value: 512, color: '#3B82F6', percent: '41%' },
-  { name: 'Information Tech', value: 256, color: '#8B5CF6', percent: '21%' },
-  { name: 'Electronics', value: 192, color: '#F59E0B', percent: '15%' },
-  { name: 'Mechanical', value: 128, color: '#10B981', percent: '10%' },
-  { name: 'Business Admin', value: 96, color: '#0EA5E9', percent: '8%' },
-  { name: 'Others', value: 64, color: '#64748B', percent: '5%' }
-];
-
-const upcomingInterviews = [
-  { name: 'Rahul Sharma', role: 'B.Tech CSE', time: 'Today, 10:00 AM', type: 'AI + Technical' },
-  { name: 'Priya Patel', role: 'MCA', time: 'Today, 11:30 AM', type: 'AI + HR' },
-  { name: 'Arjun Mehta', role: 'B.Tech IT', time: 'Today, 01:00 PM', type: 'AI + Technical' },
-  { name: 'Sneha Roy', role: 'BBA', time: 'Today, 02:30 PM', type: 'AI + HR' },
-  { name: 'Vikram Singh', role: 'B.Tech ECE', time: 'Today, 04:00 PM', type: 'AI + Technical' }
-];
-
-const radarData = [
-  { subject: 'Technical Knowledge', A: 80, B: 60, fullMark: 100 },
-  { subject: 'Problem Solving', A: 85, B: 65, fullMark: 100 },
-  { subject: 'Confidence', A: 70, B: 75, fullMark: 100 },
-  { subject: 'Attitude', A: 75, B: 70, fullMark: 100 },
-  { subject: 'Domain Knowledge', A: 90, B: 80, fullMark: 100 },
-  { subject: 'Communication', A: 85, B: 80, fullMark: 100 },
-];
-
-const barData = [
-  { name: '0-20', value: 5, fill: '#EF4444' },
-  { name: '21-40', value: 10, fill: '#F97316' },
-  { name: '41-60', value: 20, fill: '#F59E0B' },
-  { name: '61-80', value: 35, fill: '#10B981' },
-  { name: '81-100', value: 30, fill: '#14B8A6' }
-];
+import { adminAPI } from '../utils/api';
 
 const Card = ({ children, style = {} }: any) => (
   <div style={{ backgroundColor: '#111827', border: '1px solid #1E293B', borderRadius: '1rem', padding: '1.5rem', ...style }}>
@@ -59,7 +14,51 @@ const Card = ({ children, style = {} }: any) => (
   </div>
 );
 
-export default function AdminOverview() {
+export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminAPI.getDashboardStats().then(data => {
+      setStats(data);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return <div style={{ color: '#fff', padding: '2rem' }}>Loading dashboard...</div>;
+  }
+
+  // Map real pie data from company stats if available, otherwise fallback
+  const colors = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981', '#0EA5E9', '#64748B'];
+  const pieData = (stats?.role_stats?.length > 0 ? stats.role_stats : []).map((r: any, i: number) => ({
+    name: r.role,
+    value: r.count,
+    color: colors[i % colors.length],
+    percent: Math.round((r.count / Math.max(1, stats?.total_interviews || 1)) * 100) + '%'
+  }));
+
+  const upcomingInterviews = (stats?.upcoming_interviews || []).map((a: any) => ({
+    name: a.name,
+    role: a.role,
+    time: new Date(a.date).toLocaleString(),
+    type: a.status
+  }));
+
+  const getIcon = (name: string, color: string) => {
+    switch(name) {
+      case 'TrendingUp': return <TrendingUp size={18} color={color} style={{ marginTop: '2px' }} />;
+      case 'Trophy': return <Trophy size={18} color={color} style={{ marginTop: '2px' }} />;
+      case 'AlertTriangle': return <AlertTriangle size={18} color={color} style={{ marginTop: '2px' }} />;
+      case 'Clock': return <Clock size={18} color={color} style={{ marginTop: '2px' }} />;
+      case 'BrainCircuit': return <BrainCircuit size={18} color={color} style={{ marginTop: '2px' }} />;
+      default: return <AlertTriangle size={18} color={color} style={{ marginTop: '2px' }} />;
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#FFFFFF', paddingBottom: '2rem' }}>
       
@@ -82,28 +81,27 @@ export default function AdminOverview() {
             <div>
               <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Total Interviews</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>1,248</h2>
-                <span style={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>↑ 18.6%</span>
+                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.total_interviews || 0}</h2>
+                {stats?.interviews_growth !== undefined && (
+                  <span style={{ color: stats.interviews_growth >= 0 ? '#10B981' : '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                    {stats.interviews_growth >= 0 ? '↑' : '↓'} {Math.abs(stats.interviews_growth)}%
+                  </span>
+                )}
               </div>
-              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs May 13 - May 19</p>
+              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs last week</p>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: '#1E3A8A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Video size={20} color="#60A5FA" />
+            <div style={{ backgroundColor: 'rgba(30, 58, 138, 0.4)', border: '1px solid #1E3A8A', borderRadius: '0.5rem', padding: '0.4rem 0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.65rem', color: '#93C5FD', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Today</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#EFF6FF' }}>{stats?.interviews_today || 0}</span>
             </div>
           </div>
-          <div style={{ height: '50px', width: '100%', marginLeft: '-1.5rem', marginRight: '-1.5rem', marginBottom: '-1rem' }}>
-            <ResponsiveContainer width="115%" height="100%">
-              <AreaChart data={sparklineData1}>
-                <defs>
-                  <linearGradient id="colorSpark1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="v" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorSpark1)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <div style={{ height: '60px', marginTop: 'auto' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.sparkline1 || []}>
+                  <Area type="monotone" dataKey="v" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.2} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
         </Card>
 
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
@@ -111,28 +109,27 @@ export default function AdminOverview() {
             <div>
               <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Candidates</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>2,539</h2>
-                <span style={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>↑ 21.4%</span>
+                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.total_students || 0}</h2>
+                {stats?.students_growth !== undefined && (
+                  <span style={{ color: stats.students_growth >= 0 ? '#10B981' : '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                    {stats.students_growth >= 0 ? '↑' : '↓'} {Math.abs(stats.students_growth)}%
+                  </span>
+                )}
               </div>
-              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs May 13 - May 19</p>
+              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs last week</p>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: '#064E3B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={20} color="#34D399" />
+            <div style={{ backgroundColor: 'rgba(6, 78, 59, 0.4)', border: '1px solid #064E3B', borderRadius: '0.5rem', padding: '0.4rem 0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.65rem', color: '#6EE7B7', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Resumes</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ECFDF5' }}>{stats?.resume_upload_count || 0}</span>
             </div>
           </div>
-          <div style={{ height: '50px', width: '100%', marginLeft: '-1.5rem', marginRight: '-1.5rem', marginBottom: '-1rem' }}>
-            <ResponsiveContainer width="115%" height="100%">
-              <AreaChart data={sparklineData2}>
-                <defs>
-                  <linearGradient id="colorSpark2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="v" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#colorSpark2)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <div style={{ height: '60px', marginTop: 'auto' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.sparkline3 || []}>
+                  <Area type="monotone" dataKey="v" stroke="#10B981" fill="#10B981" fillOpacity={0.2} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
         </Card>
 
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
@@ -140,28 +137,27 @@ export default function AdminOverview() {
             <div>
               <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>AI Evaluations</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>1,186</h2>
-                <span style={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>↑ 20.7%</span>
+                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.completed_interviews || 0}</h2>
+                {stats?.completed_interviews_growth !== undefined && (
+                  <span style={{ color: stats.completed_interviews_growth >= 0 ? '#10B981' : '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                    {stats.completed_interviews_growth >= 0 ? '↑' : '↓'} {Math.abs(stats.completed_interviews_growth)}%
+                  </span>
+                )}
               </div>
-              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs May 13 - May 19</p>
+              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs last week</p>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: '#4C1D95', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <BrainCircuit size={20} color="#A78BFA" />
+            <div style={{ backgroundColor: 'rgba(76, 29, 149, 0.4)', border: '1px solid #4C1D95', borderRadius: '0.5rem', padding: '0.4rem 0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.65rem', color: '#C4B5FD', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Pending</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#F5F3FF' }}>{stats?.pending_interviews || 0}</span>
             </div>
           </div>
-          <div style={{ height: '50px', width: '100%', marginLeft: '-1.5rem', marginRight: '-1.5rem', marginBottom: '-1rem' }}>
-            <ResponsiveContainer width="115%" height="100%">
-              <AreaChart data={sparklineData3}>
-                <defs>
-                  <linearGradient id="colorSpark3" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="v" stroke="#8B5CF6" strokeWidth={2} fillOpacity={1} fill="url(#colorSpark3)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <div style={{ height: '60px', marginTop: 'auto' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.sparkline2 || []}>
+                  <Area type="monotone" dataKey="v" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.2} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
         </Card>
 
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
@@ -169,28 +165,33 @@ export default function AdminOverview() {
             <div>
               <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Avg. Score</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>76.8<span style={{ fontSize: '1rem', color: '#64748B' }}>/100</span></h2>
-                <span style={{ color: '#10B981', fontSize: '0.75rem', fontWeight: 600 }}>↑ 4.3%</span>
+                <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.avg_final_score || 0}<span style={{ fontSize: '1rem', color: '#64748B' }}>/100</span></h2>
+                {stats?.avg_score_growth !== undefined && (
+                  <span style={{ color: stats.avg_score_growth >= 0 ? '#10B981' : '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                    {stats.avg_score_growth >= 0 ? '↑' : '↓'} {Math.abs(stats.avg_score_growth)}%
+                  </span>
+                )}
               </div>
-              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs May 13 - May 19</p>
+              <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs last week</p>
             </div>
-            <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: '#78350F', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Star size={20} color="#FBBF24" />
+            <div style={{ backgroundColor: 'rgba(120, 53, 15, 0.4)', border: '1px solid #78350F', borderRadius: '0.5rem', padding: '0.35rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: '70px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
+                <span style={{ color: '#FCD34D', fontWeight: 600 }}>TECH</span>
+                <span style={{ color: '#FFF', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
+                <span style={{ color: '#FCD34D', fontWeight: 600 }}>HR</span>
+                <span style={{ color: '#FFF', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
+              </div>
             </div>
           </div>
-          <div style={{ height: '50px', width: '100%', marginLeft: '-1.5rem', marginRight: '-1.5rem', marginBottom: '-1rem' }}>
-            <ResponsiveContainer width="115%" height="100%">
-              <AreaChart data={sparklineData4}>
-                <defs>
-                  <linearGradient id="colorSpark4" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="v" stroke="#F59E0B" strokeWidth={2} fillOpacity={1} fill="url(#colorSpark4)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <div style={{ height: '60px', marginTop: 'auto' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.sparkline4 || []}>
+                  <Area type="monotone" dataKey="v" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.2} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
         </Card>
       </div>
 
@@ -206,14 +207,14 @@ export default function AdminOverview() {
             </div>
           </div>
           <div style={{ height: '240px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorArea" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={stats?.area_data || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1E293B" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dx={-10} />
@@ -221,7 +222,7 @@ export default function AdminOverview() {
                   contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem', color: '#FFF', fontSize: '0.8rem' }}
                   itemStyle={{ color: '#3B82F6' }}
                 />
-                <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorArea)" activeDot={{ r: 6, fill: '#3B82F6', stroke: '#111827', strokeWidth: 3 }} />
+                <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#3B82F6', stroke: '#111827', strokeWidth: 3 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -251,7 +252,7 @@ export default function AdminOverview() {
                 </PieChart>
               </ResponsiveContainer>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#FFF' }}>1,248</h4>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#FFF' }}>{stats?.total_interviews || 0}</h4>
                 <p style={{ margin: 0, fontSize: '0.65rem', color: '#64748B' }}>Total</p>
               </div>
             </div>
@@ -279,11 +280,11 @@ export default function AdminOverview() {
         <Card style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Upcoming Interviews</h3>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer' }}>View All</span>
+            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer' }} onClick={() => setActiveTab?.('Interviews')}>View All</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
-            {upcomingInterviews.map((u, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {(stats?.upcoming_interviews || []).map((u: any, i: number) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111827', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <img src={`https://ui-avatars.com/api/?name=${u.name.replace(' ', '+')}&background=random`} alt={u.name} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                   <div>
@@ -291,14 +292,20 @@ export default function AdminOverview() {
                     <p style={{ fontSize: '0.7rem', color: '#64748B', margin: 0 }}>{u.role}</p>
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
+                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
                   <p style={{ fontSize: '0.75rem', color: '#E2E8F0', margin: 0 }}>{u.time}</p>
-                  <p style={{ fontSize: '0.7rem', color: '#3B82F6', margin: 0, display: 'flex', alignItems: 'center', gap: '0.2rem', justifyContent: 'flex-end' }}>
-                    <BrainCircuit size={10} /> {u.type}
-                  </p>
+                  <button 
+                    onClick={() => setActiveTab?.('Interviews')} 
+                    style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '0.25rem', padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}
+                  >
+                    <BrainCircuit size={10} /> View {u.type}
+                  </button>
                 </div>
               </div>
             ))}
+            {(stats?.upcoming_interviews || []).length === 0 && (
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B', padding: '1rem', textAlign: 'center' }}>No pending interviews.</p>
+            )}
           </div>
           <div style={{ textAlign: 'right', marginTop: '1rem' }}>
             <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', fontWeight: 500 }}>View Calendar →</span>
@@ -320,14 +327,14 @@ export default function AdminOverview() {
               <div style={{ width: '12px', height: '2px', backgroundColor: '#64748B', borderStyle: 'dashed' }}></div> Last Week
             </div>
           </div>
-          <div style={{ height: '220px' }}>
+          <div style={{ height: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={stats?.radar_data || []}>
                 <PolarGrid stroke="#1E293B" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 10 }} />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 12 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="This Week" dataKey="A" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                <Radar name="Last Week" dataKey="B" stroke="#64748B" strokeDasharray="3 3" fill="transparent" />
+                <Radar name="Platform Average" dataKey="A" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.5} />
+                <RechartsTooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#1E293B', borderRadius: '0.5rem', color: '#fff' }} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -341,17 +348,19 @@ export default function AdminOverview() {
               Score Range <span>˅</span>
             </div>
           </div>
-          <div style={{ height: '240px' }}>
+          <div style={{ height: '250px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} margin={{ top: 20, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1E293B" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10 }} tickFormatter={(val) => `${val}%`} dx={-10} />
-                <RechartsTooltip cursor={{ fill: '#1E293B', opacity: 0.4 }} contentStyle={{ backgroundColor: '#111827', border: '1px solid #1E293B', color: '#FFF' }} />
+              <BarChart data={stats?.bar_data || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+                <XAxis dataKey="name" stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
+                <RechartsTooltip cursor={{fill: '#1E293B'}} contentStyle={{ backgroundColor: '#111827', borderColor: '#1E293B', borderRadius: '0.5rem', color: '#fff' }} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                  {barData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
+                  {
+                    (stats?.bar_data || []).map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))
+                  }
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -365,22 +374,12 @@ export default function AdminOverview() {
             <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.25rem' }}>View All</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <TrendingUp size={18} color="#10B981" style={{ marginTop: '2px' }} />
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.5 }}>Communication skills are improving by 12% compared to last week.</p>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <Trophy size={18} color="#F59E0B" style={{ marginTop: '2px' }} />
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.5 }}>Problem solving scores are the highest among all evaluation metrics.</p>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <AlertTriangle size={18} color="#F97316" style={{ marginTop: '2px' }} />
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.5 }}>32% of candidates need improvement in domain knowledge.</p>
-            </div>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <Clock size={18} color="#3B82F6" style={{ marginTop: '2px' }} />
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.5 }}>Peak interview time is between 10 AM - 2 PM.</p>
-            </div>
+            {(stats?.ai_insights || []).map((insight: any, i: number) => (
+              <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                {getIcon(insight.icon, insight.color)}
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.5 }}>{insight.text}</p>
+              </div>
+            ))}
           </div>
         </Card>
       </div>
@@ -392,19 +391,19 @@ export default function AdminOverview() {
         <Card>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Quick Actions</h3>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Interviews')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
               <Plus size={14} /> Schedule Interview
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Candidates')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
               <UserPlus size={14} /> Add Candidate
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Reports')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
               <FileText size={14} /> Generate Report
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('AI Evaluations')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
               <BrainCircuit size={14} /> AI Evaluation Rules
             </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Settings')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
               <Settings size={14} /> System Settings
             </button>
           </div>
@@ -414,18 +413,16 @@ export default function AdminOverview() {
         <Card>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 1rem 0' }}>System Status</h3>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8' }}><BrainCircuit size={14} /> AI Service</div>
-              <div style={{ color: '#10B981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }}></div> Operational</div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8' }}><Video size={14} /> Video Service</div>
-              <div style={{ color: '#10B981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }}></div> Operational</div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8' }}><Database size={14} /> Database</div>
-              <div style={{ color: '#10B981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }}></div> Operational</div>
-            </div>
+            {(stats?.system_status || []).map((sys: any, i: number) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8' }}><Server size={14} /> {sys.name}</div>
+                <div style={{ color: sys.color, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: sys.color }}></div> 
+                  <span style={{ fontWeight: 600 }}>{sys.status}</span>
+                </div>
+                {sys.metric && <div style={{ color: '#64748B', fontSize: '0.65rem' }}>{sys.metric}</div>}
+              </div>
+            ))}
           </div>
         </Card>
 
@@ -433,16 +430,23 @@ export default function AdminOverview() {
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Recent Activity</h3>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.25rem' }}>View All</span>
+            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.25rem' }} onClick={() => setActiveTab?.('Audit Logs')}>View All</span>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '0.4rem', borderRadius: '50%' }}>
-              <CheckCircle2 size={16} color="#10B981" />
-            </div>
-            <div>
-              <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.8rem', color: '#CBD5E1' }}>AI evaluation completed for Rahul Sharma</p>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748B' }}>2 min ago</p>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, overflowY: 'auto' }}>
+            {(stats?.recent_activity?.slice(0, 3) || []).map((activity: any, i: number) => (
+              <div key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <div style={{ backgroundColor: activity.status === 'completed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)', padding: '0.4rem', borderRadius: '50%' }}>
+                  <CheckCircle2 size={16} color={activity.status === 'completed' ? '#10B981' : '#3B82F6'} />
+                </div>
+                <div>
+                  <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.8rem', color: '#CBD5E1' }}>Interview {activity.status} for {activity.name}</p>
+                  <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748B' }}>{new Date(activity.date).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+            {(!stats?.recent_activity || stats.recent_activity.length === 0) && (
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748B' }}>No recent activity.</p>
+            )}
           </div>
         </Card>
       </div>

@@ -36,6 +36,7 @@ export default function CandidateDashboard() {
 
   const totalInterviews = history.length;
   const overallAvg = history.length > 0 ? Math.round(history.reduce((acc, curr) => acc + ((curr.average_score || 0) * 10), 0) / history.length) : 0;
+  const upcomingCount = history.filter((item: any) => item.status === 'in_progress').length;
 
   return (
     <div className="candidate-dashboard">
@@ -105,7 +106,7 @@ export default function CandidateDashboard() {
             <div className="cd-stat-icon amber">
               <Calendar />
             </div>
-            <div className="cd-stat-value">0</div>
+            <div className="cd-stat-value">{upcomingCount}</div>
             <div className="cd-stat-label">Upcoming Scheduled</div>
           </div>
         </div>

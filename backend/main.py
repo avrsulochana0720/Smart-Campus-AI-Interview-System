@@ -1530,6 +1530,7 @@ def get_interview_history(
             "job_role": interview.job_role,
             "company": interview.company,
             "mode": interview.mode,
+            "status": interview.status,
             "date": str(interview.created_at),
             "qa_list": qa_list,
             "total_score": total_score,

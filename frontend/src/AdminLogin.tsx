@@ -18,7 +18,7 @@ const AdminLogin: React.FC = () => {
       const response = await fetch('http://localhost:8000/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: email.trim(), password: password.trim() })
       });
 
       const data = await response.json();

@@ -21,7 +21,13 @@ api.interceptors.request.use(
         return config;
       }
 
-      const token = localStorage.getItem('token');
+      let token;
+      if (config.url?.startsWith('/admin')) {
+        token = localStorage.getItem('adminToken');
+      } else {
+        token = localStorage.getItem('token');
+      }
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -39,9 +45,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid, clear token
-      localStorage.removeItem('token');
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      if (error.config?.url?.startsWith('/admin')) {
+        localStorage.removeItem('adminToken');
+        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin') {
+            window.location.href = '/admin';
+        }
+      } else {
+        localStorage.removeItem('token');
+      }
     }
     return Promise.reject(error);
   }
@@ -320,4 +332,87 @@ export const interviewAPI = {
     startPollingQuestions(interviewId);
     return response.data;
   },
+};
+
+export const adminAPI = {
+  getDashboardStats: async () => {
+    const res = await api.get('/admin/dashboard-stats');
+    return res.data;
+  },
+  getInterviews: async (params?: any) => {
+    const res = await api.get('/admin/interviews', { params });
+    return res.data;
+  },
+  cancelInterview: async (id: number) => {
+    const res = await api.post(`/admin/interviews/${id}/cancel`);
+    return res.data;
+  },
+  rescheduleInterview: async (id: number, new_time: string) => {
+    const res = await api.post(`/admin/interviews/${id}/reschedule`, { new_time });
+    return res.data;
+  },
+  getInterviewReport: async (id: number) => {
+    const res = await api.get(`/admin/interviews/${id}/report`);
+    return res.data;
+  },
+  getStudents: async (params?: any) => {
+    const res = await api.get('/admin/students', { params });
+    return res.data;
+  },
+  getReports: async (params?: any) => {
+    const res = await api.get('/admin/reports', { params });
+    return res.data;
+  },
+  getAnalytics: async (type: string) => {
+    const res = await api.get(`/admin/analytics/${type}`);
+    return res.data;
+  },
+  getUsers: async () => {
+    const res = await api.get('/admin/users');
+    return res.data;
+  },
+  getDepartments: async () => {
+    const res = await api.get('/admin/departments');
+    return res.data;
+  },
+  getCourses: async () => {
+    const res = await api.get('/admin/courses');
+    return res.data;
+  },
+  getBatches: async () => {
+    const res = await api.get('/admin/batches');
+    return res.data;
+  },
+  getAIEvaluations: async () => {
+    const res = await api.get('/admin/ai-evaluations');
+    return res.data;
+  },
+  getFeedbackInsights: async () => {
+    const res = await api.get('/admin/feedback');
+    return res.data;
+  },
+  getSkillInsights: async () => {
+    const res = await api.get('/admin/skill-insights');
+    return res.data;
+  },
+  getIntegrations: async () => {
+    const res = await api.get('/admin/integrations');
+    return res.data;
+  },
+  getAuditLogs: async () => {
+    const res = await api.get('/admin/audit-logs');
+    return res.data;
+  },
+  getSystemMonitoring: async () => {
+    const res = await api.get('/admin/system-monitoring');
+    return res.data;
+  },
+  getSettings: async () => {
+    const res = await api.get('/admin/settings');
+    return res.data;
+  },
+  updateSettings: async (settings: Record<string, any>) => {
+    const res = await api.post('/admin/settings', { settings });
+    return res.data;
+  }
 };
