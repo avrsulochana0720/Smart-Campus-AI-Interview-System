@@ -27,25 +27,25 @@ export default function AnalyticsPage() {
     });
   }, []);
 
-  if (loading) return <div style={{ color: '#fff', padding: '2rem' }}>Loading analytics...</div>;
+    if (loading) return <div style={{ color: '#0F172A', padding: '2rem', fontWeight: 800 }}>Loading analytics...</div>;
 
   return (
     <div style={{ paddingBottom: '2rem' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0F172A', margin: 0 }}>Analytics Overview</h2>
-          <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Deep dive into AI evaluation metrics, hiring velocity, and skill gaps.</p>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Analytics Overview</h2>
+          <p style={{ fontSize: '0.85rem', color: '#1E293B', margin: '0.25rem 0 0 0' }}>Deep dive into AI evaluation metrics, hiring velocity, and skill gaps.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', position: 'relative' }}>
-          <button onClick={() => setTimeRangeOpen(!timeRangeOpen)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#334155', color: '#0F172A', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer' }}>
-            <Calendar size={16} />
+          <button onClick={() => setTimeRangeOpen(!timeRangeOpen)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer' }}>
+            <Calendar size={16} color="#E11D48" />
             {timeRange}
           </button>
           {timeRangeOpen && (
-            <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', backgroundColor: '#334155', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '150px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
+            <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', backgroundColor: '#FAF6EE', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '150px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)' }}>
               {['Last 30 Days', 'Last 6 Months', 'Last Year', 'All Time'].map(range => (
-                <div key={range} onClick={() => { setTimeRange(range); setTimeRangeOpen(false); showToast(`Data filtered by ${range}`, 'success'); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#334155', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <div key={range} onClick={() => { setTimeRange(range); setTimeRangeOpen(false); showToast(`Data filtered by ${range}`, 'success'); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', fontWeight: 800, cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                   {range}
                 </div>
               ))}
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
             a.setAttribute('download', `Analytics_Report_${timeRange.replace(/ /g, '_')}.csv`);
             a.click();
             showToast('Detailed Report exported successfully!', 'success');
-          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
+          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Download size={16} />
             Export Report
           </button>
@@ -74,19 +74,19 @@ export default function AnalyticsPage() {
           { title: 'Total Interviews', value: stats?.total_interviews || '0', trend: '+18.6%', icon: Calendar, color: '#10B981' },
           { title: 'Total Candidates', value: stats?.total_students || '0', trend: '+21.4%', icon: TrendingUp, color: '#8B5CF6' }
         ].map((stat, i) => (
-          <div key={i} style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #334155' }}>
+          <div key={i} style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '2px solid #0F172A' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
               <div>
-                <p style={{ color: '#64748B', fontSize: '0.85rem', margin: '0 0 0.5rem 0' }}>{stat.title}</p>
-                <h3 style={{ color: '#0F172A', fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stat.value}</h3>
+                <p style={{ color: '#1E293B', fontSize: '0.85rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{stat.title}</p>
+                <h3 style={{ color: '#0F172A', fontSize: '2rem', fontWeight: 800, margin: 0 }}>{stat.value}</h3>
               </div>
-              <div style={{ padding: '0.75rem', backgroundColor: `${stat.color}15`, borderRadius: '0.75rem' }}>
+              <div style={{ padding: '0.75rem', backgroundColor: `${stat.color}15`, borderRadius: '0.75rem', border: '2px solid #0F172A' }}>
                 <stat.icon size={24} color={stat.color} />
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-              <span style={{ color: stat.trend.startsWith('+') ? '#22C55E' : '#22C55E', fontWeight: 600 }}>{stat.trend}</span>
-              <span style={{ color: '#64748B' }}>vs previous period</span>
+              <span style={{ color: stat.trend.startsWith('+') ? '#22C55E' : '#22C55E', fontWeight: 800 }}>{stat.trend}</span>
+              <span style={{ color: '#1E293B', fontWeight: 700 }}>vs previous period</span>
             </div>
           </div>
         ))}
@@ -95,8 +95,8 @@ export default function AnalyticsPage() {
       {/* Charts Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
         {/* Performance Trend */}
-        <div style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #334155' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#0F172A', margin: '0 0 1.5rem 0' }}>Candidate Performance Trends</h3>
+        <div style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '2px solid #0F172A' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: '0 0 1.5rem 0' }}>Candidate Performance Trends</h3>
           <div style={{ height: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.performance_data || []}>
@@ -110,10 +110,10 @@ export default function AnalyticsPage() {
                     <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
+                <XAxis dataKey="name" stroke="#0F172A" fontSize={12} tickLine={false} axisLine={false} style={{ fontWeight: 700 }} />
+                <YAxis stroke="#0F172A" fontSize={12} tickLine={false} axisLine={false} style={{ fontWeight: 700 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                <Tooltip contentStyle={{ backgroundColor: '#FAF6EE', borderColor: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', color: '#0F172A', fontWeight: 800 }} />
                 <Legend />
                 <Area type="monotone" dataKey="tech" name="Tech Scores" stroke="#E11D48" strokeWidth={3} fillOpacity={1} fill="url(#colorTech)" />
                 <Area type="monotone" dataKey="hr" name="HR Scores" stroke="#8B5CF6" strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" />
@@ -123,8 +123,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Skill Gaps */}
-        <div style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #334155' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#0F172A', margin: '0 0 1.5rem 0' }}>Sought-After Skills</h3>
+        <div style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '2px solid #0F172A' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: '0 0 1.5rem 0' }}>Sought-After Skills</h3>
           <div style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -142,7 +142,7 @@ export default function AnalyticsPage() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
+                <Tooltip contentStyle={{ backgroundColor: '#FAF6EE', borderColor: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', color: '#0F172A', fontWeight: 800 }} />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />
               </PieChart>
             </ResponsiveContainer>
@@ -151,16 +151,16 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Bar Chart */}
-      <div style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #334155' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#0F172A', margin: '0 0 1.5rem 0' }}>Hiring Pipeline by Department</h3>
+      <div style={{ backgroundColor: '#FAF6EE', padding: '1.5rem', borderRadius: '1rem', border: '2px solid #0F172A' }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: '0 0 1.5rem 0' }}>Hiring Pipeline by Department</h3>
         <div style={{ height: '300px' }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={stats?.department_hiring || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-              <XAxis dataKey="name" stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="left" orientation="left" stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="right" orientation="right" stroke="#10B981" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{fill: '#334155'}} contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+              <XAxis dataKey="name" stroke="#0F172A" fontSize={12} tickLine={false} axisLine={false} style={{ fontWeight: 700 }} />
+              <YAxis yAxisId="left" orientation="left" stroke="#0F172A" fontSize={12} tickLine={false} axisLine={false} style={{ fontWeight: 700 }} />
+              <YAxis yAxisId="right" orientation="right" stroke="#10B981" fontSize={12} tickLine={false} axisLine={false} style={{ fontWeight: 700 }} />
+              <Tooltip cursor={{fill: 'rgba(225, 29, 72, 0.05)'}} contentStyle={{ backgroundColor: '#FAF6EE', borderColor: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', color: '#0F172A', fontWeight: 800 }} />
               <Legend />
               <Bar yAxisId="left" dataKey="applied" name="Total Applications" fill="#E11D48" radius={[4, 4, 0, 0]} maxBarSize={50} />
               <Bar yAxisId="right" dataKey="hired" name="Candidates Hired" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={50} />
