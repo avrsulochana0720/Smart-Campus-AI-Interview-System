@@ -100,11 +100,11 @@ export default function CandidatesPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Candidates</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0F172A', margin: 0 }}>Candidates</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage applicant pipeline, view AI evaluation scores, and track hiring status.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#1E293B', color: '#FFFFFF', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer' }}>
+          <button onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#334155', color: '#0F172A', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer' }}>
             <Download size={16} />
             Export CSV
           </button>
@@ -119,7 +119,7 @@ export default function CandidatesPage() {
       </div>
 
       {/* Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', backgroundColor: '#0D1322', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #1E293B' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', backgroundColor: '#FAF6EE', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
         <div style={{ position: 'relative', width: '350px' }}>
           <Search size={16} color="#64748B" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input 
@@ -127,19 +127,19 @@ export default function CandidatesPage() {
             placeholder="Search name, email, or phone..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#111827', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#FFFFFF', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: departmentFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: departmentFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Building2 size={16} />
             Dept: {departmentFilter}
           </button>
-          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: scoreFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: scoreFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <BarChart size={16} />
             Score: {scoreFilter}
           </button>
-          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: statusFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: statusFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Filter size={16} />
             Status: {statusFilter}
           </button>
@@ -147,9 +147,9 @@ export default function CandidatesPage() {
       </div>
 
       {/* Data Grid */}
-      <div style={{ backgroundColor: '#0D1322', borderRadius: '0.75rem', border: '1px solid #1E293B', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: '#111827', borderBottom: '1px solid #1E293B' }}>
+          <thead style={{ backgroundColor: '#0F172A', borderBottom: '1px solid #334155' }}>
             <tr>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Candidate Info</th>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Applied Role</th>
@@ -162,14 +162,14 @@ export default function CandidatesPage() {
             {loading ? (
               <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>Loading candidates...</td></tr>
             ) : filteredCandidates.map((candidate, idx) => (
-              <tr key={idx} style={{ borderBottom: idx === filteredCandidates.length - 1 ? 'none' : '1px solid #1E293B', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#111827'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+              <tr key={idx} style={{ borderBottom: idx === filteredCandidates.length - 1 ? 'none' : '1px solid #334155', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0F172A'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <td style={{ padding: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#1E293B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '1rem', fontWeight: 600, flexShrink: 0 }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: '1rem', fontWeight: 600, flexShrink: 0 }}>
                       <User size={20} />
                     </div>
                     <div>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 500, color: '#FFFFFF', marginBottom: '0.2rem' }}>{candidate.name}</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 500, color: '#0F172A', marginBottom: '0.2rem' }}>{candidate.name}</div>
                       <div style={{ fontSize: '0.75rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Mail size={10} /> {candidate.email}</span>
                       </div>
@@ -177,7 +177,7 @@ export default function CandidatesPage() {
                   </div>
                 </td>
                 <td style={{ padding: '1rem' }}>
-                  <div style={{ fontSize: '0.9rem', color: '#E2E8F0', marginBottom: '0.2rem' }}>{candidate.job_role !== 'N/A' ? candidate.job_role : 'General Application'}</div>
+                  <div style={{ fontSize: '0.9rem', color: '#334155', marginBottom: '0.2rem' }}>{candidate.job_role !== 'N/A' ? candidate.job_role : 'General Application'}</div>
                   <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{candidate.department || 'Unassigned'}</div>
                 </td>
                 <td style={{ padding: '1rem' }}>
@@ -185,7 +185,7 @@ export default function CandidatesPage() {
                     <div style={{ fontSize: '1rem', fontWeight: 600, color: getScoreColor(candidate.overall_score || 0) }}>
                       {candidate.overall_score !== null ? Math.round(candidate.overall_score) : '-'}
                     </div>
-                    <div style={{ width: '80px', height: '6px', backgroundColor: '#1E293B', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: '80px', height: '6px', backgroundColor: '#334155', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{ width: `${candidate.overall_score || 0}%`, height: '100%', backgroundColor: getScoreColor(candidate.overall_score || 0), borderRadius: '3px' }}></div>
                     </div>
                   </div>
@@ -201,14 +201,14 @@ export default function CandidatesPage() {
                     <MoreHorizontal size={18} />
                   </button>
                   {activeMenuId === candidate.id && (
-                    <div style={{ position: 'absolute', right: '2rem', top: '2.5rem', backgroundColor: '#1E293B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
-                      <div onClick={() => { showToast('Profile marked as priority.', 'success'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#E2E8F0', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <div style={{ position: 'absolute', right: '2rem', top: '2.5rem', backgroundColor: '#334155', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
+                      <div onClick={() => { showToast('Profile marked as priority.', 'success'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#334155', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Mark Priority
                       </div>
-                      <div onClick={() => { showToast('Email sent to candidate.', 'info'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#E2E8F0', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <div onClick={() => { showToast('Email sent to candidate.', 'info'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#334155', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Send Email
                       </div>
-                      <div onClick={() => { showToast('Candidate rejected and removed.', 'warning'); setActiveMenuId(null); setCandidates(candidates.filter(c => c.id !== candidate.id)); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <div onClick={() => { showToast('Candidate rejected and removed.', 'warning'); setActiveMenuId(null); setCandidates(candidates.filter(c => c.id !== candidate.id)); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Reject Candidate
                       </div>
                     </div>
@@ -223,37 +223,37 @@ export default function CandidatesPage() {
       {/* Profile Modal */}
       {selectedCandidate && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ backgroundColor: '#0D1322', padding: '2rem', borderRadius: '0.75rem', border: '1px solid #1E293B', width: '500px', maxWidth: '90%' }}>
+          <div style={{ backgroundColor: '#FAF6EE', padding: '2rem', borderRadius: '0.75rem', border: '1px solid #334155', width: '500px', maxWidth: '90%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', color: '#FFF', margin: 0 }}>Advanced Candidate Profile</h2>
-              <button onClick={() => setSelectedCandidate(null)} style={{ background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>Close</button>
+              <h2 style={{ fontSize: '1.25rem', color: '#0F172A', margin: 0 }}>Advanced Candidate Profile</h2>
+              <button onClick={() => setSelectedCandidate(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}>Close</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', color: '#E2E8F0', fontSize: '0.9rem' }}>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', color: '#334155', fontSize: '0.9rem' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Full Name</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.name}</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Candidate ID</div>
                   <div style={{ fontWeight: 600 }}>#{selectedCandidate.id}</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B', gridColumn: '1 / -1' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155', gridColumn: '1 / -1' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Email Address</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.email}</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Applied Role</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.job_role || 'General'}</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Department</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.department || 'Unassigned'}</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>AI Status</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.interview_status}</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Overall Score</div>
                   <div style={{ fontWeight: 600, color: getScoreColor(selectedCandidate.overall_score || 0) }}>
                       {selectedCandidate.overall_score || 'Pending'}

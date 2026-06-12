@@ -13,19 +13,19 @@ export default function PlaceholderPage({ title }: PlaceholderPageProps) {
     <div style={{ paddingBottom: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>{title}</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0F172A', margin: 0 }}>{title}</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage and configure your {title.toLowerCase()} settings and data.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button onClick={() => showToast('This feature is coming soon.', 'info')} style={{ 
             display: 'flex', alignItems: 'center', gap: '0.5rem', 
-            backgroundColor: '#1E293B', color: '#FFFFFF', 
-            border: '1px solid #334155', borderRadius: '0.5rem', 
+            backgroundColor: '#334155', color: '#0F172A', 
+            border: '1px solid #475569', borderRadius: '0.5rem', 
             padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
             transition: 'all 0.2s'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1E293B'}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#334155'}
           >
             <Filter size={16} />
             Filters
@@ -48,7 +48,7 @@ export default function PlaceholderPage({ title }: PlaceholderPageProps) {
       </div>
 
       <div style={{ 
-        backgroundColor: '#0D1322', border: '1px dashed #1E293B', borderRadius: '1rem', 
+        backgroundColor: '#FAF6EE', border: '1px dashed #334155', borderRadius: '1rem', 
         height: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         padding: '2rem', textAlign: 'center'
       }}>
@@ -58,18 +58,18 @@ export default function PlaceholderPage({ title }: PlaceholderPageProps) {
         }}>
           <Search size={32} color="#E11D48" />
         </div>
-        <h3 style={{ fontSize: '1.2rem', color: '#FFFFFF', fontWeight: 600, margin: '0 0 0.5rem 0' }}>No Data Available Yet</h3>
+        <h3 style={{ fontSize: '1.2rem', color: '#0F172A', fontWeight: 600, margin: '0 0 0.5rem 0' }}>No Data Available Yet</h3>
         <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '400px', margin: '0 0 2rem 0', lineHeight: 1.5 }}>
           The {title} module is currently empty or being initialized. Check back later or start adding new records to see them appear here.
         </p>
         <button onClick={() => showToast('This feature is coming soon.', 'info')} style={{ 
-            backgroundColor: '#1E293B', color: '#FFFFFF', 
-            border: '1px solid #334155', borderRadius: '0.5rem', 
+            backgroundColor: '#334155', color: '#0F172A', 
+            border: '1px solid #475569', borderRadius: '0.5rem', 
             padding: '0.5rem 1.5rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
             transition: 'all 0.2s'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1E293B'}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#334155'}
         >
           Initialize Module
         </button>

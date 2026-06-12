@@ -75,15 +75,15 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: darkMode ? '#0A0F1C' : '#F1F5F9', color: darkMode ? '#FFFFFF' : '#0F172A', fontFamily: 'Inter, system-ui, sans-serif', transition: 'all 0.3s' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: darkMode ? '#FAF6EE' : '#F1F5F9', color: darkMode ? '#0F172A' : '#0F172A', fontFamily: 'Inter, system-ui, sans-serif', transition: 'all 0.3s' }}>
       
       {/* SIDEBAR */}
-      <aside style={{ width: sidebarCollapsed ? '80px' : '280px', backgroundColor: darkMode ? '#0D1322' : '#FFFFFF', borderRight: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0, transition: 'width 0.3s' }}>
+      <aside style={{ width: sidebarCollapsed ? '80px' : '280px', backgroundColor: darkMode ? '#FAF6EE' : '#0F172A', borderRight: `1px solid ${darkMode ? '#334155' : '#334155'}`, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0, transition: 'width 0.3s' }}>
         <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #BE123C 0%, #E11D48 100%)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0, color: '#FFF' }}>AI</div>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #BE123C 0%, #E11D48 100%)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0, color: '#FFFFFF' }}>AI</div>
           {!sidebarCollapsed && (
             <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              <h1 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, letterSpacing: '0.02em', color: darkMode ? '#FFF' : '#0F172A' }}>Smart Campus</h1>
+              <h1 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, letterSpacing: '0.02em', color: darkMode ? '#0F172A' : '#0F172A' }}>Smart Campus</h1>
               <p style={{ fontSize: '0.75rem', color: '#64748B', margin: 0 }}>AI Interview System</p>
             </div>
           )}
@@ -94,9 +94,9 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
             onClick={() => onTabChange && onTabChange('Dashboard')}
             style={{ 
               display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', 
-              backgroundColor: activeTab === 'Dashboard' ? '#1E293B' : 'transparent', 
+              backgroundColor: activeTab === 'Dashboard' ? '#334155' : 'transparent', 
               borderRadius: '0.5rem', cursor: 'pointer', marginBottom: '1.5rem',
-              color: activeTab === 'Dashboard' ? '#E11D48' : '#94A3B8', fontWeight: 500, fontSize: '0.9rem',
+              color: activeTab === 'Dashboard' ? '#E11D48' : '#64748B', fontWeight: 500, fontSize: '0.9rem',
               transition: 'all 0.2s'
             }}
           >
@@ -119,12 +119,12 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
                     style={{ 
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                       padding: '0.6rem 0.5rem', borderRadius: '0.5rem', cursor: 'pointer',
-                      color: item.active ? '#FFFFFF' : '#94A3B8',
+                      color: item.active ? '#0F172A' : '#64748B',
                       backgroundColor: item.active ? 'rgba(255,255,255,0.05)' : 'transparent',
                       fontSize: '0.85rem', fontWeight: 500, transition: 'all 0.2s'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = item.active ? '#FFFFFF' : '#94A3B8'; e.currentTarget.style.backgroundColor = item.active ? 'rgba(255,255,255,0.05)' : 'transparent'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = item.active ? '#0F172A' : '#64748B'; e.currentTarget.style.backgroundColor = item.active ? 'rgba(255,255,255,0.05)' : 'transparent'; }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
                       <item.icon size={16} strokeWidth={2} />
@@ -143,11 +143,11 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
         {/* Bottom Card */}
         {!sidebarCollapsed && (
           <div style={{ padding: '1rem' }}>
-            <div style={{ background: darkMode ? '#111827' : '#F8FAFC', borderRadius: '0.75rem', overflow: 'hidden', border: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}` }}>
+            <div style={{ background: darkMode ? '#0F172A' : '#F8FAFC', borderRadius: '0.75rem', overflow: 'hidden', border: `1px solid ${darkMode ? '#334155' : '#334155'}` }}>
               <div style={{ height: '80px', background: 'url(https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&q=80) center/cover' }}></div>
               <div style={{ padding: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: darkMode ? '#FFFFFF' : '#0F172A', margin: 0 }}>Greenfield University</h4>
+                  <h4 style={{ fontSize: '0.8rem', fontWeight: 600, color: darkMode ? '#0F172A' : '#0F172A', margin: 0 }}>Greenfield University</h4>
                   <p style={{ fontSize: '0.7rem', color: '#64748B', margin: 0 }}>Spring Semester 2024</p>
                 </div>
                 <span style={{ color: '#64748B' }}>˅</span>
@@ -161,9 +161,9 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         
         {/* TOPBAR */}
-        <header style={{ height: '72px', borderBottom: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', flexShrink: 0, backgroundColor: darkMode ? '#0D1322' : '#FFFFFF', transition: 'background-color 0.3s' }}>
+        <header style={{ height: '72px', borderBottom: `1px solid ${darkMode ? '#334155' : '#334155'}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2rem', flexShrink: 0, backgroundColor: darkMode ? '#FAF6EE' : '#0F172A', transition: 'background-color 0.3s' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <Menu size={20} color="#94A3B8" style={{ cursor: 'pointer' }} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
+            <Menu size={20} color="#64748B" style={{ cursor: 'pointer' }} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
@@ -177,16 +177,16 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
                 onFocus={() => { if (searchQuery.length > 0) setShowSearchDrop(true); }}
                 onBlur={() => setTimeout(() => setShowSearchDrop(false), 200)}
                 style={{ 
-                  width: '100%', backgroundColor: darkMode ? '#111827' : '#F1F5F9', border: `1px solid ${darkMode ? '#1E293B' : '#CBD5E1'}`, 
+                  width: '100%', backgroundColor: darkMode ? '#0F172A' : '#F1F5F9', border: `1px solid ${darkMode ? '#334155' : '#475569'}`, 
                   borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.5rem', 
-                  color: darkMode ? '#FFFFFF' : '#0F172A', fontSize: '0.85rem', outline: 'none'
+                  color: darkMode ? '#0F172A' : '#0F172A', fontSize: '0.85rem', outline: 'none'
                 }} 
               />
               {showSearchDrop && (
-                <div style={{ position: 'absolute', top: '120%', left: 0, right: 0, backgroundColor: darkMode ? '#111827' : '#FFFFFF', border: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)', zIndex: 50, maxHeight: '300px', overflowY: 'auto' }}>
+                <div style={{ position: 'absolute', top: '120%', left: 0, right: 0, backgroundColor: darkMode ? '#0F172A' : '#0F172A', border: `1px solid ${darkMode ? '#334155' : '#334155'}`, borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)', zIndex: 50, maxHeight: '300px', overflowY: 'auto' }}>
                   {users.filter(u => u.name?.toLowerCase().includes(searchQuery.toLowerCase()) || u.email?.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5).map(u => (
-                    <div key={u.id} style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${darkMode ? '#1E293B' : '#F1F5F9'}`, display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => { onTabChange && onTabChange('Users & Roles'); setSearchQuery(''); }}>
-                      <span style={{ fontSize: '0.85rem', color: darkMode ? '#E2E8F0' : '#0F172A' }}>{u.name}</span>
+                    <div key={u.id} style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${darkMode ? '#334155' : '#F1F5F9'}`, display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }} onClick={() => { onTabChange && onTabChange('Users & Roles'); setSearchQuery(''); }}>
+                      <span style={{ fontSize: '0.85rem', color: darkMode ? '#334155' : '#0F172A' }}>{u.name}</span>
                       <span style={{ fontSize: '0.7rem', color: '#64748B' }}>{u.role}</span>
                     </div>
                   ))}
@@ -197,16 +197,16 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#94A3B8' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#64748B' }}>
               <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => { setShowNotifDrop(!showNotifDrop); setShowCalendarDrop(false); setShowProfileDrop(false); }}>
                 <Bell size={20} />
-                {alerts.length > 0 && <div style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#EF4444', color: '#FFF', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${darkMode ? '#0D1322' : '#FFF'}` }}>{alerts.length}</div>}
+                {alerts.length > 0 && <div style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: '#EF4444', color: '#0F172A', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${darkMode ? '#FAF6EE' : '#0F172A'}` }}>{alerts.length}</div>}
                 
                 {showNotifDrop && (
-                  <div style={{ position: 'absolute', top: '150%', right: '-10px', width: '300px', backgroundColor: darkMode ? '#111827' : '#FFFFFF', border: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, borderRadius: '0.5rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', zIndex: 50, padding: '1rem', cursor: 'default' }} onClick={e => e.stopPropagation()}>
-                    <h4 style={{ margin: '0 0 1rem 0', color: darkMode ? '#FFF' : '#0F172A', fontSize: '0.9rem' }}>System Alerts</h4>
+                  <div style={{ position: 'absolute', top: '150%', right: '-10px', width: '300px', backgroundColor: darkMode ? '#0F172A' : '#0F172A', border: `1px solid ${darkMode ? '#334155' : '#334155'}`, borderRadius: '0.5rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', zIndex: 50, padding: '1rem', cursor: 'default' }} onClick={e => e.stopPropagation()}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: darkMode ? '#0F172A' : '#0F172A', fontSize: '0.9rem' }}>System Alerts</h4>
                     {alerts.length > 0 ? alerts.map((a, i) => (
-                      <div key={i} style={{ fontSize: '0.8rem', paddingBottom: '0.5rem', borderBottom: `1px solid ${darkMode ? '#1E293B' : '#F1F5F9'}`, marginBottom: '0.5rem' }}>
+                      <div key={i} style={{ fontSize: '0.8rem', paddingBottom: '0.5rem', borderBottom: `1px solid ${darkMode ? '#334155' : '#F1F5F9'}`, marginBottom: '0.5rem' }}>
                         <div style={{ color: a.level === 'error' ? '#EF4444' : '#F59E0B', fontWeight: 600 }}>{a.title}</div>
                         <div style={{ color: '#64748B', marginTop: '0.2rem' }}>{a.desc}</div>
                       </div>
@@ -218,12 +218,12 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
               <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => { setShowCalendarDrop(!showCalendarDrop); setShowNotifDrop(false); setShowProfileDrop(false); }}>
                 <Calendar size={20} />
                 {showCalendarDrop && (
-                  <div style={{ position: 'absolute', top: '150%', right: '-10px', width: '280px', backgroundColor: darkMode ? '#111827' : '#FFFFFF', border: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, borderRadius: '0.5rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', zIndex: 50, padding: '1rem', cursor: 'default' }} onClick={e => e.stopPropagation()}>
-                    <h4 style={{ margin: '0 0 1rem 0', color: darkMode ? '#FFF' : '#0F172A', fontSize: '0.9rem' }}>Upcoming Interviews</h4>
+                  <div style={{ position: 'absolute', top: '150%', right: '-10px', width: '280px', backgroundColor: darkMode ? '#0F172A' : '#0F172A', border: `1px solid ${darkMode ? '#334155' : '#334155'}`, borderRadius: '0.5rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', zIndex: 50, padding: '1rem', cursor: 'default' }} onClick={e => e.stopPropagation()}>
+                    <h4 style={{ margin: '0 0 1rem 0', color: darkMode ? '#0F172A' : '#0F172A', fontSize: '0.9rem' }}>Upcoming Interviews</h4>
                     {interviews.length > 0 ? interviews.map((iv, i) => (
-                      <div key={i} style={{ fontSize: '0.8rem', paddingBottom: '0.5rem', borderBottom: `1px solid ${darkMode ? '#1E293B' : '#F1F5F9'}`, marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                      <div key={i} style={{ fontSize: '0.8rem', paddingBottom: '0.5rem', borderBottom: `1px solid ${darkMode ? '#334155' : '#F1F5F9'}`, marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
                         <div>
-                          <div style={{ color: darkMode ? '#E2E8F0' : '#0F172A', fontWeight: 500 }}>{iv.candidateName}</div>
+                          <div style={{ color: darkMode ? '#334155' : '#0F172A', fontWeight: 500 }}>{iv.candidateName}</div>
                           <div style={{ color: '#64748B', marginTop: '0.2rem' }}>{iv.role}</div>
                         </div>
                         <div style={{ color: '#E11D48' }}>{new Date(iv.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
@@ -238,21 +238,21 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
               </div>
             </div>
 
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', paddingLeft: '1rem', borderLeft: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}` }} onClick={() => { setShowProfileDrop(!showProfileDrop); setShowNotifDrop(false); setShowCalendarDrop(false); }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#E11D48', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', paddingLeft: '1rem', borderLeft: `1px solid ${darkMode ? '#334155' : '#334155'}` }} onClick={() => { setShowProfileDrop(!showProfileDrop); setShowNotifDrop(false); setShowCalendarDrop(false); }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#E11D48', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                 {(profile.first_name?.[0] || 'A')}{(profile.last_name?.[0] || 'U')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: darkMode ? '#FFFFFF' : '#0F172A', lineHeight: 1.2 }}>{profile.first_name || 'Admin'} {profile.last_name || 'User'}</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: darkMode ? '#0F172A' : '#0F172A', lineHeight: 1.2 }}>{profile.first_name || 'Admin'} {profile.last_name || 'User'}</span>
                 <span style={{ fontSize: '0.75rem', color: '#64748B' }}>{profile.email || 'Super Admin'}</span>
               </div>
               
               {showProfileDrop && (
-                <div style={{ position: 'absolute', top: '120%', right: 0, width: '200px', backgroundColor: darkMode ? '#111827' : '#FFFFFF', border: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, borderRadius: '0.5rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', zIndex: 50, overflow: 'hidden' }}>
-                  <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: darkMode ? '#E2E8F0' : '#0F172A', transition: 'background-color 0.2s' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = darkMode ? '#1E293B' : '#F1F5F9'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'} onClick={() => onTabChange && onTabChange('Settings')}>
+                <div style={{ position: 'absolute', top: '120%', right: 0, width: '200px', backgroundColor: darkMode ? '#0F172A' : '#0F172A', border: `1px solid ${darkMode ? '#334155' : '#334155'}`, borderRadius: '0.5rem', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)', zIndex: 50, overflow: 'hidden' }}>
+                  <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: darkMode ? '#334155' : '#0F172A', transition: 'background-color 0.2s' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = darkMode ? '#334155' : '#F1F5F9'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'} onClick={() => onTabChange && onTabChange('Settings')}>
                     <Settings size={16} /> <span style={{ fontSize: '0.85rem' }}>Account Settings</span>
                   </div>
-                  <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#EF4444', transition: 'background-color 0.2s', borderTop: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}` }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'} onClick={() => showToast('Logged out successfully', 'success')}>
+                  <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: '#EF4444', transition: 'background-color 0.2s', borderTop: `1px solid ${darkMode ? '#334155' : '#334155'}` }} onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'} onClick={() => showToast('Logged out successfully', 'success')}>
                     <LogOut size={16} /> <span style={{ fontSize: '0.85rem' }}>Sign Out</span>
                   </div>
                 </div>

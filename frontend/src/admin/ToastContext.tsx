@@ -43,8 +43,8 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       {children}
       <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', zIndex: 9999 }}>
         {toasts.map((toast) => {
-          let bgColor = '#1E293B';
-          let borderColor = '#334155';
+          let bgColor = '#334155';
+          let borderColor = '#475569';
           let Icon = Info;
           let iconColor = '#E11D48';
 
@@ -68,7 +68,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               border: `1px solid ${borderColor}`,
               borderRadius: '0.5rem',
               padding: '1rem',
-              color: '#FFF',
+              color: '#0F172A',
               display: 'flex',
               alignItems: 'center',
               gap: '0.75rem',

@@ -9,7 +9,7 @@ import { Video, Users, BrainCircuit, Star, TrendingUp, Trophy, AlertTriangle, Cl
 import { adminAPI } from '../utils/api';
 
 const Card = ({ children, style = {} }: any) => (
-  <div style={{ backgroundColor: '#111827', border: '1px solid #1E293B', borderRadius: '1rem', padding: '1.5rem', ...style }}>
+  <div style={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '1rem', padding: '1.5rem', ...style }}>
     {children}
   </div>
 );
@@ -60,15 +60,15 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#FFFFFF', paddingBottom: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', color: '#0F172A', paddingBottom: '2rem' }}>
       
       {/* Header section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>Welcome back, Admin <span style={{ fontSize: '1.25rem' }}>👋</span></h1>
-          <p style={{ color: '#94A3B8', margin: 0, fontSize: '0.9rem' }}>Here's what's happening with your smart campus AI interview system today.</p>
+          <p style={{ color: '#64748B', margin: 0, fontSize: '0.9rem' }}>Here's what's happening with your smart campus AI interview system today.</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', border: '1px solid #1E293B', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', color: '#CBD5E1', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', border: '1px solid #334155', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', color: '#475569', cursor: 'pointer' }}>
           <span>May 20 – May 26, 2024</span>
           <Calendar size={14} color="#64748B" />
         </div>
@@ -79,7 +79,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div>
-              <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Total Interviews</p>
+              <p style={{ color: '#64748B', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Total Interviews</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
                 <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.total_interviews || 0}</h2>
                 {stats?.interviews_growth !== undefined && (
@@ -107,7 +107,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div>
-              <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Candidates</p>
+              <p style={{ color: '#64748B', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Candidates</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
                 <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.total_students || 0}</h2>
                 {stats?.students_growth !== undefined && (
@@ -135,7 +135,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div>
-              <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>AI Evaluations</p>
+              <p style={{ color: '#64748B', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>AI Evaluations</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
                 <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.completed_interviews || 0}</h2>
                 {stats?.completed_interviews_growth !== undefined && (
@@ -163,7 +163,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card style={{ position: 'relative', overflow: 'hidden', paddingBottom: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <div>
-              <p style={{ color: '#94A3B8', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Avg. Score</p>
+              <p style={{ color: '#64748B', fontSize: '0.8rem', margin: '0 0 0.5rem 0' }}>Avg. Score</p>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
                 <h2 style={{ fontSize: '2rem', fontWeight: 700, margin: 0 }}>{stats?.avg_final_score || 0}<span style={{ fontSize: '1rem', color: '#64748B' }}>/100</span></h2>
                 {stats?.avg_score_growth !== undefined && (
@@ -177,11 +177,11 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
             <div style={{ backgroundColor: 'rgba(120, 53, 15, 0.4)', border: '1px solid #78350F', borderRadius: '0.5rem', padding: '0.35rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: '70px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
                 <span style={{ color: '#FCD34D', fontWeight: 600 }}>TECH</span>
-                <span style={{ color: '#FFF', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
                 <span style={{ color: '#FCD34D', fontWeight: 600 }}>HR</span>
-                <span style={{ color: '#FFF', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
               </div>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Interviews Over Time</h3>
-            <div style={{ backgroundColor: '#1E293B', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
+            <div style={{ backgroundColor: '#334155', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
               Daily <span>˅</span>
             </div>
           </div>
@@ -215,14 +215,14 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                       <stop offset="95%" stopColor="#E11D48" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1E293B" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dx={-10} />
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem', color: '#FFF', fontSize: '0.8rem' }}
+                  contentStyle={{ backgroundColor: '#334155', border: 'none', borderRadius: '0.5rem', color: '#0F172A', fontSize: '0.8rem' }}
                   itemStyle={{ color: '#E11D48' }}
                 />
-                <Area type="monotone" dataKey="value" stroke="#E11D48" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#E11D48', stroke: '#111827', strokeWidth: 3 }} />
+                <Area type="monotone" dataKey="value" stroke="#E11D48" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#E11D48', stroke: '#0F172A', strokeWidth: 3 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -252,7 +252,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 </PieChart>
               </ResponsiveContainer>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#FFF' }}>{stats?.total_interviews || 0}</h4>
+                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>{stats?.total_interviews || 0}</h4>
                 <p style={{ margin: 0, fontSize: '0.65rem', color: '#64748B' }}>Total</p>
               </div>
             </div>
@@ -261,10 +261,10 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.7rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: d.color }}></div>
-                    <span style={{ color: '#94A3B8' }}>{d.name}</span>
+                    <span style={{ color: '#64748B' }}>{d.name}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <span style={{ color: '#E2E8F0', fontWeight: 600 }}>{d.value}</span>
+                    <span style={{ color: '#334155', fontWeight: 600 }}>{d.value}</span>
                     <span style={{ color: '#64748B' }}>({d.percent})</span>
                   </div>
                 </div>
@@ -284,16 +284,16 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             {(stats?.upcoming_interviews || []).map((u: any, i: number) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111827', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0F172A', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <img src={`https://ui-avatars.com/api/?name=${u.name.replace(' ', '+')}&background=random`} alt={u.name} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                   <div>
-                    <h4 style={{ fontSize: '0.8rem', fontWeight: 600, margin: 0, color: '#E2E8F0' }}>{u.name}</h4>
+                    <h4 style={{ fontSize: '0.8rem', fontWeight: 600, margin: 0, color: '#334155' }}>{u.name}</h4>
                     <p style={{ fontSize: '0.7rem', color: '#64748B', margin: 0 }}>{u.role}</p>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
-                  <p style={{ fontSize: '0.75rem', color: '#E2E8F0', margin: 0 }}>{u.time}</p>
+                  <p style={{ fontSize: '0.75rem', color: '#334155', margin: 0 }}>{u.time}</p>
                   <button 
                     onClick={() => setActiveTab?.('Interviews')} 
                     style={{ background: 'rgba(225, 29, 72, 0.1)', color: '#E11D48', border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '0.25rem', padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}
@@ -319,7 +319,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         {/* Radar Chart */}
         <Card>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 1rem 0' }}>AI Evaluation Summary</h3>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', fontSize: '0.75rem', color: '#94A3B8', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', fontSize: '0.75rem', color: '#64748B', marginBottom: '0.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <div style={{ width: '12px', height: '2px', backgroundColor: '#E11D48' }}></div> This Week
             </div>
@@ -330,11 +330,11 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           <div style={{ height: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={stats?.radar_data || []}>
-                <PolarGrid stroke="#1E293B" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94A3B8', fontSize: 12 }} />
+                <PolarGrid stroke="#334155" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 12 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar name="Platform Average" dataKey="A" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.5} />
-                <RechartsTooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#1E293B', borderRadius: '0.5rem', color: '#fff' }} />
+                <RechartsTooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -344,17 +344,17 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Candidate Performance Distribution</h3>
-            <div style={{ backgroundColor: '#1E293B', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', color: '#CBD5E1', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
+            <div style={{ backgroundColor: '#334155', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
               Score Range <span>˅</span>
             </div>
           </div>
           <div style={{ height: '250px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats?.bar_data || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
-                <RechartsTooltip cursor={{fill: '#1E293B'}} contentStyle={{ backgroundColor: '#111827', borderColor: '#1E293B', borderRadius: '0.5rem', color: '#fff' }} />
+                <RechartsTooltip cursor={{fill: '#334155'}} contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {
                     (stats?.bar_data || []).map((entry: any, index: number) => (
@@ -377,7 +377,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
             {(stats?.ai_insights || []).map((insight: any, i: number) => (
               <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 {getIcon(insight.icon, insight.color)}
-                <p style={{ margin: 0, fontSize: '0.8rem', color: '#CBD5E1', lineHeight: 1.5 }}>{insight.text}</p>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569', lineHeight: 1.5 }}>{insight.text}</p>
               </div>
             ))}
           </div>
@@ -391,19 +391,19 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 1rem 0' }}>Quick Actions</h3>
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button onClick={() => setActiveTab?.('Interviews')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Interviews')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #334155', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#475569', fontSize: '0.75rem', cursor: 'pointer' }}>
               <Plus size={14} /> Schedule Interview
             </button>
-            <button onClick={() => setActiveTab?.('Candidates')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Candidates')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #334155', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#475569', fontSize: '0.75rem', cursor: 'pointer' }}>
               <UserPlus size={14} /> Add Candidate
             </button>
-            <button onClick={() => setActiveTab?.('Reports')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Reports')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #334155', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#475569', fontSize: '0.75rem', cursor: 'pointer' }}>
               <FileText size={14} /> Generate Report
             </button>
-            <button onClick={() => setActiveTab?.('AI Evaluations')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('AI Evaluations')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #334155', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#475569', fontSize: '0.75rem', cursor: 'pointer' }}>
               <BrainCircuit size={14} /> AI Evaluation Rules
             </button>
-            <button onClick={() => setActiveTab?.('Settings')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #1E293B', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#CBD5E1', fontSize: '0.75rem', cursor: 'pointer' }}>
+            <button onClick={() => setActiveTab?.('Settings')} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'transparent', border: '1px solid #334155', padding: '0.4rem 0.75rem', borderRadius: '0.5rem', color: '#475569', fontSize: '0.75rem', cursor: 'pointer' }}>
               <Settings size={14} /> System Settings
             </button>
           </div>
@@ -415,7 +415,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {(stats?.system_status || []).map((sys: any, i: number) => (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8' }}><Server size={14} /> {sys.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#64748B' }}><Server size={14} /> {sys.name}</div>
                 <div style={{ color: sys.color, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: sys.color }}></div> 
                   <span style={{ fontWeight: 600 }}>{sys.status}</span>
@@ -439,7 +439,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                   <CheckCircle2 size={16} color={activity.status === 'completed' ? '#10B981' : '#E11D48'} />
                 </div>
                 <div>
-                  <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.8rem', color: '#CBD5E1' }}>Interview {activity.status} for {activity.name}</p>
+                  <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.8rem', color: '#475569' }}>Interview {activity.status} for {activity.name}</p>
                   <p style={{ margin: 0, fontSize: '0.7rem', color: '#64748B' }}>{new Date(activity.date).toLocaleString()}</p>
                 </div>
               </div>
