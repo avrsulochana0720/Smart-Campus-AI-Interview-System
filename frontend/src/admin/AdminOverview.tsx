@@ -230,7 +230,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
 
         {/* Donut Chart */}
         <Card>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 1.5rem 0' }}>Interviews by Department</h3>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 2.5rem 0' }}>Interviews by Department</h3>
           <div style={{ display: 'flex', alignItems: 'center', height: '200px' }}>
             <div style={{ width: '50%', height: '100%', position: 'relative' }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -256,9 +256,9 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <p style={{ margin: 0, fontSize: '0.65rem', color: '#64748B' }}>Total</p>
               </div>
             </div>
-            <div style={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingTop: '0.5rem' }}>
               {pieData.map((d, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.7rem' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: d.color }}></div>
                     <span style={{ color: '#64748B' }}>{d.name}</span>
