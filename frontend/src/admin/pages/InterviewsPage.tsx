@@ -16,6 +16,8 @@ export default function InterviewsPage() {
   
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [activeReport, setActiveReport] = useState<any>(null);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduleInput, setScheduleInput] = useState('');
 
   useEffect(() => {
     adminAPI.getInterviews().then(res => {
@@ -106,10 +108,7 @@ export default function InterviewsPage() {
             <Calendar size={16} />
             {viewMode === 'list' ? 'Calendar View' : 'List View'}
           </button>
-          <button onClick={() => {
-            const name = window.prompt("Enter Candidate Name with ID (e.g., Harini - ID 105):");
-            if (name) showToast(`Interview scheduling for ${name} initialized.`, 'success');
-          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
+          <button onClick={() => setScheduleModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Plus size={16} />
             Schedule Interview
           </button>
@@ -263,6 +262,40 @@ export default function InterviewsPage() {
             <h4 style={{ color: '#334155', marginBottom: '0.75rem', fontSize: '0.9rem' }}>AI Summary</h4>
             <div style={{ backgroundColor: '#FFFFFF', color: '#0F172A', padding: '1.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', lineHeight: 1.6, border: '2px solid #E11D48' }}>
               {activeReport.ai_summary || "No summary generated for this report."}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Schedule Modal */}
+      {scheduleModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ backgroundColor: '#FAF6EE', padding: '2rem', borderRadius: '0.75rem', border: '2px solid #0F172A', width: '500px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', color: '#0F172A', margin: 0, fontWeight: 800 }}>Schedule Interview</h2>
+              <button onClick={() => setScheduleModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#0F172A', cursor: 'pointer', padding: '0.5rem', fontSize: '0.85rem', fontWeight: 800 }}>Close</button>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#0F172A', fontWeight: 800, fontSize: '0.9rem' }}>Candidate Name with ID</label>
+              <input 
+                type="text" 
+                value={scheduleInput}
+                onChange={(e) => setScheduleInput(e.target.value)}
+                placeholder="e.g., Harini - ID 105"
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', border: '2px solid #0F172A', backgroundColor: '#FFFFFF', color: '#0F172A', fontSize: '0.9rem', fontWeight: 600, outline: 'none' }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button onClick={() => setScheduleModalOpen(false)} style={{ padding: '0.6rem 1.2rem', backgroundColor: 'transparent', border: '2px solid #0F172A', borderRadius: '0.5rem', color: '#0F172A', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => {
+                if (scheduleInput.trim()) {
+                  showToast(`Interview scheduling for ${scheduleInput} initialized.`, 'success');
+                  setScheduleModalOpen(false);
+                  setScheduleInput('');
+                }
+              }} style={{ padding: '0.6rem 1.2rem', backgroundColor: '#E11D48', border: '2px solid #E11D48', borderRadius: '0.5rem', color: '#FFFFFF', fontWeight: 800, cursor: 'pointer' }}>Schedule</button>
             </div>
           </div>
         </div>
