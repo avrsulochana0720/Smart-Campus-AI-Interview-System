@@ -229,18 +229,21 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         </Card>
 
         {/* Donut Chart */}
-        <Card>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 2.5rem 0' }}>Interviews by Department</h3>
-          <div style={{ display: 'flex', alignItems: 'center', height: '200px' }}>
-            <div style={{ width: '50%', height: '100%', position: 'relative' }}>
+        {/* Donut Chart */}
+        <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: '0 0 1.5rem 0', color: '#0F172A' }}>Interviews by Department</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '2rem', flex: 1 }}>
+            
+            {/* Left side: Pie Chart */}
+            <div style={{ flex: '1 1 200px', height: '220px', position: 'relative' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
+                    innerRadius={60}
+                    outerRadius={85}
                     paddingAngle={2}
                     dataKey="value"
                     stroke="none"
@@ -252,27 +255,33 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 </PieChart>
               </ResponsiveContainer>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <h4 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>{stats?.total_interviews || 0}</h4>
-                <p style={{ margin: 0, fontSize: '0.65rem', color: '#64748B' }}>Total</p>
+                <h4 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0F172A' }}>{stats?.total_interviews || 0}</h4>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</p>
               </div>
             </div>
-            <div style={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingTop: '0.5rem' }}>
+
+            {/* Right side: Department Details */}
+            <div style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {pieData.map((d, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: d.color }}></div>
-                    <span style={{ color: '#64748B' }}>{d.name}</span>
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', flex: 1 }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.color, marginTop: '0.35rem', flexShrink: 0 }}></div>
+                    <span style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 500, lineHeight: 1.4, wordBreak: 'break-word' }}>{d.name}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <span style={{ color: '#334155', fontWeight: 600 }}>{d.value}</span>
-                    <span style={{ color: '#64748B' }}>({d.percent})</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                    <span style={{ color: '#0F172A', fontWeight: 600, fontSize: '0.9rem' }}>{d.value}</span>
+                    <span style={{ color: '#94A3B8', fontSize: '0.8rem', width: '35px', textAlign: 'right' }}>({d.percent})</span>
                   </div>
                 </div>
               ))}
             </div>
+
           </div>
-          <div style={{ textAlign: 'right', marginTop: '1rem' }}>
-            <span style={{ fontSize: '0.75rem', color: '#E11D48', cursor: 'pointer', fontWeight: 500 }}>View full report →</span>
+          
+          <div style={{ textAlign: 'right', marginTop: '2rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
+            <span style={{ fontSize: '0.85rem', color: '#E11D48', cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              View full report <span style={{ fontSize: '1rem' }}>→</span>
+            </span>
           </div>
         </Card>
 
