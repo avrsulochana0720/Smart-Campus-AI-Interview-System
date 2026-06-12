@@ -32,7 +32,7 @@ export default function AIEvaluationsPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
         <div style={{ backgroundColor: '#0D1322', border: '1px solid #1E293B', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BrainCircuit size={24} color="#3B82F6"/></div>
+          <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BrainCircuit size={24} color="#E11D48"/></div>
           <div><div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Avg Confidence</div><div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' }}>{logs.length > 0 ? Math.round(logs.reduce((acc, curr) => acc + curr.confidence, 0) / logs.length) : 0}%</div></div>
         </div>
         <div style={{ backgroundColor: '#0D1322', border: '1px solid #1E293B', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -61,7 +61,7 @@ export default function AIEvaluationsPage() {
               <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>Loading logs...</td></tr>
             ) : logs.filter(l => (l.candidate || '').toLowerCase().includes(searchTerm.toLowerCase())).map((log, idx) => (
               <tr key={idx} style={{ borderBottom: idx === logs.length - 1 ? 'none' : '1px solid #1E293B' }}>
-                <td style={{ padding: '1rem', color: '#3B82F6', fontSize: '0.85rem', fontWeight: 500 }}>{log.id}</td>
+                <td style={{ padding: '1rem', color: '#E11D48', fontSize: '0.85rem', fontWeight: 500 }}>{log.id}</td>
                 <td style={{ padding: '1rem' }}>
                   <div style={{ fontSize: '0.9rem', color: '#FFFFFF' }}>{log.candidate}</div>
                   <div style={{ fontSize: '0.75rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock size={10}/> {log.time}</div>
@@ -97,7 +97,7 @@ export default function AIEvaluationsPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.25rem', color: '#FFF', margin: '0 0 0.25rem 0' }}>Evaluation Details</h2>
-                <div style={{ color: '#3B82F6', fontSize: '0.85rem' }}>{selectedLog.id}</div>
+                <div style={{ color: '#E11D48', fontSize: '0.85rem' }}>{selectedLog.id}</div>
               </div>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, color: selectedLog.confidence > 90 ? '#22C55E' : '#F59E0B' }}>
                 {selectedLog.confidence}%

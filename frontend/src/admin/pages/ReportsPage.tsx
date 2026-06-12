@@ -65,7 +65,7 @@ export default function ReportsPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Reports & Exports</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Generate, download, and review system-generated PDFs and CSVs.</p>
         </div>
-        <button onClick={() => setIsGenerating(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+        <button onClick={() => setIsGenerating(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
           <Plus size={16} /> Generate Custom Report
         </button>
       </div>
@@ -158,7 +158,7 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
-            <button onClick={(e) => { e.stopPropagation(); downloadReport(report); }} style={{ background: 'transparent', border: 'none', color: '#3B82F6', cursor: 'pointer', padding: '0.5rem', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+            <button onClick={(e) => { e.stopPropagation(); downloadReport(report); }} style={{ background: 'transparent', border: 'none', color: '#E11D48', cursor: 'pointer', padding: '0.5rem', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
               <Download size={18} />
             </button>
           </div>
@@ -188,7 +188,7 @@ export default function ReportsPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsGenerating(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleGenerateReport} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Now</button>
+              <button onClick={handleGenerateReport} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Now</button>
             </div>
           </div>
         </div>

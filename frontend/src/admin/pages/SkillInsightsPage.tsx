@@ -58,9 +58,9 @@ export default function SkillInsightsPage() {
                     <span style={{ fontSize: '0.9rem', color: '#FFFFFF', fontWeight: 500 }}>{s.skill}</span>
                     <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', backgroundColor: s.gap === 'High' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: s.gap === 'High' ? '#EF4444' : '#F59E0B', fontWeight: 600 }}>{s.gap} Gap</span>
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Zap size={12} color="#3B82F6"/> {s.recommendation}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Zap size={12} color="#E11D48"/> {s.recommendation}</div>
                 </div>
-                <button onClick={() => setSelectedGap(s)} style={{ backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)' }}>
+                <button onClick={() => setSelectedGap(s)} style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.2)' }}>
                   Take Action
                 </button>
               </div>
@@ -70,7 +70,7 @@ export default function SkillInsightsPage() {
       </div>
 
       <div style={{ backgroundColor: '#0D1322', borderRadius: '1rem', border: '1px solid #1E293B', padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Layers size={18} color="#3B82F6"/> Overall Campus Competency Distribution</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Layers size={18} color="#E11D48"/> Overall Campus Competency Distribution</h3>
         <p style={{ fontSize: '0.85rem', color: '#64748B', marginBottom: '1.5rem' }}>Based on AI evaluated interview transcripts across all departments.</p>
         
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -97,7 +97,7 @@ export default function SkillInsightsPage() {
             </div>
 
             <div style={{ backgroundColor: '#111827', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #1E293B', marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#3B82F6', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#E11D48', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
                 <Zap size={16} /> Recommended Action Strategy
               </div>
               <p style={{ color: '#E2E8F0', fontSize: '0.9rem', lineHeight: 1.5, margin: 0 }}>
@@ -110,7 +110,7 @@ export default function SkillInsightsPage() {
               <button onClick={() => {
                 showToast(`New curriculum pathway generated for ${selectedGap.skill}!`, 'success');
                 setSelectedGap(null);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Curriculum</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Curriculum</button>
             </div>
           </div>
         </div>

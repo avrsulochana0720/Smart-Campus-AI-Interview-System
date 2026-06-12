@@ -28,7 +28,7 @@ export default function CandidatesPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontSize: '0.75rem', fontWeight: 600 }}>Evaluated</span>;
+      case 'completed': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', color: '#E11D48', fontSize: '0.75rem', fontWeight: 600 }}>Evaluated</span>;
       case 'in_progress': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', fontSize: '0.75rem', fontWeight: 600 }}>Under Review</span>;
       case 'failed': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', fontSize: '0.75rem', fontWeight: 600 }}>Failed</span>;
       default: return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(100, 116, 139, 0.1)', color: '#64748B', fontSize: '0.75rem', fontWeight: 600 }}>Pending</span>;
@@ -111,7 +111,7 @@ export default function CandidatesPage() {
           <button onClick={() => {
             const email = window.prompt("Enter candidate email to invite:");
             if (email) showToast(`Invitation sent to ${email}`, 'success');
-          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Plus size={16} />
             Add Candidate
           </button>
@@ -131,15 +131,15 @@ export default function CandidatesPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: departmentFilter !== 'All' ? '#3B82F6' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: departmentFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Building2 size={16} />
             Dept: {departmentFilter}
           </button>
-          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: scoreFilter !== 'All' ? '#3B82F6' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: scoreFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <BarChart size={16} />
             Score: {scoreFilter}
           </button>
-          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: statusFilter !== 'All' ? '#3B82F6' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: statusFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Filter size={16} />
             Status: {statusFilter}
           </button>
@@ -194,7 +194,7 @@ export default function CandidatesPage() {
                   {getStatusBadge(candidate.interview_status)}
                 </td>
                 <td style={{ padding: '1rem', textAlign: 'right', position: 'relative' }}>
-                  <button onClick={() => setSelectedCandidate(candidate)} style={{ backgroundColor: 'transparent', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.5)', borderRadius: '0.3rem', padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.5rem' }}>
+                  <button onClick={() => setSelectedCandidate(candidate)} style={{ backgroundColor: 'transparent', color: '#E11D48', border: '1px solid rgba(225, 29, 72, 0.5)', borderRadius: '0.3rem', padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 500, cursor: 'pointer', marginRight: '0.5rem' }}>
                     View Profile
                   </button>
                   <button onClick={() => setActiveMenuId(activeMenuId === candidate.id ? null : candidate.id)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}>

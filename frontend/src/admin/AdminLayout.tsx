@@ -80,7 +80,7 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
       {/* SIDEBAR */}
       <aside style={{ width: sidebarCollapsed ? '80px' : '280px', backgroundColor: darkMode ? '#0D1322' : '#FFFFFF', borderRight: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}`, display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100vh', position: 'sticky', top: 0, transition: 'width 0.3s' }}>
         <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: sidebarCollapsed ? 'center' : 'flex-start' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0, color: '#FFF' }}>AI</div>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #BE123C 0%, #E11D48 100%)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', flexShrink: 0, color: '#FFF' }}>AI</div>
           {!sidebarCollapsed && (
             <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
               <h1 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, letterSpacing: '0.02em', color: darkMode ? '#FFF' : '#0F172A' }}>Smart Campus</h1>
@@ -96,11 +96,11 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
               display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', 
               backgroundColor: activeTab === 'Dashboard' ? '#1E293B' : 'transparent', 
               borderRadius: '0.5rem', cursor: 'pointer', marginBottom: '1.5rem',
-              color: activeTab === 'Dashboard' ? '#3B82F6' : '#94A3B8', fontWeight: 500, fontSize: '0.9rem',
+              color: activeTab === 'Dashboard' ? '#E11D48' : '#94A3B8', fontWeight: 500, fontSize: '0.9rem',
               transition: 'all 0.2s'
             }}
           >
-            <div style={{ background: activeTab === 'Dashboard' ? 'rgba(59, 130, 246, 0.2)' : 'transparent', padding: '0.3rem', borderRadius: '0.3rem', flexShrink: 0 }}>
+            <div style={{ background: activeTab === 'Dashboard' ? 'rgba(225, 29, 72, 0.2)' : 'transparent', padding: '0.3rem', borderRadius: '0.3rem', flexShrink: 0 }}>
               <span style={{ fontSize: '1.1rem' }}>✦</span>
             </div>
             {!sidebarCollapsed && <span>Dashboard</span>}
@@ -226,7 +226,7 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
                           <div style={{ color: darkMode ? '#E2E8F0' : '#0F172A', fontWeight: 500 }}>{iv.candidateName}</div>
                           <div style={{ color: '#64748B', marginTop: '0.2rem' }}>{iv.role}</div>
                         </div>
-                        <div style={{ color: '#3B82F6' }}>{new Date(iv.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        <div style={{ color: '#E11D48' }}>{new Date(iv.scheduledDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                       </div>
                     )) : <div style={{ fontSize: '0.8rem', color: '#64748B' }}>No upcoming interviews scheduled today.</div>}
                   </div>
@@ -239,7 +239,7 @@ export default function AdminLayout({ children, activeTab = 'Dashboard', onTabCh
             </div>
 
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', paddingLeft: '1rem', borderLeft: `1px solid ${darkMode ? '#1E293B' : '#E2E8F0'}` }} onClick={() => { setShowProfileDrop(!showProfileDrop); setShowNotifDrop(false); setShowCalendarDrop(false); }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#3B82F6', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#E11D48', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                 {(profile.first_name?.[0] || 'A')}{(profile.last_name?.[0] || 'U')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>

@@ -46,7 +46,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           let bgColor = '#1E293B';
           let borderColor = '#334155';
           let Icon = Info;
-          let iconColor = '#3B82F6';
+          let iconColor = '#E11D48';
 
           if (toast.type === 'success') {
             borderColor = 'rgba(34, 197, 94, 0.5)';

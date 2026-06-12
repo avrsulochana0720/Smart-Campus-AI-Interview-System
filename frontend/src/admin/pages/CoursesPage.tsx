@@ -51,7 +51,7 @@ export default function CoursesPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Courses & Tracks</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage preparation courses and track candidate performance by module.</p>
         </div>
-        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
           <Plus size={16} /> Create Course
         </button>
       </div>
@@ -75,8 +75,8 @@ export default function CoursesPage() {
         ) : courses.filter(c => (c.title || '').toLowerCase().includes(searchTerm.toLowerCase())).map((course) => (
           <div key={course.id} style={{ backgroundColor: '#0D1322', borderRadius: '0.75rem', border: '1px solid #1E293B', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', position: 'relative' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BookOpen size={20} color="#3B82F6" />
+              <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BookOpen size={20} color="#E11D48" />
               </div>
               <button onClick={() => setActiveMenuId(activeMenuId === course.id ? null : course.id)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}>
                 <MoreHorizontal size={18} />
@@ -93,7 +93,7 @@ export default function CoursesPage() {
               )}
             </div>
             <h3 style={{ fontSize: '1.1rem', color: '#FFFFFF', fontWeight: 600, margin: '0 0 0.25rem 0' }}>{course.title || 'General Curriculum'}</h3>
-            <p style={{ fontSize: '0.75rem', color: '#3B82F6', margin: '0 0 1.5rem 0', fontWeight: 600 }}>{course.id}</p>
+            <p style={{ fontSize: '0.75rem', color: '#E11D48', margin: '0 0 1.5rem 0', fontWeight: 600 }}>{course.id}</p>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', flex: 1 }}>
               <div style={{ backgroundColor: '#111827', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #1E293B' }}>
@@ -110,7 +110,7 @@ export default function CoursesPage() {
               <span style={{ fontSize: '0.8rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <PlayCircle size={14} /> {course.modules} Modules
               </span>
-              <button onClick={() => setEditingCourse(course)} style={{ backgroundColor: 'transparent', color: '#3B82F6', border: 'none', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer' }}>Edit Course</button>
+              <button onClick={() => setEditingCourse(course)} style={{ backgroundColor: 'transparent', color: '#E11D48', border: 'none', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer' }}>Edit Course</button>
             </div>
           </div>
         ))}
@@ -134,7 +134,7 @@ export default function CoursesPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCreateCourse} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Course</button>
+              <button onClick={handleCreateCourse} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Course</button>
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function CoursesPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setEditingCourse(null)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleSaveEdit} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
+              <button onClick={handleSaveEdit} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
             </div>
           </div>
         </div>

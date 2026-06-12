@@ -43,7 +43,7 @@ export default function DepartmentsPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Departments</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage university departments, hiring requisitions, and allocations.</p>
         </div>
-        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
           <Plus size={16} /> Add Department
         </button>
       </div>
@@ -68,8 +68,8 @@ export default function DepartmentsPage() {
           <div key={dept.id} style={{ display: 'flex', flexDirection: 'column', backgroundColor: '#0D1322', borderRadius: '0.75rem', border: '1px solid #1E293B', transition: 'transform 0.2s', overflow: 'hidden' }}>
             <div onClick={() => setExpandedDeptId(expandedDeptId === dept.id ? null : dept.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#111827'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Building2 size={24} color="#3B82F6" />
+                <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Building2 size={24} color="#E11D48" />
                 </div>
                 <div>
                   <h3 style={{ fontSize: '1.1rem', color: '#FFFFFF', fontWeight: 600, margin: '0 0 0.25rem 0' }}>{dept.name}</h3>
@@ -98,7 +98,7 @@ export default function DepartmentsPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <div style={{ backgroundColor: '#1E293B', padding: '1rem', borderRadius: '0.5rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginBottom: '0.25rem' }}>Hiring Velocity</div>
-                    <div style={{ fontSize: '1.25rem', color: '#3B82F6', fontWeight: 600 }}>14 Days</div>
+                    <div style={{ fontSize: '1.25rem', color: '#E11D48', fontWeight: 600 }}>14 Days</div>
                     <div style={{ fontSize: '0.7rem', color: '#22C55E' }}>+12% vs last quarter</div>
                   </div>
                   <div style={{ backgroundColor: '#1E293B', padding: '1rem', borderRadius: '0.5rem' }}>
@@ -109,7 +109,7 @@ export default function DepartmentsPage() {
                   <div style={{ backgroundColor: '#1E293B', padding: '1rem', borderRadius: '0.5rem' }}>
                     <div style={{ fontSize: '0.8rem', color: '#94A3B8', marginBottom: '0.25rem' }}>Active Requisitions</div>
                     <div style={{ fontSize: '1.25rem', color: '#E2E8F0', fontWeight: 600 }}>{dept.activeRoles || 0} Open Roles</div>
-                    <button onClick={(e) => { e.stopPropagation(); showToast('Viewing active requisitions...', 'info'); }} style={{ marginTop: '0.5rem', background: 'transparent', border: '1px solid #3B82F6', color: '#3B82F6', borderRadius: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer' }}>View Roles</button>
+                    <button onClick={(e) => { e.stopPropagation(); showToast('Viewing active requisitions...', 'info'); }} style={{ marginTop: '0.5rem', background: 'transparent', border: '1px solid #E11D48', color: '#E11D48', borderRadius: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer' }}>View Roles</button>
                   </div>
                 </div>
               </div>
@@ -135,7 +135,7 @@ export default function DepartmentsPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddDepartment} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Department</button>
+              <button onClick={handleAddDepartment} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Department</button>
             </div>
           </div>
         </div>

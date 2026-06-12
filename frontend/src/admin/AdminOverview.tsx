@@ -33,7 +33,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
   }
 
   // Map real pie data from company stats if available, otherwise fallback
-  const colors = ['#3B82F6', '#8B5CF6', '#F59E0B', '#10B981', '#0EA5E9', '#64748B'];
+  const colors = ['#E11D48', '#8B5CF6', '#F59E0B', '#10B981', '#F43F5E', '#64748B'];
   const pieData = (stats?.role_stats?.length > 0 ? stats.role_stats : []).map((r: any, i: number) => ({
     name: r.role,
     value: r.count,
@@ -90,15 +90,15 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
               </div>
               <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs last week</p>
             </div>
-            <div style={{ backgroundColor: 'rgba(30, 58, 138, 0.4)', border: '1px solid #1E3A8A', borderRadius: '0.5rem', padding: '0.4rem 0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.65rem', color: '#93C5FD', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Today</span>
-              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#EFF6FF' }}>{stats?.interviews_today || 0}</span>
+            <div style={{ backgroundColor: 'rgba(76, 5, 25, 0.4)', border: '1px solid #4C0519', borderRadius: '0.5rem', padding: '0.4rem 0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.65rem', color: '#FDA4AF', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Today</span>
+              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#FFF1F2' }}>{stats?.interviews_today || 0}</span>
             </div>
           </div>
           <div style={{ height: '60px', marginTop: 'auto' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats?.sparkline1 || []}>
-                  <Area type="monotone" dataKey="v" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.2} strokeWidth={2} />
+                  <Area type="monotone" dataKey="v" stroke="#E11D48" fill="#E11D48" fillOpacity={0.2} strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -211,8 +211,8 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <AreaChart data={stats?.area_data || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#E11D48" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#E11D48" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1E293B" />
@@ -220,9 +220,9 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dx={-10} />
                 <RechartsTooltip 
                   contentStyle={{ backgroundColor: '#1E293B', border: 'none', borderRadius: '0.5rem', color: '#FFF', fontSize: '0.8rem' }}
-                  itemStyle={{ color: '#3B82F6' }}
+                  itemStyle={{ color: '#E11D48' }}
                 />
-                <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#3B82F6', stroke: '#111827', strokeWidth: 3 }} />
+                <Area type="monotone" dataKey="value" stroke="#E11D48" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#E11D48', stroke: '#111827', strokeWidth: 3 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -272,7 +272,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
             </div>
           </div>
           <div style={{ textAlign: 'right', marginTop: '1rem' }}>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', fontWeight: 500 }}>View full report →</span>
+            <span style={{ fontSize: '0.75rem', color: '#E11D48', cursor: 'pointer', fontWeight: 500 }}>View full report →</span>
           </div>
         </Card>
 
@@ -280,7 +280,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Upcoming Interviews</h3>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer' }} onClick={() => setActiveTab?.('Interviews')}>View All</span>
+            <span style={{ fontSize: '0.75rem', color: '#E11D48', cursor: 'pointer' }} onClick={() => setActiveTab?.('Interviews')}>View All</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             {(stats?.upcoming_interviews || []).map((u: any, i: number) => (
@@ -296,7 +296,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                   <p style={{ fontSize: '0.75rem', color: '#E2E8F0', margin: 0 }}>{u.time}</p>
                   <button 
                     onClick={() => setActiveTab?.('Interviews')} 
-                    style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '0.25rem', padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}
+                    style={{ background: 'rgba(225, 29, 72, 0.1)', color: '#E11D48', border: '1px solid rgba(225, 29, 72, 0.2)', borderRadius: '0.25rem', padding: '0.15rem 0.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}
                   >
                     <BrainCircuit size={10} /> View {u.type}
                   </button>
@@ -308,7 +308,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
             )}
           </div>
           <div style={{ textAlign: 'right', marginTop: '1rem' }}>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', fontWeight: 500 }}>View Calendar →</span>
+            <span style={{ fontSize: '0.75rem', color: '#E11D48', cursor: 'pointer', fontWeight: 500 }}>View Calendar →</span>
           </div>
         </Card>
       </div>
@@ -321,7 +321,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 1rem 0' }}>AI Evaluation Summary</h3>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', fontSize: '0.75rem', color: '#94A3B8', marginBottom: '0.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <div style={{ width: '12px', height: '2px', backgroundColor: '#3B82F6' }}></div> This Week
+              <div style={{ width: '12px', height: '2px', backgroundColor: '#E11D48' }}></div> This Week
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <div style={{ width: '12px', height: '2px', backgroundColor: '#64748B', borderStyle: 'dashed' }}></div> Last Week
@@ -371,7 +371,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>AI Insights</h3>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.25rem' }}>View All</span>
+            <span style={{ fontSize: '0.75rem', color: '#E11D48', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', borderRadius: '0.25rem' }}>View All</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {(stats?.ai_insights || []).map((insight: any, i: number) => (
@@ -430,13 +430,13 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Recent Activity</h3>
-            <span style={{ fontSize: '0.75rem', color: '#3B82F6', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.25rem' }} onClick={() => setActiveTab?.('Audit Logs')}>View All</span>
+            <span style={{ fontSize: '0.75rem', color: '#E11D48', cursor: 'pointer', padding: '0.2rem 0.5rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', borderRadius: '0.25rem' }} onClick={() => setActiveTab?.('Audit Logs')}>View All</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, overflowY: 'auto' }}>
             {(stats?.recent_activity?.slice(0, 3) || []).map((activity: any, i: number) => (
               <div key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                <div style={{ backgroundColor: activity.status === 'completed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(59, 130, 246, 0.1)', padding: '0.4rem', borderRadius: '50%' }}>
-                  <CheckCircle2 size={16} color={activity.status === 'completed' ? '#10B981' : '#3B82F6'} />
+                <div style={{ backgroundColor: activity.status === 'completed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(225, 29, 72, 0.1)', padding: '0.4rem', borderRadius: '50%' }}>
+                  <CheckCircle2 size={16} color={activity.status === 'completed' ? '#10B981' : '#E11D48'} />
                 </div>
                 <div>
                   <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.8rem', color: '#CBD5E1' }}>Interview {activity.status} for {activity.name}</p>

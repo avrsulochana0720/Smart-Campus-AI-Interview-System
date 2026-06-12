@@ -30,7 +30,7 @@ export default function InterviewsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Live': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', width: 'max-content' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#EF4444' }}></span>Live</span>;
-      case 'Upcoming': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', width: 'max-content' }}><Clock3 size={12} /> Upcoming</span>;
+      case 'Upcoming': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', color: '#E11D48', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', width: 'max-content' }}><Clock3 size={12} /> Upcoming</span>;
       case 'Completed': return <span style={{ padding: '0.25rem 0.5rem', borderRadius: '1rem', backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22C55E', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', width: 'max-content' }}><CheckCircle2 size={12} /> Completed</span>;
       default: return null;
     }
@@ -109,7 +109,7 @@ export default function InterviewsPage() {
           <button onClick={() => {
             const name = window.prompt("Enter Candidate Name with ID (e.g., Harini - ID 105):");
             if (name) showToast(`Interview scheduling for ${name} initialized.`, 'success');
-          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Plus size={16} />
             Schedule Interview
           </button>
@@ -129,11 +129,11 @@ export default function InterviewsPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: statusFilter !== 'All' ? '#3B82F6' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: statusFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Filter size={16} />
             Status: {statusFilter}
           </button>
-          <button onClick={toggleTypeFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: typeFilter !== 'All' ? '#3B82F6' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleTypeFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#111827', color: typeFilter !== 'All' ? '#E11D48' : '#94A3B8', border: '1px solid #1E293B', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Filter size={16} />
             Type: {typeFilter}
           </button>
@@ -154,7 +154,7 @@ export default function InterviewsPage() {
               <div key={i} style={{ height: '60px', backgroundColor: '#111827', borderRadius: '0.25rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '0.25rem' }}>
                 <span style={{ fontSize: '0.7rem', color: '#64748B' }}>{i + 1}</span>
                 {filteredInterviews.length > 0 && i % 7 === 3 && (
-                  <div style={{ width: '100%', height: '4px', backgroundColor: '#3B82F6', borderRadius: '2px', marginTop: 'auto' }}></div>
+                  <div style={{ width: '100%', height: '4px', backgroundColor: '#E11D48', borderRadius: '2px', marginTop: 'auto' }}></div>
                 )}
               </div>
             ))}

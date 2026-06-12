@@ -57,9 +57,9 @@ export default function IntegrationsPage() {
             <p style={{ fontSize: '0.85rem', color: '#94A3B8', margin: '0 0 1.5rem 0', lineHeight: 1.5, flex: 1 }}>{app.desc}</p>
             
             <div style={{ borderTop: '1px solid #1E293B', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button onClick={() => setConfigureApp(app)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', padding: '0.2rem', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#3B82F6'} onMouseLeave={(e) => e.currentTarget.style.color = '#64748B'}><Settings size={14}/> Configure</button>
+              <button onClick={() => setConfigureApp(app)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', padding: '0.2rem', transition: 'color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.color = '#E11D48'} onMouseLeave={(e) => e.currentTarget.style.color = '#64748B'}><Settings size={14}/> Configure</button>
               {app.status === 'Not Connected' ? (
-                <button onClick={() => setActionApp(app)} style={{ backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1rem', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563EB'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3B82F6'}>Connect</button>
+                <button onClick={() => setActionApp(app)} style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.4rem 1rem', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#BE123C'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E11D48'}>Connect</button>
               ) : (
                 <button onClick={() => setActionApp(app)} style={{ backgroundColor: 'transparent', color: '#EF4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '0.5rem', padding: '0.4rem 1rem', fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Disconnect</button>
               )}
@@ -96,7 +96,7 @@ export default function IntegrationsPage() {
               </div>
               <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px' }}>
                 <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} />
-                <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#3B82F6', transition: '.4s', borderRadius: '24px' }}>
+                <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E11D48', transition: '.4s', borderRadius: '24px' }}>
                   <span style={{ position: 'absolute', content: '""', height: '16px', width: '16px', left: '20px', bottom: '4px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%' }}></span>
                 </span>
               </label>
@@ -107,7 +107,7 @@ export default function IntegrationsPage() {
               <button onClick={() => {
                 showToast(`Configuration saved for ${configureApp.name}`, 'success');
                 setConfigureApp(null);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Configuration</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Configuration</button>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function IntegrationsPage() {
 
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button onClick={() => setActionApp(null)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => handleToggleStatus(actionApp)} style={{ flex: 1, padding: '0.75rem', backgroundColor: actionApp.status === 'Connected' ? '#EF4444' : '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>
+              <button onClick={() => handleToggleStatus(actionApp)} style={{ flex: 1, padding: '0.75rem', backgroundColor: actionApp.status === 'Connected' ? '#EF4444' : '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>
                 {actionApp.status === 'Connected' ? 'Disconnect' : 'Connect'}
               </button>
             </div>

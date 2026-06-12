@@ -32,7 +32,7 @@ export default function UsersRolesPage() {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'Super Admin': return <span style={{ padding: '0.2rem 0.5rem', borderRadius: '0.3rem', backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(139, 92, 246, 0.2)' }}>{role}</span>;
-      case 'Admin': return <span style={{ padding: '0.2rem 0.5rem', borderRadius: '0.3rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(59, 130, 246, 0.2)' }}>{role}</span>;
+      case 'Admin': return <span style={{ padding: '0.2rem 0.5rem', borderRadius: '0.3rem', backgroundColor: 'rgba(225, 29, 72, 0.1)', color: '#E11D48', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(225, 29, 72, 0.2)' }}>{role}</span>;
       case 'TPO': return <span style={{ padding: '0.2rem 0.5rem', borderRadius: '0.3rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#F59E0B', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(245, 158, 11, 0.2)' }}>{role}</span>;
       default: return <span style={{ padding: '0.2rem 0.5rem', borderRadius: '0.3rem', backgroundColor: 'rgba(148, 163, 184, 0.1)', color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(148, 163, 184, 0.2)' }}>{role}</span>;
     }
@@ -47,7 +47,7 @@ export default function UsersRolesPage() {
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage system access, assign roles, and configure permissions.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={() => setShowInviteModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+          <button onClick={() => setShowInviteModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Plus size={16} />
             Invite User
           </button>
@@ -155,7 +155,7 @@ export default function UsersRolesPage() {
           
           <div style={{ backgroundColor: '#0D1322', borderRadius: '0.75rem', border: '1px solid #1E293B', padding: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <Shield size={18} color="#3B82F6" />
+              <Shield size={18} color="#E11D48" />
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Permissions Overview</h3>
             </div>
             
@@ -175,7 +175,7 @@ export default function UsersRolesPage() {
               ))}
             </div>
             
-            <button onClick={() => setShowPermissionsModal(true)} style={{ width: '100%', marginTop: '1.5rem', backgroundColor: 'transparent', color: '#3B82F6', border: '1px solid #3B82F6', borderRadius: '0.5rem', padding: '0.5rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)' }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}>
+            <button onClick={() => setShowPermissionsModal(true)} style={{ width: '100%', marginTop: '1.5rem', backgroundColor: 'transparent', color: '#E11D48', border: '1px solid #E11D48', borderRadius: '0.5rem', padding: '0.5rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)' }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}>
               Manage Permissions
             </button>
           </div>
@@ -215,7 +215,7 @@ export default function UsersRolesPage() {
               <button onClick={() => {
                 showToast(`Invitation sent to ${inviteForm.email}!`, 'success');
                 setShowInviteModal(false);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Send Invite</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Send Invite</button>
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function UsersRolesPage() {
               <button onClick={() => {
                 showToast(`Global permissions updated successfully!`, 'success');
                 setShowPermissionsModal(false);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
             </div>
           </div>
         </div>

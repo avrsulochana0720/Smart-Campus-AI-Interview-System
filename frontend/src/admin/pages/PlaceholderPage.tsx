@@ -32,14 +32,14 @@ export default function PlaceholderPage({ title }: PlaceholderPageProps) {
           </button>
           <button onClick={() => showToast('This feature is coming soon.', 'info')} style={{ 
             display: 'flex', alignItems: 'center', gap: '0.5rem', 
-            backgroundColor: '#3B82F6', color: '#FFFFFF', 
+            backgroundColor: '#E11D48', color: '#FFFFFF', 
             border: 'none', borderRadius: '0.5rem', 
             padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+            boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)',
             transition: 'all 0.2s'
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563EB'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3B82F6'}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#BE123C'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#E11D48'}
           >
             <Plus size={16} />
             New {title.split(' ')[0]}
@@ -53,10 +53,10 @@ export default function PlaceholderPage({ title }: PlaceholderPageProps) {
         padding: '2rem', textAlign: 'center'
       }}>
         <div style={{ 
-          width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+          width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(225, 29, 72, 0.1)', 
           display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' 
         }}>
-          <Search size={32} color="#3B82F6" />
+          <Search size={32} color="#E11D48" />
         </div>
         <h3 style={{ fontSize: '1.2rem', color: '#FFFFFF', fontWeight: 600, margin: '0 0 0.5rem 0' }}>No Data Available Yet</h3>
         <p style={{ color: '#64748B', fontSize: '0.9rem', maxWidth: '400px', margin: '0 0 2rem 0', lineHeight: 1.5 }}>

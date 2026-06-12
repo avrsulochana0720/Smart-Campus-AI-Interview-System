@@ -38,7 +38,7 @@ export default function BatchManagementPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active Hiring': return '#22C55E';
-      case 'Preparation Phase': return '#3B82F6';
+      case 'Preparation Phase': return '#E11D48';
       case 'Completed': return '#64748B';
       default: return '#94A3B8';
     }
@@ -51,7 +51,7 @@ export default function BatchManagementPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Batch Management</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Track academic batches, monitor placement progress, and manage cohorts.</p>
         </div>
-        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
           <Plus size={16} /> Create Batch
         </button>
       </div>
@@ -70,7 +70,7 @@ export default function BatchManagementPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: '#111827', border: '1px solid #1E293B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Layers size={24} color="#3B82F6" />
+                    <Layers size={24} color="#E11D48" />
                   </div>
                   <div>
                     <h3 style={{ fontSize: '1.2rem', color: '#FFFFFF', fontWeight: 600, margin: '0 0 0.25rem 0' }}>{batch.name}</h3>
@@ -94,10 +94,10 @@ export default function BatchManagementPage() {
                     <div style={{ fontSize: '0.85rem', color: '#FFFFFF', fontWeight: 500, marginBottom: '0.25rem' }}>Placement Progress</div>
                     <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{batch.placed} out of {batch.totalStudents} students placed</div>
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#3B82F6' }}>{placementPercentage}%</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#E11D48' }}>{placementPercentage}%</div>
                 </div>
                 <div style={{ width: '100%', height: '8px', backgroundColor: '#1E293B', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${placementPercentage}%`, height: '100%', backgroundColor: '#3B82F6', borderRadius: '4px' }}></div>
+                  <div style={{ width: `${placementPercentage}%`, height: '100%', backgroundColor: '#E11D48', borderRadius: '4px' }}></div>
                 </div>
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function BatchManagementPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCreateBatch} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Batch</button>
+              <button onClick={handleCreateBatch} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Batch</button>
             </div>
           </div>
         </div>

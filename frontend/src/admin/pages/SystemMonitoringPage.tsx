@@ -48,7 +48,7 @@ export default function SystemMonitoringPage() {
         <div style={{ backgroundColor: '#0D1322', borderRadius: '1rem', border: '1px solid #1E293B', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94A3B8', fontSize: '0.85rem', marginBottom: '0.75rem' }}><Wifi size={16}/> Active WebSockets</div>
           <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#FFFFFF' }}>{data.metrics?.activeWebSockets || 0}</div>
-          <div style={{ fontSize: '0.75rem', color: '#3B82F6', marginTop: '0.25rem' }}>Live Streams</div>
+          <div style={{ fontSize: '0.75rem', color: '#E11D48', marginTop: '0.25rem' }}>Live Streams</div>
         </div>
         <div style={{ backgroundColor: '#0D1322', borderRadius: '1rem', border: '1px solid #1E293B', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94A3B8', fontSize: '0.85rem', marginBottom: '0.75rem' }}><Cpu size={16}/> CPU Usage</div>
@@ -61,7 +61,7 @@ export default function SystemMonitoringPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
         <div style={{ backgroundColor: '#0D1322', borderRadius: '1rem', border: '1px solid #1E293B', padding: '1.5rem' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Database size={18} color="#3B82F6"/> Services Status</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Database size={18} color="#E11D48"/> Services Status</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {(data.services || []).map((s: any, i: number) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: i === (data.services?.length || 1) - 1 ? 'none' : '1px solid #1E293B', paddingBottom: i === (data.services?.length || 1) - 1 ? 0 : '1rem' }}>
@@ -82,8 +82,8 @@ export default function SystemMonitoringPage() {
           <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={18} color="#EF4444"/> Recent Alerts</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {(data.alerts || []).map((alert: any, i: number) => {
-              const color = alert.level === 'warning' ? '#F59E0B' : (alert.level === 'error' ? '#EF4444' : '#3B82F6');
-              const bgColor = alert.level === 'warning' ? 'rgba(245, 158, 11, 0.05)' : (alert.level === 'error' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(59, 130, 246, 0.05)');
+              const color = alert.level === 'warning' ? '#F59E0B' : (alert.level === 'error' ? '#EF4444' : '#E11D48');
+              const bgColor = alert.level === 'warning' ? 'rgba(245, 158, 11, 0.05)' : (alert.level === 'error' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(225, 29, 72, 0.05)');
               return (
                 <div key={i} style={{ padding: '1rem', backgroundColor: bgColor, borderRadius: '0.5rem', borderLeft: `3px solid ${color}` }}>
                   <div style={{ fontSize: '0.85rem', color: color, fontWeight: 600, marginBottom: '0.25rem' }}>{alert.title}</div>

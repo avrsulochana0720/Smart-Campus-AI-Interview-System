@@ -53,7 +53,7 @@ export default function SettingsPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Settings</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage your account settings, preferences, and security configurations.</p>
         </div>
-        <button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1.5rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+        <button onClick={handleSave} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1.5rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
           <Save size={16} />
           Save Changes
         </button>
@@ -77,11 +77,11 @@ export default function SettingsPage() {
                 backgroundColor: activeTab === tab.name ? '#1E293B' : 'transparent', 
                 color: activeTab === tab.name ? '#FFFFFF' : '#94A3B8',
                 borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem',
-                borderLeft: activeTab === tab.name ? '3px solid #3B82F6' : '3px solid transparent',
+                borderLeft: activeTab === tab.name ? '3px solid #E11D48' : '3px solid transparent',
                 transition: 'all 0.2s'
               }}
             >
-              <tab.icon size={18} color={activeTab === tab.name ? '#3B82F6' : '#64748B'} />
+              <tab.icon size={18} color={activeTab === tab.name ? '#E11D48' : '#64748B'} />
               {tab.name}
             </div>
           ))}
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                     </div>
                     <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '24px' }}>
                       <input name={notif.id} type="checkbox" checked={settings[notif.id] ?? true} onChange={handleChange} style={{ opacity: 0, width: 0, height: 0 }} />
-                      <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: settings[notif.id] ?? true ? '#3B82F6' : '#334155', transition: '.4s', borderRadius: '24px' }}>
+                      <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: settings[notif.id] ?? true ? '#E11D48' : '#334155', transition: '.4s', borderRadius: '24px' }}>
                         <span style={{ position: 'absolute', content: '""', height: '16px', width: '16px', left: settings[notif.id] ?? true ? '20px' : '4px', bottom: '4px', backgroundColor: 'white', transition: '.4s', borderRadius: '50%' }}></span>
                       </span>
                     </label>

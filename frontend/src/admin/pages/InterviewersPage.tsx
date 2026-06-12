@@ -44,7 +44,7 @@ export default function InterviewersPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>Interviewers</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Manage interviewer profiles, workloads, and performance ratings.</p>
         </div>
-        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+        <button onClick={() => setIsAdding(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
           <Plus size={16} /> Add Interviewer
         </button>
       </div>
@@ -76,7 +76,7 @@ export default function InterviewersPage() {
               </div>
               <div>
                 <h3 style={{ fontSize: '1rem', color: '#FFFFFF', fontWeight: 600, margin: '0 0 0.2rem 0' }}>{interviewer.name}</h3>
-                <p style={{ fontSize: '0.75rem', color: '#3B82F6', margin: 0 }}>{interviewer.department || 'General'}</p>
+                <p style={{ fontSize: '0.75rem', color: '#E11D48', margin: 0 }}>{interviewer.department || 'General'}</p>
               </div>
             </div>
             
@@ -91,7 +91,7 @@ export default function InterviewersPage() {
                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginTop: '0.2rem' }}>Avg Rating</div>
               </div>
               <div style={{ textAlign: 'center', borderLeft: '1px solid #1E293B', paddingLeft: '1.5rem' }}>
-                <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}><Video size={16} color="#3B82F6" /> {interviewer.status === 'Active' ? 'Yes' : 'No'}</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}><Video size={16} color="#E11D48" /> {interviewer.status === 'Active' ? 'Yes' : 'No'}</div>
                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginTop: '0.2rem' }}>Active Status</div>
               </div>
             </div>
@@ -126,7 +126,7 @@ export default function InterviewersPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #334155', color: '#94A3B8', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddInterviewer} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#3B82F6', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Interviewer</button>
+              <button onClick={handleAddInterviewer} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Interviewer</button>
             </div>
           </div>
         </div>

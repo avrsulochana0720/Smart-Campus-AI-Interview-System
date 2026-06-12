@@ -48,7 +48,7 @@ export default function AuditLogsPage() {
   const getTypeIcon = (type: string) => {
     switch(type) {
       case 'security': return <Key size={14} color="#EF4444" />;
-      case 'system': return <Terminal size={14} color="#3B82F6" />;
+      case 'system': return <Terminal size={14} color="#E11D48" />;
       case 'data': return <Database size={14} color="#F59E0B" />;
       default: return <Shield size={14} color="#94A3B8" />;
     }

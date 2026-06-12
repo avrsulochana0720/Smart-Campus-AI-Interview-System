@@ -4,7 +4,7 @@ import { Download, Calendar, TrendingUp } from 'lucide-react';
 import { adminAPI } from '../../utils/api';
 import { useToast } from '../ToastContext';
 
-const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981'];
+const COLORS = ['#E11D48', '#8B5CF6', '#EC4899', '#10B981'];
 
 export default function AnalyticsPage() {
   const [stats, setStats] = useState<any>(null);
@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
             a.setAttribute('download', `Analytics_Report_${timeRange.replace(/ /g, '_')}.csv`);
             a.click();
             showToast('Detailed Report exported successfully!', 'success');
-          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#3B82F6', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+          }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Download size={16} />
             Export Report
           </button>
@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
       {/* Top Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
         {[
-          { title: 'Average AI Evaluation Score', value: stats?.avg_final_score || '0', trend: '+4.2%', icon: TrendingUp, color: '#3B82F6' },
+          { title: 'Average AI Evaluation Score', value: stats?.avg_final_score || '0', trend: '+4.2%', icon: TrendingUp, color: '#E11D48' },
           { title: 'Total Interviews', value: stats?.total_interviews || '0', trend: '+18.6%', icon: Calendar, color: '#10B981' },
           { title: 'Total Candidates', value: stats?.total_students || '0', trend: '+21.4%', icon: TrendingUp, color: '#8B5CF6' }
         ].map((stat, i) => (
@@ -102,8 +102,8 @@ export default function AnalyticsPage() {
               <AreaChart data={stats?.performance_data || []}>
                 <defs>
                   <linearGradient id="colorTech" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#E11D48" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#E11D48" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3}/>
@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
                 <Tooltip contentStyle={{ backgroundColor: '#111827', borderColor: '#1E293B', borderRadius: '0.5rem', color: '#fff' }} />
                 <Legend />
-                <Area type="monotone" dataKey="tech" name="Tech Scores" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorTech)" />
+                <Area type="monotone" dataKey="tech" name="Tech Scores" stroke="#E11D48" strokeWidth={3} fillOpacity={1} fill="url(#colorTech)" />
                 <Area type="monotone" dataKey="hr" name="HR Scores" stroke="#8B5CF6" strokeWidth={3} fillOpacity={1} fill="url(#colorHr)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -162,7 +162,7 @@ export default function AnalyticsPage() {
               <YAxis yAxisId="right" orientation="right" stroke="#10B981" fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip cursor={{fill: '#1E293B'}} contentStyle={{ backgroundColor: '#111827', borderColor: '#1E293B', borderRadius: '0.5rem', color: '#fff' }} />
               <Legend />
-              <Bar yAxisId="left" dataKey="applied" name="Total Applications" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+              <Bar yAxisId="left" dataKey="applied" name="Total Applications" fill="#E11D48" radius={[4, 4, 0, 0]} maxBarSize={50} />
               <Bar yAxisId="right" dataKey="hired" name="Candidates Hired" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={50} />
             </BarChart>
           </ResponsiveContainer>

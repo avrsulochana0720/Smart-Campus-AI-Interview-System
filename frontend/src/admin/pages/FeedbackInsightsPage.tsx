@@ -79,7 +79,7 @@ export default function FeedbackInsightsPage() {
 
       {/* Recent Comments */}
       <div style={{ backgroundColor: '#0D1322', borderRadius: '1rem', border: '1px solid #1E293B', padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={18} color="#3B82F6"/> Recent Feedback Comments</h3>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#FFFFFF', margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageSquare size={18} color="#E11D48"/> Recent Feedback Comments</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {(data.comments || []).map((comment: any, i: number) => (
             <div key={i} style={{ padding: '1rem', backgroundColor: '#111827', borderRadius: '0.5rem', borderLeft: `3px solid ${comment.color}` }}>
