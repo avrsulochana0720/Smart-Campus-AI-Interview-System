@@ -293,7 +293,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             {(stats?.upcoming_interviews || []).map((u: any, i: number) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <img src={`https://ui-avatars.com/api/?name=${u.name.replace(' ', '+')}&background=random`} alt={u.name} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                   <div>
