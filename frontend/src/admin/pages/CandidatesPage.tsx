@@ -131,15 +131,15 @@ export default function CandidatesPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: departmentFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: departmentFilter !== 'All' ? '#E11D48' : '#FFFFFF', color: departmentFilter !== 'All' ? '#FFFFFF' : '#0F172A', border: departmentFilter !== 'All' ? '2px solid #E11D48' : '2px solid #E2E8F0', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}>
             <Building2 size={16} />
             Dept: {departmentFilter}
           </button>
-          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: scoreFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: scoreFilter !== 'All' ? '#E11D48' : '#FFFFFF', color: scoreFilter !== 'All' ? '#FFFFFF' : '#0F172A', border: scoreFilter !== 'All' ? '2px solid #E11D48' : '2px solid #E2E8F0', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}>
             <BarChart size={16} />
             Score: {scoreFilter}
           </button>
-          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: statusFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: statusFilter !== 'All' ? '#E11D48' : '#FFFFFF', color: statusFilter !== 'All' ? '#FFFFFF' : '#0F172A', border: statusFilter !== 'All' ? '2px solid #E11D48' : '2px solid #E2E8F0', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}>
             <Filter size={16} />
             Status: {statusFilter}
           </button>

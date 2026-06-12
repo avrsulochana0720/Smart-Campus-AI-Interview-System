@@ -129,11 +129,11 @@ export default function InterviewsPage() {
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: statusFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: statusFilter !== 'All' ? '#E11D48' : '#FFFFFF', color: statusFilter !== 'All' ? '#FFFFFF' : '#0F172A', border: statusFilter !== 'All' ? '2px solid #E11D48' : '2px solid #E2E8F0', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}>
             <Filter size={16} />
             Status: {statusFilter}
           </button>
-          <button onClick={toggleTypeFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: typeFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleTypeFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: typeFilter !== 'All' ? '#E11D48' : '#FFFFFF', color: typeFilter !== 'All' ? '#FFFFFF' : '#0F172A', border: typeFilter !== 'All' ? '2px solid #E11D48' : '2px solid #E2E8F0', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}>
             <Filter size={16} />
             Type: {typeFilter}
           </button>
