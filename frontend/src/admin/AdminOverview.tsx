@@ -202,7 +202,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0 }}>Interviews Over Time</h3>
-            <div style={{ backgroundColor: '#334155', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
+            <div style={{ backgroundColor: '#E11D48', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
               Daily <span>˅</span>
             </div>
           </div>
