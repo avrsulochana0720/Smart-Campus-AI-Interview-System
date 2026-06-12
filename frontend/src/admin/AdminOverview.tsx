@@ -9,7 +9,7 @@ import { Video, Users, BrainCircuit, Star, TrendingUp, Trophy, AlertTriangle, Cl
 import { adminAPI } from '../utils/api';
 
 const Card = ({ children, style = {} }: any) => (
-  <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '1rem', padding: '1.5rem', ...style }}>
+  <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', border: 'none', borderRadius: '1rem', padding: '1.5rem', boxShadow: '6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF', ...style }}>
     {children}
   </div>
 );
@@ -174,14 +174,14 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
               </div>
               <p style={{ color: '#64748B', fontSize: '0.7rem', margin: '0.25rem 0 0 0' }}>vs last week</p>
             </div>
-            <div style={{ backgroundColor: 'rgba(120, 53, 15, 0.4)', border: '1px solid #78350F', borderRadius: '0.5rem', padding: '0.35rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: '70px' }}>
+            <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid #FCD34D', borderRadius: '0.5rem', padding: '0.35rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: '70px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
-                <span style={{ color: '#FCD34D', fontWeight: 600 }}>TECH</span>
-                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
+                <span style={{ color: '#F59E0B', fontWeight: 600 }}>TECH</span>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
-                <span style={{ color: '#FCD34D', fontWeight: 600 }}>HR</span>
-                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
+                <span style={{ color: '#F59E0B', fontWeight: 600 }}>HR</span>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
               </div>
             </div>
           </div>
