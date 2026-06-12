@@ -57,7 +57,7 @@ export default function InterviewersPage() {
             placeholder="Search by name or department..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
       </div>
@@ -106,17 +106,17 @@ export default function InterviewersPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Full Name</label>
-              <input type="text" value={newInterviewer.name} onChange={(e) => setNewInterviewer({...newInterviewer, name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="John Doe" />
+              <input type="text" value={newInterviewer.name} onChange={(e) => setNewInterviewer({...newInterviewer, name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="John Doe" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Email Address</label>
-              <input type="email" value={newInterviewer.email} onChange={(e) => setNewInterviewer({...newInterviewer, email: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="john@company.com" />
+              <input type="email" value={newInterviewer.email} onChange={(e) => setNewInterviewer({...newInterviewer, email: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="john@company.com" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Department</label>
-              <select value={newInterviewer.department} onChange={(e) => setNewInterviewer({...newInterviewer, department: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }}>
+              <select value={newInterviewer.department} onChange={(e) => setNewInterviewer({...newInterviewer, department: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }}>
                 <option value="Engineering">Engineering</option>
                 <option value="Design">Design</option>
                 <option value="Product">Product</option>
@@ -126,7 +126,7 @@ export default function InterviewersPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #475569', color: '#64748B', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddInterviewer} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Interviewer</button>
+              <button onClick={handleAddInterviewer} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Interviewer</button>
             </div>
           </div>
         </div>

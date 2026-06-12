@@ -88,7 +88,7 @@ export default function FeedbackInsightsPage() {
             </div>
           ))}
           {(!data.comments || data.comments.length === 0) && (
-            <div style={{ color: '#64748B', fontSize: '0.85rem', padding: '1rem', textAlign: 'center', backgroundColor: '#0F172A', borderRadius: '0.5rem' }}>
+            <div style={{ fontSize: '0.85rem', padding: '1rem', textAlign: 'center', backgroundColor: '#E11D48', color: '#FFFFFF', borderRadius: '0.5rem' }}>
               No feedback submitted by users yet. Wait for candidates to submit feedback from their dashboard.
             </div>
           )}

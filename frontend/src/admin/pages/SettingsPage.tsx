@@ -107,19 +107,19 @@ export default function SettingsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>First Name</label>
-                  <input name="first_name" value={settings.first_name || 'Admin'} onChange={handleChange} type="text" style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: '#0F172A', fontSize: '0.9rem', outline: 'none' }} />
+                  <input name="first_name" value={settings.first_name || 'Admin'} onChange={handleChange} type="text" style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
                 <div>
                   <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>Last Name</label>
-                  <input name="last_name" value={settings.last_name || 'User'} onChange={handleChange} type="text" style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: '#0F172A', fontSize: '0.9rem', outline: 'none' }} />
+                  <input name="last_name" value={settings.last_name || 'User'} onChange={handleChange} type="text" style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>Email Address</label>
-                  <input name="email" value={settings.email || 'avrsulochana0720@gmail.com'} onChange={handleChange} type="email" style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: '#0F172A', fontSize: '0.9rem', outline: 'none' }} />
+                  <input name="email" value={settings.email || 'avrsulochana0720@gmail.com'} onChange={handleChange} type="email" style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>Bio</label>
-                  <textarea name="bio" value={settings.bio || 'Super Admin for Smart Campus AI Interview System.'} onChange={handleChange} rows={4} style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: '#0F172A', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
+                  <textarea name="bio" value={settings.bio || 'Super Admin for Smart Campus AI Interview System.'} onChange={handleChange} rows={4} style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.9rem', outline: 'none', resize: 'vertical' }} />
                 </div>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
             <div>
               <h3 style={{ fontSize: '1.2rem', color: '#0F172A', margin: '0 0 1.5rem 0', fontWeight: 600 }}>Security Settings</h3>
               
-              <div style={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '2rem' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '1.5rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <div>
                     <h4 style={{ color: '#334155', margin: '0 0 0.25rem 0', fontSize: '1rem', fontWeight: 500 }}>Two-Factor Authentication (2FA)</h4>
@@ -148,11 +148,11 @@ export default function SettingsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', maxWidth: '400px' }}>
                 <div>
                   <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>Current Password</label>
-                  <input name="current_password" value={settings.current_password || ''} onChange={handleChange} type="password" style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: '#0F172A', fontSize: '0.9rem', outline: 'none' }} />
+                  <input name="current_password" value={settings.current_password || ''} onChange={handleChange} type="password" style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
                 <div>
                   <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>New Password</label>
-                  <input name="new_password" value={settings.new_password || ''} onChange={handleChange} type="password" style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem 1rem', color: '#0F172A', fontSize: '0.9rem', outline: 'none' }} />
+                  <input name="new_password" value={settings.new_password || ''} onChange={handleChange} type="password" style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.9rem', outline: 'none' }} />
                 </div>
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                   { id: 'notif_errors', title: 'System Errors', desc: 'Get immediately notified if a proctoring system error occurs.' },
                   { id: 'notif_reports', title: 'Weekly Reports', desc: 'Receive a weekly digest of campus performance analytics.' }
                 ].map((notif) => (
-                  <div key={notif.id} style={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={notif.id} style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ color: '#334155', margin: '0 0 0.25rem 0', fontSize: '0.95rem', fontWeight: 500 }}>{notif.title}</h4>
                       <p style={{ color: '#64748B', fontSize: '0.8rem', margin: 0 }}>{notif.desc}</p>
@@ -190,7 +190,7 @@ export default function SettingsPage() {
               <h3 style={{ fontSize: '1.2rem', color: '#0F172A', margin: '0 0 1.5rem 0', fontWeight: 600 }}>API Configuration</h3>
               <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: '2rem' }}>Manage your secret API keys to authenticate with our endpoints programmatically.</p>
               
-              <div style={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '1.5rem' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '1.5rem' }}>
                 <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: 500 }}>Production Secret Key</label>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                   <input 

@@ -67,14 +67,14 @@ export default function UsersRolesPage() {
                 placeholder="Search users..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+                style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
               />
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <select 
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
-                style={{ backgroundColor: '#0F172A', color: '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', outline: 'none' }}
+                style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', outline: 'none' }}
               >
                 <option>All Roles</option>
                 <option>Super Admin</option>
@@ -89,7 +89,7 @@ export default function UsersRolesPage() {
           {/* User Table */}
           <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead style={{ backgroundColor: '#0F172A', borderBottom: '1px solid #334155' }}>
+              <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '1px solid #BE123C' }}>
                 <tr>
                   <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User</th>
                   <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</th>
@@ -136,7 +136,7 @@ export default function UsersRolesPage() {
                       </button>
                       
                       {actionMenuOpen === user.id && (
-                        <div style={{ position: 'absolute', right: '3rem', top: '1rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
+                        <div style={{ position: 'absolute', right: '3rem', top: '1rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
                           <button onClick={() => { showToast('Edit User feature triggered', 'info'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#334155', cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Edit Role</button>
                           <button onClick={() => { showToast('Permissions updated', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#334155', cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Permissions</button>
                           <button onClick={() => { showToast('User deactivated', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Deactivate</button>
@@ -192,17 +192,17 @@ export default function UsersRolesPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Name</label>
-              <input type="text" value={inviteForm.name} onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})} style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem', color: '#0F172A', outline: 'none' }} placeholder="John Doe" />
+              <input type="text" value={inviteForm.name} onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})} style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem', outline: 'none' }} placeholder="John Doe" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Email Address</label>
-              <input type="email" value={inviteForm.email} onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})} style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem', color: '#0F172A', outline: 'none' }} placeholder="john@example.com" />
+              <input type="email" value={inviteForm.email} onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})} style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem', outline: 'none' }} placeholder="john@example.com" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Role</label>
-              <select value={inviteForm.role} onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})} style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem', color: '#0F172A', outline: 'none' }}>
+              <select value={inviteForm.role} onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})} style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem', outline: 'none' }}>
                 <option value="Admin">Admin</option>
                 <option value="Super Admin">Super Admin</option>
                 <option value="Interviewer">Interviewer</option>
@@ -215,7 +215,7 @@ export default function UsersRolesPage() {
               <button onClick={() => {
                 showToast(`Invitation sent to ${inviteForm.email}!`, 'success');
                 setShowInviteModal(false);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Send Invite</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Send Invite</button>
             </div>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function UsersRolesPage() {
             <p style={{ color: '#64748B', fontSize: '0.9rem', marginBottom: '2rem' }}>Adjust default access levels for each system role across major modules.</p>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', marginBottom: '2rem' }}>
-              <thead style={{ backgroundColor: '#0F172A', borderBottom: '1px solid #334155' }}>
+              <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '1px solid #BE123C' }}>
                 <tr>
                   <th style={{ padding: '1rem', textAlign: 'left', color: '#64748B', fontSize: '0.8rem', fontWeight: 600 }}>Module</th>
                   <th style={{ padding: '1rem', color: '#64748B', fontSize: '0.8rem', fontWeight: 600 }}>Admin</th>
@@ -254,7 +254,7 @@ export default function UsersRolesPage() {
               <button onClick={() => {
                 showToast(`Global permissions updated successfully!`, 'success');
                 setShowPermissionsModal(false);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
             </div>
           </div>
         </div>

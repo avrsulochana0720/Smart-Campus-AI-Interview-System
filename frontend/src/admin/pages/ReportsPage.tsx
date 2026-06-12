@@ -78,12 +78,12 @@ export default function ReportsPage() {
             placeholder="Search reports..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setTypeFilterOpen(!typeFilterOpen)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}><Filter size={14}/> {typeFilter}</button>
+            <button onClick={() => setTypeFilterOpen(!typeFilterOpen)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}><Filter size={14}/> {typeFilter}</button>
             {typeFilterOpen && (
               <div style={{ position: 'absolute', top: '100%', left: '0', marginTop: '0.5rem', backgroundColor: '#334155', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '150px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
                 {['All Types', 'Engineering', 'Marketing', 'Sales'].map(opt => (
@@ -95,7 +95,7 @@ export default function ReportsPage() {
             )}
           </div>
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setDateFilterOpen(!dateFilterOpen)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}><Calendar size={14}/> {dateFilter}</button>
+            <button onClick={() => setDateFilterOpen(!dateFilterOpen)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}><Calendar size={14}/> {dateFilter}</button>
             {dateFilterOpen && (
               <div style={{ position: 'absolute', top: '100%', right: '0', marginTop: '0.5rem', backgroundColor: '#334155', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '150px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
                 {['All Time', 'Last 7 Days', 'Last 30 Days', 'This Year'].map(opt => (
@@ -173,22 +173,22 @@ export default function ReportsPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Candidate Name</label>
-              <input type="text" value={newReport.candidate_name} onChange={(e) => setNewReport({...newReport, candidate_name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="e.g. John Doe" />
+              <input type="text" value={newReport.candidate_name} onChange={(e) => setNewReport({...newReport, candidate_name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="e.g. John Doe" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Job Role</label>
-              <input type="text" value={newReport.job_role} onChange={(e) => setNewReport({...newReport, job_role: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="e.g. Software Engineer" />
+              <input type="text" value={newReport.job_role} onChange={(e) => setNewReport({...newReport, job_role: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="e.g. Software Engineer" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Final Score</label>
-              <input type="number" value={newReport.final_score} onChange={(e) => setNewReport({...newReport, final_score: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} min="0" max="100" />
+              <input type="number" value={newReport.final_score} onChange={(e) => setNewReport({...newReport, final_score: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} min="0" max="100" />
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsGenerating(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #475569', color: '#64748B', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleGenerateReport} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Now</button>
+              <button onClick={handleGenerateReport} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Now</button>
             </div>
           </div>
         </div>

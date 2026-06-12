@@ -64,7 +64,7 @@ export default function CoursesPage() {
             placeholder="Search courses..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
       </div>
@@ -96,11 +96,11 @@ export default function CoursesPage() {
             <p style={{ fontSize: '0.75rem', color: '#E11D48', margin: '0 0 1.5rem 0', fontWeight: 600 }}>{course.id}</p>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', flex: 1 }}>
-              <div style={{ backgroundColor: '#0F172A', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Users size={12}/> Enrolled</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#0F172A' }}>{course.enrolled}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><BrainCircuit size={12}/> Avg AI Score</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 600, color: course.avgScore > 80 ? '#22C55E' : '#F59E0B' }}>{course.avgScore}%</div>
               </div>
@@ -124,17 +124,17 @@ export default function CoursesPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Course Title</label>
-              <input type="text" value={newCourse.title} onChange={(e) => setNewCourse({...newCourse, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="e.g. Full Stack Engineering" />
+              <input type="text" value={newCourse.title} onChange={(e) => setNewCourse({...newCourse, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="e.g. Full Stack Engineering" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Number of Modules</label>
-              <input type="number" value={newCourse.modules} onChange={(e) => setNewCourse({...newCourse, modules: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} min="1" />
+              <input type="number" value={newCourse.modules} onChange={(e) => setNewCourse({...newCourse, modules: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} min="1" />
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #475569', color: '#64748B', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCreateCourse} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Course</button>
+              <button onClick={handleCreateCourse} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Course</button>
             </div>
           </div>
         </div>
@@ -148,23 +148,23 @@ export default function CoursesPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Course Title</label>
-              <input type="text" value={editingCourse.title} onChange={(e) => setEditingCourse({...editingCourse, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} />
+              <input type="text" value={editingCourse.title} onChange={(e) => setEditingCourse({...editingCourse, title: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} />
             </div>
 
             <div style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                     <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Enrolled</label>
-                    <input type="number" value={editingCourse.enrolled} onChange={(e) => setEditingCourse({...editingCourse, enrolled: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} />
+                    <input type="number" value={editingCourse.enrolled} onChange={(e) => setEditingCourse({...editingCourse, enrolled: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} />
                 </div>
                 <div>
                     <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Modules</label>
-                    <input type="number" value={editingCourse.modules} onChange={(e) => setEditingCourse({...editingCourse, modules: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} />
+                    <input type="number" value={editingCourse.modules} onChange={(e) => setEditingCourse({...editingCourse, modules: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} />
                 </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setEditingCourse(null)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #475569', color: '#64748B', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleSaveEdit} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
+              <button onClick={handleSaveEdit} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Changes</button>
             </div>
           </div>
         </div>

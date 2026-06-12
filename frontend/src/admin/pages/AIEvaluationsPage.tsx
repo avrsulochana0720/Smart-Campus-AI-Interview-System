@@ -47,7 +47,7 @@ export default function AIEvaluationsPage() {
 
       <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: '#0F172A', borderBottom: '1px solid #334155' }}>
+          <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '1px solid #BE123C' }}>
             <tr>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Session ID</th>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Candidate</th>
@@ -104,7 +104,7 @@ export default function AIEvaluationsPage() {
               </div>
             </div>
             
-            <div style={{ marginBottom: '1.5rem', backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+            <div style={{ marginBottom: '1.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Candidate</div>

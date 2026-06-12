@@ -69,7 +69,7 @@ export default function BatchManagementPage() {
             <div key={batch.id} style={{ backgroundColor: '#FAF6EE', borderRadius: '1rem', border: '1px solid #334155', padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: '#0F172A', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Layers size={24} color="#E11D48" />
                   </div>
                   <div>
@@ -88,7 +88,7 @@ export default function BatchManagementPage() {
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#0F172A', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #BE123C' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.75rem' }}>
                   <div>
                     <div style={{ fontSize: '0.85rem', color: '#0F172A', fontWeight: 500, marginBottom: '0.25rem' }}>Placement Progress</div>
@@ -112,34 +112,34 @@ export default function BatchManagementPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Batch Name</label>
-              <input type="text" value={newBatch.name} onChange={(e) => setNewBatch({...newBatch, name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="e.g. Computer Science 2026" />
+              <input type="text" value={newBatch.name} onChange={(e) => setNewBatch({...newBatch, name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="e.g. Computer Science 2026" />
             </div>
 
             <div style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                     <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Start Date</label>
-                    <input type="date" value={newBatch.startDate} onChange={(e) => setNewBatch({...newBatch, startDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none', colorScheme: 'dark' }} />
+                    <input type="date" value={newBatch.startDate} onChange={(e) => setNewBatch({...newBatch, startDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none', colorScheme: 'dark' }} />
                 </div>
                 <div>
                     <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Graduation Date</label>
-                    <input type="date" value={newBatch.gradDate} onChange={(e) => setNewBatch({...newBatch, gradDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none', colorScheme: 'dark' }} />
+                    <input type="date" value={newBatch.gradDate} onChange={(e) => setNewBatch({...newBatch, gradDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none', colorScheme: 'dark' }} />
                 </div>
             </div>
 
             <div style={{ marginBottom: '1rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                     <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Total Students</label>
-                    <input type="number" value={newBatch.totalStudents} onChange={(e) => setNewBatch({...newBatch, totalStudents: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} />
+                    <input type="number" value={newBatch.totalStudents} onChange={(e) => setNewBatch({...newBatch, totalStudents: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} />
                 </div>
                 <div>
                     <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Initial Placed</label>
-                    <input type="number" value={newBatch.placed} onChange={(e) => setNewBatch({...newBatch, placed: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} />
+                    <input type="number" value={newBatch.placed} onChange={(e) => setNewBatch({...newBatch, placed: parseInt(e.target.value) || 0})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} />
                 </div>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Batch Status</label>
-              <select value={newBatch.status} onChange={(e) => setNewBatch({...newBatch, status: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }}>
+              <select value={newBatch.status} onChange={(e) => setNewBatch({...newBatch, status: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }}>
                 <option value="Preparation Phase">Preparation Phase</option>
                 <option value="Active Hiring">Active Hiring</option>
                 <option value="Completed">Completed</option>
@@ -148,7 +148,7 @@ export default function BatchManagementPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #475569', color: '#64748B', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleCreateBatch} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Batch</button>
+              <button onClick={handleCreateBatch} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Create Batch</button>
             </div>
           </div>
         </div>

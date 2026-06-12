@@ -61,7 +61,7 @@ export default function AuditLogsPage() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0F172A', margin: 0 }}>Security & Audit Logs</h2>
           <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Strict chronological record of all system modifications and access events.</p>
         </div>
-        <button onClick={exportToCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: '#334155', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0F172A'}>
+        <button onClick={exportToCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0F172A'}>
           Export Logs (CSV)
         </button>
       </div>
@@ -74,14 +74,14 @@ export default function AuditLogsPage() {
             placeholder="Search by action, user, or IP address..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <select 
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            style={{ backgroundColor: '#0F172A', color: '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+            style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
           >
             <option value="All Types">All Event Types</option>
             <option value="security">Security</option>
@@ -93,7 +93,7 @@ export default function AuditLogsPage() {
 
       <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden', fontFamily: 'monospace' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: '#0F172A', borderBottom: '1px solid #334155' }}>
+          <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '1px solid #BE123C' }}>
             <tr>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Log ID</th>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Action Event</th>

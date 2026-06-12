@@ -44,7 +44,7 @@ export default function IntegrationsPage() {
         ) : integrations.map((app, i) => (
           <div key={i} style={{ backgroundColor: '#FAF6EE', borderRadius: '1rem', border: '1px solid #334155', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '0.75rem', backgroundColor: '#0F172A', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <img src={app.icon} alt={app.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', fontWeight: 600, color: app.status === 'Connected' ? '#22C55E' : '#64748B', backgroundColor: app.status === 'Connected' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(100, 116, 139, 0.1)', padding: '0.25rem 0.75rem', borderRadius: '1rem' }}>
@@ -73,7 +73,7 @@ export default function IntegrationsPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ backgroundColor: '#FAF6EE', padding: '2rem', borderRadius: '0.75rem', border: '1px solid #334155', width: '500px', maxWidth: '90%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: '#0F172A', padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <img src={configureApp.icon} alt={configureApp.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
               <h2 style={{ fontSize: '1.25rem', color: '#0F172A', margin: 0 }}>Configure {configureApp.name}</h2>
@@ -81,15 +81,15 @@ export default function IntegrationsPage() {
             
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem' }}>API Endpoint URL</label>
-              <input type="text" defaultValue={`https://api.${configureApp.name.toLowerCase().replace(' ', '')}.com/v1/sync`} style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem', color: '#0F172A', outline: 'none' }} />
+              <input type="text" defaultValue={`https://api.${configureApp.name.toLowerCase().replace(' ', '')}.com/v1/sync`} style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem', outline: 'none' }} />
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Access Token / Secret Key</label>
-              <input type="password" placeholder="Enter your secret key" style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.75rem', color: '#0F172A', outline: 'none' }} />
+              <input type="password" placeholder="Enter your secret key" style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.75rem', outline: 'none' }} />
             </div>
             
-            <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 500 }}>Auto-Sync Data</div>
                 <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Automatically push interview results</div>
@@ -107,7 +107,7 @@ export default function IntegrationsPage() {
               <button onClick={() => {
                 showToast(`Configuration saved for ${configureApp.name}`, 'success');
                 setConfigureApp(null);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Configuration</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Save Configuration</button>
             </div>
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function IntegrationsPage() {
       {actionApp && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ backgroundColor: '#FAF6EE', padding: '2rem', borderRadius: '0.75rem', border: '1px solid #334155', width: '400px', maxWidth: '90%', textAlign: 'center' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '1rem', backgroundColor: '#0F172A', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '1rem', backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
               <img src={actionApp.icon} alt={actionApp.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             

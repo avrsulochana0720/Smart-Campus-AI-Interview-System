@@ -9,7 +9,7 @@ import { Video, Users, BrainCircuit, Star, TrendingUp, Trophy, AlertTriangle, Cl
 import { adminAPI } from '../utils/api';
 
 const Card = ({ children, style = {} }: any) => (
-  <div style={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '1rem', padding: '1.5rem', ...style }}>
+  <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '1rem', padding: '1.5rem', ...style }}>
     {children}
   </div>
 );
@@ -68,7 +68,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           <h1 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>Welcome back, Admin <span style={{ fontSize: '1.25rem' }}>👋</span></h1>
           <p style={{ color: '#64748B', margin: 0, fontSize: '0.9rem' }}>Here's what's happening with your smart campus AI interview system today.</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', border: '1px solid #334155', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', color: '#475569', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
           <span>May 20 – May 26, 2024</span>
           <Calendar size={14} color="#64748B" />
         </div>
@@ -177,11 +177,11 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
             <div style={{ backgroundColor: 'rgba(120, 53, 15, 0.4)', border: '1px solid #78350F', borderRadius: '0.5rem', padding: '0.35rem 0.6rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: '70px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
                 <span style={{ color: '#FCD34D', fontWeight: 600 }}>TECH</span>
-                <span style={{ color: '#0F172A', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
+                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{stats?.avg_technical_score || 0}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.65rem' }}>
                 <span style={{ color: '#FCD34D', fontWeight: 600 }}>HR</span>
-                <span style={{ color: '#0F172A', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
+                <span style={{ color: '#FFFFFF', fontWeight: 700 }}>{stats?.avg_hr_score || 0}</span>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
             {(stats?.upcoming_interviews || []).map((u: any, i: number) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0F172A', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#E11D48', color: '#FFFFFF', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <img src={`https://ui-avatars.com/api/?name=${u.name.replace(' ', '+')}&background=random`} alt={u.name} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                   <div>

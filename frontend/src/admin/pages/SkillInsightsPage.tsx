@@ -52,7 +52,7 @@ export default function SkillInsightsPage() {
           <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A', margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Target size={18} color="#EF4444"/> Critical Skill Gaps</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {(data.gaps || []).map((s: any, i: number) => (
-              <div key={i} style={{ padding: '1rem', backgroundColor: '#0F172A', borderRadius: '0.5rem', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={i} style={{ padding: '1rem', backgroundColor: '#E11D48', color: '#FFFFFF', borderRadius: '0.5rem', border: '1px solid #BE123C', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '0.9rem', color: '#0F172A', fontWeight: 500 }}>{s.skill}</span>
@@ -75,7 +75,7 @@ export default function SkillInsightsPage() {
         
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
           {(data.competency || []).map((tag: any, i: number) => (
-            <button key={i} onClick={() => setSelectedSkill(tag)} style={{ fontSize: tag.size, fontWeight: tag.weight, color: tag.color, padding: '0.5rem', backgroundColor: '#0F172A', borderRadius: '0.5rem', border: '1px solid #334155', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#334155'; e.currentTarget.style.transform = 'scale(1.05)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0F172A'; e.currentTarget.style.transform = 'scale(1)'; }}>
+            <button key={i} onClick={() => setSelectedSkill(tag)} style={{ fontSize: tag.size, fontWeight: tag.weight, color: tag.color, padding: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', borderRadius: '0.5rem', border: '1px solid #BE123C', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#334155'; e.currentTarget.style.transform = 'scale(1.05)'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#0F172A'; e.currentTarget.style.transform = 'scale(1)'; }}>
               {tag.name}
             </button>
           ))}
@@ -96,7 +96,7 @@ export default function SkillInsightsPage() {
               <div style={{ color: '#0F172A', fontSize: '1.25rem', fontWeight: 600 }}>{selectedGap.skill}</div>
             </div>
 
-            <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155', marginBottom: '2rem' }}>
+            <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#E11D48', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
                 <Zap size={16} /> Recommended Action Strategy
               </div>
@@ -110,7 +110,7 @@ export default function SkillInsightsPage() {
               <button onClick={() => {
                 showToast(`New curriculum pathway generated for ${selectedGap.skill}!`, 'success');
                 setSelectedGap(null);
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Curriculum</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Generate Curriculum</button>
             </div>
           </div>
         </div>
@@ -130,11 +130,11 @@ export default function SkillInsightsPage() {
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem', textAlign: 'left' }}>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                 <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Campus Saturation</div>
                 <div style={{ color: selectedSkill.color, fontSize: '1.25rem', fontWeight: 600 }}>{Math.floor(Math.random() * 40) + 40}%</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                 <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.25rem' }}>Industry Demand</div>
                 <div style={{ color: '#22C55E', fontSize: '1.25rem', fontWeight: 600 }}>Very High</div>
               </div>

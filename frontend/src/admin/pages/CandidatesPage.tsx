@@ -127,19 +127,19 @@ export default function CandidatesPage() {
             placeholder="Search name, email, or phone..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: departmentFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleDepartmentFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: departmentFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Building2 size={16} />
             Dept: {departmentFilter}
           </button>
-          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: scoreFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleScoreFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: scoreFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <BarChart size={16} />
             Score: {scoreFilter}
           </button>
-          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#0F172A', color: statusFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+          <button onClick={toggleStatusFilter} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', color: statusFilter !== 'All' ? '#E11D48' : '#64748B', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', cursor: 'pointer' }}>
             <Filter size={16} />
             Status: {statusFilter}
           </button>
@@ -149,7 +149,7 @@ export default function CandidatesPage() {
       {/* Data Grid */}
       <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: '#0F172A', borderBottom: '1px solid #334155' }}>
+          <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '1px solid #BE123C' }}>
             <tr>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Candidate Info</th>
               <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Applied Role</th>
@@ -229,31 +229,31 @@ export default function CandidatesPage() {
               <button onClick={() => setSelectedCandidate(null)} style={{ background: 'transparent', border: 'none', color: '#64748B', cursor: 'pointer' }}>Close</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', color: '#334155', fontSize: '0.9rem' }}>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Full Name</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.name}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Candidate ID</div>
                   <div style={{ fontWeight: 600 }}>#{selectedCandidate.id}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155', gridColumn: '1 / -1' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C', gridColumn: '1 / -1' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Email Address</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.email}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Applied Role</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.job_role || 'General'}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Department</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.department || 'Unassigned'}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>AI Status</div>
                   <div style={{ fontWeight: 600 }}>{selectedCandidate.interview_status}</div>
               </div>
-              <div style={{ backgroundColor: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #334155' }}>
+              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #BE123C' }}>
                   <div style={{ color: '#64748B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Overall Score</div>
                   <div style={{ fontWeight: 600, color: getScoreColor(selectedCandidate.overall_score || 0) }}>
                       {selectedCandidate.overall_score || 'Pending'}

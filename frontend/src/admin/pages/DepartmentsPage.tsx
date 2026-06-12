@@ -56,7 +56,7 @@ export default function DepartmentsPage() {
             placeholder="Search departments..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', color: '#0F172A', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
           />
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function DepartmentsPage() {
             </div>
             
             {expandedDeptId === dept.id && (
-              <div style={{ padding: '1.5rem', borderTop: '1px solid #334155', backgroundColor: '#0F172A' }}>
+              <div style={{ padding: '1.5rem', borderTop: '1px solid #BE123C', backgroundColor: '#E11D48', color: '#FFFFFF' }}>
                 <h4 style={{ color: '#0F172A', fontSize: '1rem', margin: '0 0 1rem 0' }}>Advanced Department Metrics</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <div style={{ backgroundColor: '#334155', padding: '1rem', borderRadius: '0.5rem' }}>
@@ -125,17 +125,17 @@ export default function DepartmentsPage() {
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Department Name</label>
-              <input type="text" value={newDepartment.name} onChange={(e) => setNewDepartment({...newDepartment, name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="e.g. Marketing" />
+              <input type="text" value={newDepartment.name} onChange={(e) => setNewDepartment({...newDepartment, name: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="e.g. Marketing" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#64748B', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Department Head</label>
-              <input type="text" value={newDepartment.head} onChange={(e) => setNewDepartment({...newDepartment, head: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '0.5rem', color: '#0F172A', outline: 'none' }} placeholder="Jane Doe" />
+              <input type="text" value={newDepartment.head} onChange={(e) => setNewDepartment({...newDepartment, head: e.target.value})} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', outline: 'none' }} placeholder="Jane Doe" />
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setIsAdding(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '1px solid #475569', color: '#64748B', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleAddDepartment} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', border: 'none', color: '#FFFFFF', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Department</button>
+              <button onClick={handleAddDepartment} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}>Add Department</button>
             </div>
           </div>
         </div>
