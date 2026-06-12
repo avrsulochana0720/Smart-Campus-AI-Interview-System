@@ -104,7 +104,7 @@ export default function CandidatesPage() {
           <p style={{ fontSize: '0.85rem', color: '#1E293B', margin: '0.25rem 0 0 0' }}>Manage applicant pipeline, view AI evaluation scores, and track hiring status.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#334155', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer' }}>
             <Download size={16} />
             Export CSV
           </button>
@@ -121,13 +121,13 @@ export default function CandidatesPage() {
       {/* Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', backgroundColor: '#FAF6EE', padding: '1rem', borderRadius: '0.75rem', border: '2px solid #0F172A' }}>
         <div style={{ position: 'relative', width: '350px' }}>
-          <Search size={16} color="#64748B" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={16} color="#E11D48" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input 
             type="text" 
             placeholder="Search name, email, or phone..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '2px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', fontWeight: 600, outline: 'none' }} 
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -151,21 +151,21 @@ export default function CandidatesPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '2px solid #BE123C' }}>
             <tr>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Candidate Info</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Applied Role</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Score</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Candidate Info</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Applied Role</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Score</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#1E293B' }}>Loading candidates...</td></tr>
             ) : filteredCandidates.map((candidate, idx) => (
-              <tr key={idx} style={{ borderBottom: idx === filteredCandidates.length - 1 ? 'none' : '2px solid #0F172A', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0F172A'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+              <tr key={idx} style={{ borderBottom: idx === filteredCandidates.length - 1 ? 'none' : '2px solid #0F172A', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.05)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                 <td style={{ padding: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1E293B', fontSize: '1rem', fontWeight: 800, flexShrink: 0 }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#E11D48', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: '1rem', fontWeight: 800, flexShrink: 0 }}>
                       <User size={20} />
                     </div>
                     <div>
@@ -201,14 +201,14 @@ export default function CandidatesPage() {
                     <MoreHorizontal size={18} />
                   </button>
                   {activeMenuId === candidate.id && (
-                    <div style={{ position: 'absolute', right: '2rem', top: '2.5rem', backgroundColor: '#334155', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
-                      <div onClick={() => { showToast('Profile marked as priority.', 'success'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <div style={{ position: 'absolute', right: '2rem', top: '2.5rem', backgroundColor: '#FAF6EE', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)' }}>
+                      <div onClick={() => { showToast('Profile marked as priority.', 'success'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Mark Priority
                       </div>
-                      <div onClick={() => { showToast('Email sent to candidate.', 'info'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <div onClick={() => { showToast('Email sent to candidate.', 'info'); setActiveMenuId(null); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Send Email
                       </div>
-                      <div onClick={() => { showToast('Candidate rejected and removed.', 'warning'); setActiveMenuId(null); setCandidates(candidates.filter(c => c.id !== candidate.id)); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#475569'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <div onClick={() => { showToast('Candidate rejected and removed.', 'warning'); setActiveMenuId(null); setCandidates(candidates.filter(c => c.id !== candidate.id)); }} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Reject Candidate
                       </div>
                     </div>
@@ -226,35 +226,35 @@ export default function CandidatesPage() {
           <div style={{ backgroundColor: '#FAF6EE', padding: '2rem', borderRadius: '0.75rem', border: '2px solid #0F172A', width: '500px', maxWidth: '90%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', color: '#0F172A', margin: 0 }}>Advanced Candidate Profile</h2>
-              <button onClick={() => setSelectedCandidate(null)} style={{ background: 'transparent', border: 'none', color: '#1E293B', cursor: 'pointer' }}>Close</button>
+              <button onClick={() => setSelectedCandidate(null)} style={{ background: 'transparent', border: 'none', color: '#0F172A', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem' }}>Close</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', color: '#0F172A', fontSize: '0.9rem' }}>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Full Name</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>Full Name</div>
                   <div style={{ fontWeight: 800 }}>{selectedCandidate.name}</div>
               </div>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Candidate ID</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>Candidate ID</div>
                   <div style={{ fontWeight: 800 }}>#{selectedCandidate.id}</div>
               </div>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C', gridColumn: '1 / -1' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Email Address</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A', gridColumn: '1 / -1' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>Email Address</div>
                   <div style={{ fontWeight: 800 }}>{selectedCandidate.email}</div>
               </div>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Applied Role</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>Applied Role</div>
                   <div style={{ fontWeight: 800 }}>{selectedCandidate.job_role || 'General'}</div>
               </div>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Department</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>Department</div>
                   <div style={{ fontWeight: 800 }}>{selectedCandidate.department || 'Unassigned'}</div>
               </div>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>AI Status</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>AI Status</div>
                   <div style={{ fontWeight: 800 }}>{selectedCandidate.interview_status}</div>
               </div>
-              <div style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #BE123C' }}>
-                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Overall Score</div>
+              <div style={{ backgroundColor: '#FAF6EE', color: '#0F172A', padding: '1rem', borderRadius: '0.5rem', border: '2px solid #0F172A' }}>
+                  <div style={{ color: '#1E293B', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 700 }}>Overall Score</div>
                   <div style={{ fontWeight: 800, color: getScoreColor(selectedCandidate.overall_score || 0) }}>
                       {selectedCandidate.overall_score || 'Pending'}
                   </div>
