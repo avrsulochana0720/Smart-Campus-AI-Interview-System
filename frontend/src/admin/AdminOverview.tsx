@@ -219,7 +219,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dx={-10} />
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#334155', border: 'none', borderRadius: '0.5rem', color: '#0F172A', fontSize: '0.8rem' }}
+                  contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.5rem', color: '#E11D48', fontSize: '0.8rem' }}
                   itemStyle={{ color: '#E11D48' }}
                 />
                 <Area type="monotone" dataKey="value" stroke="#E11D48" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#E11D48', stroke: '#0F172A', strokeWidth: 3 }} />
@@ -334,7 +334,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748B', fontSize: 12 }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar name="Platform Average" dataKey="A" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.5} />
-                <RechartsTooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
+                <RechartsTooltip contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.5rem', color: '#E11D48' }} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
@@ -354,7 +354,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#64748B" fontSize={12} tickLine={false} axisLine={false} />
-                <RechartsTooltip cursor={{fill: '#334155'}} contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', borderRadius: '0.5rem', color: '#fff' }} />
+                <RechartsTooltip cursor={{fill: '#E2E8F0'}} contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '0.5rem', color: '#E11D48' }} />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {
                     (stats?.bar_data || []).map((entry: any, index: number) => (
