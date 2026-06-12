@@ -142,17 +142,17 @@ export default function InterviewsPage() {
 
       {/* Content Area */}
       {viewMode === 'calendar' ? (
-        <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '2px solid #0F172A', padding: '2rem', textAlign: 'center', color: '#64748B' }}>
+        <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '2px solid #0F172A', padding: '2rem', textAlign: 'center', color: '#0F172A' }}>
           <Calendar size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-          <h3 style={{ margin: '0 0 0.5rem 0', color: '#334155' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontWeight: 800 }}>
             Calendar View: {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h3>
-          <p>Displaying schedule for {filteredInterviews.length} interviews this month.</p>
+          <p style={{ fontWeight: 600 }}>Displaying schedule for {filteredInterviews.length} interviews this month.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginTop: '2rem' }}>
             {/* Simple mock calendar grid */}
             {[...Array(30)].map((_, i) => (
-              <div key={i} style={{ height: '60px', backgroundColor: '#E11D48', color: '#FFFFFF', borderRadius: '0.25rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '0.25rem' }}>
-                <span style={{ fontSize: '0.7rem', color: '#64748B' }}>{i + 1}</span>
+              <div key={i} style={{ height: '60px', backgroundColor: '#FAF6EE', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.25rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '0.25rem', transition: 'all 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.05)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FAF6EE'}>
+                <span style={{ fontSize: '0.85rem', color: '#0F172A', fontWeight: 800 }}>{i + 1}</span>
                 {filteredInterviews.length > 0 && i % 7 === 3 && (
                   <div style={{ width: '100%', height: '4px', backgroundColor: '#E11D48', borderRadius: '2px', marginTop: 'auto' }}></div>
                 )}
