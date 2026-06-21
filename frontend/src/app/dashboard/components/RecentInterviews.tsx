@@ -76,6 +76,17 @@ function RecentInterviews({ interviews, onViewAll }: RecentInterviewsProps) {
             year: 'numeric',
           });
 
+          let score = interview.report?.final_interview_score || interview.report?.hiring_readiness_score || 0;
+          if (score === 0) {
+            score = interview.average_score || 0;
+            if (score > 0 && score <= 10) {
+              score = score * 10;
+            }
+          } else if (score > 0 && score <= 10) {
+            score = score * 10;
+          }
+          const finalScore = Math.round(score);
+
           return (
             <div
               key={interview.interview_id}
@@ -97,7 +108,7 @@ function RecentInterviews({ interviews, onViewAll }: RecentInterviewsProps) {
               </div>
 
               <span className="text-sm font-bold text-[#DC2626] flex-shrink-0 mx-3">
-                {Math.round(interview.average_score * 10)}
+                {finalScore}
               </span>
 
               <div className="flex flex-col items-end flex-shrink-0">

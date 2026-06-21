@@ -15,23 +15,38 @@ export default function CoursesPage() {
   const [editingCourse, setEditingCourse] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
-  const handleCreateCourse = () => {
+  const handleCreateCourse = async () => {
     if (!newCourse.title) {
       showToast('Course title is required.', 'error');
       return;
     }
-    const added = { id: `TRK-${Date.now().toString().slice(-4)}`, title: newCourse.title, enrolled: 0, avgScore: 0, modules: newCourse.modules };
-    setCourses([added, ...courses]);
-    setIsAdding(false);
-    setNewCourse({ title: '', modules: 12 });
-    showToast('Course created successfully.', 'success');
+    try {
+      const created = await adminAPI.createCourse({
+        title: newCourse.title,
+        modules: newCourse.modules
+      });
+      setCourses([created, ...courses]);
+      setIsAdding(false);
+      setNewCourse({ title: '', modules: 12 });
+      showToast('Course created successfully.', 'success');
+    } catch (e: any) {
+      showToast('Failed to create course.', 'error');
+    }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editingCourse) return;
-    setCourses(courses.map(c => c.id === editingCourse.id ? editingCourse : c));
-    setEditingCourse(null);
-    showToast('Course updated successfully.', 'success');
+    try {
+      const updated = await adminAPI.updateCourse(editingCourse.id, {
+        title: editingCourse.title,
+        modules: editingCourse.modules
+      });
+      setCourses(courses.map(c => c.id === editingCourse.id ? { ...editingCourse, ...updated } : c));
+      setEditingCourse(null);
+      showToast('Course updated successfully.', 'success');
+    } catch (e: any) {
+      showToast('Failed to update course.', 'error');
+    }
   };
 
   useEffect(() => {

@@ -19,11 +19,18 @@ import IntegrationsPage from './admin/pages/IntegrationsPage';
 import AuditLogsPage from './admin/pages/AuditLogsPage';
 import SystemMonitoringPage from './admin/pages/SystemMonitoringPage';
 import PlaceholderPage from './admin/pages/PlaceholderPage';
+import ForbiddenPage from './admin/pages/ForbiddenPage';
 
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState('Dashboard');
 
   const renderContent = () => {
+    const adminRole = localStorage.getItem('adminRole') || '';
+    const restrictedTabsForTPO = ['Users & Roles', 'Integrations', 'Audit Logs', 'System Monitoring'];
+    if (adminRole === 'tpo' && restrictedTabsForTPO.includes(activeTab)) {
+      return <ForbiddenPage title={activeTab} />;
+    }
+
     switch (activeTab) {
       case 'Dashboard': return <AdminOverview setActiveTab={setActiveTab} />;
       case 'Interviews': return <InterviewsPage />;

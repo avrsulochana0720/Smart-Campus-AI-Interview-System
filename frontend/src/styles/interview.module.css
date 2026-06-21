@@ -47,18 +47,18 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1.25rem 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   margin-top: 0.5rem;
   transition: all 0.2s ease;
 }
 
 .profileCard:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .avatar {
@@ -69,10 +69,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   margin-bottom: 0.75rem;
   overflow: hidden;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #0F172A;
 }
 
 .avatarImage {
@@ -98,7 +98,7 @@
 .candidateRole {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748B;
+  color: #1E293B;
   margin-bottom: 0.75rem;
 }
 
@@ -111,9 +111,9 @@
   font-size: 0.7rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  border: none;
+  border: 2px solid #0F172A;
   cursor: pointer;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -124,7 +124,7 @@
 
 .aiInterviewerButton:active {
   transform: translateY(0);
-  box-shadow: inset 2px 2px 4px rgba(185, 28, 28, 0.4), inset -2px -2px 4px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 /* Progress Card */
@@ -132,14 +132,14 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   transition: all 0.2s ease;
 }
 
 .progressCard:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .progressTitle {
@@ -147,7 +147,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #475569;
+  color: #1E293B;
   margin-bottom: 0.75rem;
 }
 
@@ -159,7 +159,7 @@
 }
 
 .progressLabel {
-  color: #64748B;
+  color: #1E293B;
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -175,30 +175,30 @@
 .progressBadgeActive {
   background: #FAF6EE;
   color: #DC2626;
-  border: 1px solid rgba(220, 38, 38, 0.25);
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.03);
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .progressBadgePending {
   background: #FAF6EE;
   color: #F59E0B;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.03);
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .progressBadgeCompleted {
   background: #FAF6EE;
   color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.03);
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .progressBadgeHigh {
   background: #FAF6EE;
   color: #DC2626;
   font-weight: 800;
-  border: 1.5px solid #DC2626;
-  box-shadow: inset 1px 1px 3px rgba(185, 28, 28, 0.1);
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 /* Tips Card */
@@ -206,15 +206,15 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   flex: 1;
   transition: all 0.2s ease;
 }
 
 .tipsCard:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .tipsTitle {
@@ -222,13 +222,13 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #475569;
+  color: #1E293B;
   margin-bottom: 0.75rem;
 }
 
 .tipItem {
   font-size: 0.75rem;
-  color: #64748B;
+  color: #1E293B;
   margin-bottom: 0.5rem;
   line-height: 1.5;
   font-weight: 500;
@@ -245,8 +245,8 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 0.5rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -256,7 +256,7 @@
 
 .interviewerCard:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .interviewerAvatar {
@@ -266,11 +266,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 4px 4px 10px rgba(139, 120, 95, 0.12), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   position: relative;
   transition: all 0.2s ease;
   margin-bottom: 0.25rem;
-  border: 4px solid #FFFFFF;
+  border: 2px solid #0F172A;
 }
 
 .interviewerAvatar svg {
@@ -292,7 +292,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #475569;
+  color: #1E293B;
   margin-top: 0.25rem;
 }
 
@@ -325,14 +325,14 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #0F172A;
   z-index: 2;
-  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .speakingEffect {
-  border: 4px solid #DC2626 !important;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.3), -4px -4px 10px #FFFFFF !important;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .pulseRing {
@@ -344,15 +344,15 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   position: relative;
   transition: all 0.2s ease;
 }
 
 .questionCard:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .questionLabel {
@@ -360,7 +360,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #475569;
+  color: #1E293B;
   margin-bottom: 0.5rem;
 }
 
@@ -376,8 +376,8 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   position: relative;
   transition: all 0.2s ease;
 }
@@ -404,7 +404,7 @@
   border-radius: 0.75rem;
   font-weight: 700;
   font-size: 0.75rem;
-  border: 1px solid transparent;
+  border: 2px solid #0F172A;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -416,22 +416,22 @@
 
 .controlButtonInactive {
   background: #FAF6EE;
-  color: #475569;
+  color: #1E293B;
   border-color: #E2E8F0;
-  box-shadow: 2px 2px 5px rgba(139, 120, 95, 0.12), -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .controlButtonInactive:hover {
   background: #F3ECE0;
   color: #0F172A;
-  box-shadow: inset 1px 1px 3px rgba(139, 120, 95, 0.12), inset -1px -1px 3px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .controlButtonCameraOn {
   background: #FAF6EE;
   color: #DC2626;
   border-color: rgba(220, 38, 38, 0.3);
-  box-shadow: 2px 2px 5px rgba(185, 28, 28, 0.15), -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .controlButtonCameraOn:hover {
@@ -442,7 +442,7 @@
   background: #DC2626;
   color: #FFFFFF;
   border-color: #DC2626;
-  box-shadow: 2px 2px 5px rgba(185, 28, 28, 0.25), -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .controlButtonRecording:hover {
@@ -456,9 +456,9 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   background: #FAF6EE;
-  border: 1px solid rgba(220, 38, 38, 0.25);
+  border: 2px solid #0F172A;
   border-radius: 0.75rem;
-  box-shadow: inset 2px 2px 5px rgba(185, 28, 28, 0.05), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .timer svg {
@@ -479,8 +479,8 @@
   margin-top: 0.5rem;
   border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12);
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
 }
 
 .cameraPreview video {
@@ -494,8 +494,8 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -511,7 +511,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #475569;
+  color: #1E293B;
   margin-bottom: 0.5rem;
 }
 
@@ -519,7 +519,7 @@
   width: 100%;
   flex: 1;
   padding: 1rem;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 1rem;
   font-family: inherit;
   font-size: 0.9rem;
@@ -529,18 +529,18 @@
   color: #0F172A;
   transition: all 0.2s ease;
   min-height: 0;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .textarea::placeholder {
-  color: #94A3B8;
+  color: #1E293B;
 }
 
 .textarea:focus {
   outline: none;
   border-color: #DC2626;
   background: #FAF6EE;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 /* Buttons Card */
@@ -548,14 +548,14 @@
   background: #FAF6EE;
   border-radius: 1.25rem;
   padding: 1rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   transition: all 0.2s ease;
 }
 
 .buttonsCard:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .bottomButtons {
@@ -569,7 +569,7 @@
   border-radius: 0.75rem;
   font-weight: 700;
   font-size: 0.8rem;
-  border: none;
+  border: 2px solid #0F172A;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -581,8 +581,8 @@
 .buttonPrevious {
   background: #FAF6EE;
   color: #0F172A;
-  border: 1px solid #E2E8F0;
-  box-shadow: 2px 2px 5px rgba(139, 120, 95, 0.12), -2px -2px 5px #FFFFFF;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .buttonPrevious:hover {
@@ -598,7 +598,7 @@
 .buttonSave {
   background: #DC2626;
   color: #FFFFFF;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .buttonSave:hover {
@@ -608,7 +608,7 @@
 .buttonNext {
   background: #DC2626;
   color: #FFFFFF;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .buttonNext:hover {

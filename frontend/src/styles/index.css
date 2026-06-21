@@ -68,12 +68,12 @@ button {
   background: #DC2626;
   color: #FFFFFF;
   padding: 0.75rem 1.5rem;
-  border: none;
+  border: 2px solid #0F172A;
   border-radius: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 button:hover {
@@ -83,31 +83,38 @@ button:hover {
 
 button:active {
   transform: translateY(0);
-  box-shadow: inset 4px 4px 8px rgba(185, 28, 28, 0.4), inset -4px -4px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 /* Inputs - Neumorphic Inset Tactile Bright Beige */
-input, textarea, select {
+input:not([type="checkbox"]):not([type="radio"]), textarea, select {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 0.75rem;
   background: #FAF6EE;
   color: #0F172A;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
-input:focus, textarea:focus, select:focus {
+input:not([type="checkbox"]):not([type="radio"]):focus, textarea:focus, select:focus {
   outline: none;
   border-color: #DC2626;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
-input::placeholder, textarea::placeholder {
-  color: #94a3b8;
+input:not([type="checkbox"]):not([type="radio"])::placeholder, textarea::placeholder {
+  color: #1E293B;
+}
+
+input[type="checkbox"], input[type="radio"] {
+  width: auto;
+  height: auto;
+  accent-color: #DC2626;
+  cursor: pointer;
 }
 
 /* Utility spacing */

@@ -16,7 +16,38 @@ class User(Base):
     otp_expires_at = Column(DateTime, nullable=True)
     role = Column(String(50), default='student')
     department = Column(String(200), nullable=True)
+    phone_number = Column(String(50), nullable=True)
+    location = Column(String(200), nullable=True)
+    auth_method = Column(String(50), default='email')
+    
+    # Resume Sync Data
+    skills = Column(JSON, nullable=True)
+    education = Column(JSON, nullable=True)
+    projects = Column(JSON, nullable=True)
+    experience = Column(JSON, nullable=True)
+    certifications = Column(JSON, nullable=True)
 
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(String(255), nullable=False)
+    user_email = Column(String(255), nullable=True)
+    user_role = Column(String(50), nullable=True)
+    ip_address = Column(String(100), nullable=True)
+    log_type = Column(String(50), default="system") # system, security, user
+    details = Column(JSON, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), unique=True, index=True, nullable=False)
+    head_name = Column(String(200), nullable=True)
+    budget_level = Column(String(50), default="Medium")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class UserSettings(Base):
     __tablename__ = "user_settings"
@@ -49,6 +80,8 @@ class Interview(Base):
     mode = Column(String(50), default="Practice")
     status = Column(String(50), default="in_progress")    # in_progress, completed, failed
     summary = Column(Text, nullable=True)
+    report_path = Column(String(500), nullable=True)
+    report_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -70,10 +103,12 @@ class Answer(Base):
     id = Column(Integer, primary_key=True, index=True)
     question_id = Column(Integer, ForeignKey("interview_questions.id"), nullable=False)
     interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, default=1)
     answer_text = Column(Text, nullable=False)
     score = Column(Integer, nullable=True)                # 0-10 from eval_agent
     feedback = Column(Text, nullable=True)                # detailed feedback from eval_agent
     question_type = Column(String(50), nullable=True)     # technical or hr
+    is_draft = Column(Boolean, default=False)             # track if answer is just a draft
     evaluated_at = Column(DateTime, nullable=True)
     
     # Factor-based scoring (Technical questions)
@@ -145,6 +180,9 @@ class InterviewReport(Base):
     evaluation_model = Column(String(100), default="qwen")      # Model used for evaluation
     retrieved_references_count = Column(Integer, default=0)     # Number of RAG references used
     
+    email_delivery_status = Column(String(50), default="pending")
+    email_delivery_error = Column(Text, nullable=True)
+    
     status = Column(String(50), default="pending")        # pending, completed, failed
     generated_at = Column(DateTime, default=datetime.utcnow)
 
@@ -159,6 +197,18 @@ class ProctoringLog(Base):
     risk_score = Column(Float, default=0.0)               # 0.0 - 1.0
     status = Column(String(50), default="info")           # info, warning, critical
     timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    
+class ScheduledInterview(Base):
+    __tablename__ = "scheduled_interviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    job_role = Column(String(200), nullable=False)
+    company = Column(String(200), nullable=False)
+    scheduled_time = Column(DateTime, nullable=False)
+    status = Column(String(50), default="scheduled")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 # ══════════════════════════════════════════════════════

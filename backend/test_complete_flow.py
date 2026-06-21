@@ -23,7 +23,7 @@ def run_verification():
 
     # 1. Register candidate
     print("\n[1] Registering verification candidate...")
-    r = requests.post(f"{BASE}/register", data={
+    r = requests.post(f"{BASE}/register", json={
         "name": NAME,
         "email": EMAIL,
         "password": PASSWORD

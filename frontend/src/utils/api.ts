@@ -41,18 +41,42 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle errors
+// Response interceptor to handle errors — centralized session invalidation
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      if (error.config?.url?.startsWith('/admin')) {
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || '';
+    const isAdminRoute = requestUrl.startsWith('/admin');
+
+    if (status === 401) {
+      // Session expired or invalid token — clear everything and redirect
+      if (isAdminRoute) {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRole');
         if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin') {
-            window.location.href = '/admin';
+          alert('Your admin session has expired. Please sign in again.');
+          window.location.href = '/admin';
         }
       } else {
         localStorage.removeItem('token');
+        localStorage.removeItem('resume_id');
+        localStorage.removeItem('interview_id');
+        localStorage.removeItem('job_role');
+        localStorage.removeItem('interview_mode');
+        if (window.location.pathname !== '/login' && window.location.pathname !== '/register' && window.location.pathname !== '/') {
+          alert('Your session has expired. Please log in again.');
+          window.location.href = '/login';
+        }
+      }
+    } else if (status === 403) {
+      if (isAdminRoute) {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRole');
+        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin') {
+          alert('Access denied. You do not have admin permissions.');
+          window.location.href = '/admin';
+        }
       }
     }
     return Promise.reject(error);
@@ -70,7 +94,14 @@ export const authAPI = {
     });
     if (response.data.access_token) {
       try {
-        localStorage.setItem('token', response.data.access_token);
+        const role = response.data.role || "student";
+        if (["admin", "tpo", "super_admin"].includes(role)) {
+          localStorage.setItem("adminToken", response.data.access_token);
+          localStorage.setItem("adminRole", role);
+        } else {
+          localStorage.setItem("token", response.data.access_token);
+          localStorage.setItem("role", role);
+        }
       } catch (error) {
         console.error('Failed to store token in localStorage:', error);
         alert('Storage access blocked. Please enable cookies/localStorage in browser settings.');
@@ -78,15 +109,54 @@ export const authAPI = {
     }
     return response.data;
   },
-  register: async (name: string, email: string, password: string, photo?: File) => {
+  register: async (name: string, email: string, password: string) => {
+    const response = await axios.post(`${API_BASE_URL}/register`, {
+      name, email, password
+    });
+    if (response.data.access_token) {
+      try {
+        const role = response.data.role || "student";
+        if (["admin", "tpo", "super_admin"].includes(role)) {
+          localStorage.setItem("adminToken", response.data.access_token);
+          localStorage.setItem("adminRole", role);
+        } else {
+          localStorage.setItem("token", response.data.access_token);
+          localStorage.setItem("role", role);
+        }
+      } catch (error) {
+        console.error('Failed to store token in localStorage:', error);
+      }
+    }
+    return response.data;
+  },
+  registerInitiate: async (name: string, email: string, phone?: string) => {
+    const response = await axios.post(`${API_BASE_URL}/register/initiate`, {
+      name, email, phone
+    });
+    return response.data;
+  },
+  setPassword: async (email: string, password: string, photo?: File) => {
     const formData = new FormData();
-    formData.append('name', name);
     formData.append('email', email);
     formData.append('password', password);
     if (photo) {
       formData.append('photo', photo);
     }
-    const response = await axios.post(`${API_BASE_URL}/register`, formData);
+    const response = await axios.post(`${API_BASE_URL}/register/set-password`, formData);
+    if (response.data.access_token) {
+      try {
+        const role = response.data.role || "student";
+        if (["admin", "tpo", "super_admin"].includes(role)) {
+          localStorage.setItem("adminToken", response.data.access_token);
+          localStorage.setItem("adminRole", role);
+        } else {
+          localStorage.setItem("token", response.data.access_token);
+          localStorage.setItem("role", role);
+        }
+      } catch (error) {
+        console.error('Failed to store token in localStorage:', error);
+      }
+    }
     return response.data;
   },
   verifyEmail: async (email: string, otp: string) => {
@@ -94,19 +164,13 @@ export const authAPI = {
       email,
       otp,
     });
-    if (response.data.access_token) {
-      try {
-        localStorage.setItem('token', response.data.access_token);
-      } catch (error) {
-        console.error('Failed to store token in localStorage:', error);
-      }
-    }
     return response.data;
   },
   resendOtp: async (email: string) => {
     const response = await axios.post(`${API_BASE_URL}/resend-otp`, { email });
     return response.data;
   },
+
 };
 
 export const resumeAPI = {
@@ -292,6 +356,14 @@ export const interviewAPI = {
     }
     return response.data;
   },
+  saveDraft: async (interviewId: number, questionId: number, answer: string) => {
+    const response = await api.post('/submit-draft', {
+      interview_id: interviewId,
+      question_id: questionId,
+      answer,
+    });
+    return response.data;
+  },
   getReport: async (interviewId: number) => {
     const response = await api.get(`/interview-report/${interviewId}`);
     return response.data;
@@ -345,6 +417,14 @@ export const adminAPI = {
   },
   cancelInterview: async (id: number) => {
     const res = await api.post(`/admin/interviews/${id}/cancel`);
+    return res.data;
+  },
+  deleteInterview: async (id: number) => {
+    const res = await api.delete(`/admin/interviews/${id}`);
+    return res.data;
+  },
+  deleteStudent: async (id: number) => {
+    const res = await api.delete(`/admin/users/${id}`);
     return res.data;
   },
   rescheduleInterview: async (id: number, new_time: string) => {
@@ -413,6 +493,38 @@ export const adminAPI = {
   },
   updateSettings: async (settings: Record<string, any>) => {
     const res = await api.post('/admin/settings', { settings });
+    return res.data;
+  },
+  scheduleInterview: async (payload: { candidate_name: string; email: string; job_role: string; scheduled_time: string }) => {
+    const res = await api.post('/admin/interviews', payload);
+    return res.data;
+  },
+  inviteStudent: async (payload: { name: string; email: string }) => {
+    const res = await api.post('/admin/students', payload);
+    return res.data;
+  },
+  createUser: async (payload: { name: string; email: string; role: string; department: string }) => {
+    const res = await api.post('/admin/users', payload);
+    return res.data;
+  },
+  createBatch: async (payload: { name: string; status: string; totalStudents: number }) => {
+    const res = await api.post('/admin/batches', payload);
+    return res.data;
+  },
+  createCourse: async (payload: { title: string; modules: number }) => {
+    const res = await api.post('/admin/courses', payload);
+    return res.data;
+  },
+  updateCourse: async (id: string, payload: { title: string; modules: number }) => {
+    const res = await api.put(`/admin/courses/${id}`, payload);
+    return res.data;
+  },
+  createDepartment: async (payload: { name: string; head: string; budget?: string }) => {
+    const res = await api.post('/admin/departments', payload);
+    return res.data;
+  },
+  createReport: async (payload: { candidate_name: string; job_role: string; final_score: number }) => {
+    const res = await api.post('/admin/reports', payload);
     return res.data;
   }
 };

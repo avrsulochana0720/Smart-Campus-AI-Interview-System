@@ -17,51 +17,10 @@ interface LoginData {
 
 export default function Hero() {
   const navigate = useNavigate();
-  const [showRegister, setShowRegister] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [registerData, setRegisterData] = useState<RegisterData>({ name: '', email: '', password: '', profilePhoto: null });
-  const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' });
-  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await authAPI.register(registerData.name, registerData.email, registerData.password);
-      alert("Registration successful! Please login.");
-      setShowRegister(false);
-      setRegisterData({ name: '', email: '', password: '', profilePhoto: null });
-      setProfilePhotoPreview(null);
-      navigate('/login');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || 'Registration failed';
-      alert(errorMessage);
-    }
-  };
-
+  
   const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setRegisterData({ ...registerData, profilePhoto: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await authAPI.login(loginData.email, loginData.password);
-      setShowLogin(false);
-      setLoginData({ email: '', password: '' });
-      navigate('/resume');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || 'Invalid email or password';
-      alert(errorMessage);
-    }
+    // left intentionally empty or removed since we use full page now
   };
 
   return (
@@ -72,9 +31,9 @@ export default function Hero() {
         </div>
         <div className="navbar-links">
           <a href="#" className="nav-link">Home</a>
-          <a href="#" className="nav-link">Features</a>
-          <a href="#" className="nav-link">About</a>
-          <a href="#" className="nav-link">Contact</a>
+          <a href="#features" className="nav-link">Features</a>
+          <a href="#about" className="nav-link">About</a>
+          <a href="#contact" className="nav-link">Contact</a>
         </div>
         <div className="navbar-right">
           <div className="navbar-profile">
@@ -105,9 +64,9 @@ export default function Hero() {
       {mobileMenuOpen && (
         <div className="mobile-menu">
           <a href="#" className="mobile-nav-link">Home</a>
-          <a href="#" className="mobile-nav-link">Features</a>
-          <a href="#" className="mobile-nav-link">About</a>
-          <a href="#" className="mobile-nav-link">Contact</a>
+          <a href="#features" className="mobile-nav-link">Features</a>
+          <a href="#about" className="mobile-nav-link">About</a>
+          <a href="#contact" className="mobile-nav-link">Contact</a>
         </div>
       )}
       <div className="hero-content">
@@ -118,10 +77,10 @@ export default function Hero() {
           Automating campus recruitment with intelligent interview flow. Scale your talent discovery with ethereal precision and bias-free evaluation.
         </p>
         <div className="hero-buttons">
-          <button className="hero-button-primary" onClick={() => setShowRegister(true)}>
+          <button className="hero-button-primary" onClick={() => navigate('/register')}>
             Register
           </button>
-          <button className="hero-button-secondary" onClick={() => setShowLogin(true)}>
+          <button className="hero-button-secondary" onClick={() => navigate('/login')}>
             Login
           </button>
           <button className="hero-button-primary">Launch Recruitment</button>
@@ -129,134 +88,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Register Modal */}
-      {showRegister && (
-        <div className="auth-modal">
-          <div className="auth-modal-content">
-            <div className="auth-header">
-              <h2>Create Account</h2>
-              <button className="auth-close" onClick={() => setShowRegister(false)}>
-                ×
-              </button>
-            </div>
-              <form onSubmit={handleRegister} className="auth-form">
-                <div className="form-group">
-                  <label htmlFor="register-profile-photo">Profile Photo</label>
-                  <div className="profile-photo-upload">
-                    {profilePhotoPreview ? (
-                      <div className="profile-photo-preview">
-                        <img src={profilePhotoPreview} alt="Profile preview" className="profile-preview-image" />
-                        <button 
-                          type="button" 
-                          className="remove-photo-btn"
-                          onClick={() => {
-                            setProfilePhotoPreview(null);
-                            setRegisterData({ ...registerData, profilePhoto: null });
-                          }}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="profile-photo-placeholder">
-                        <div className="upload-icon">📷</div>
-                        <span>Click to upload photo</span>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      id="register-profile-photo"
-                      accept="image/*"
-                      onChange={handleProfilePhotoChange}
-                      className="profile-photo-input"
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="register-name">Full Name</label>
-                  <input
-                    type="text"
-                    id="register-name"
-                    value={registerData.name}
-                    onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                    required
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="register-email">Email</label>
-                  <input
-                    type="email"
-                    id="register-email"
-                    value={registerData.email}
-                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                    required
-                    placeholder="Enter your email"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="register-password">Password</label>
-                  <input
-                    type="password"
-                    id="register-password"
-                    value={registerData.password}
-                    onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                    required
-                    placeholder="Enter your password"
-                  />
-                </div>
-                <button type="submit" className="auth-submit">
-                  Create Account
-                </button>
-                <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#64748B' }}>
-                  Already have an account? <span onClick={() => { setShowRegister(false); setShowLogin(true); }} style={{ color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>Login</span>
-                </p>
-              </form>
-          </div>
-        </div>
-      )}
-
-      {/* Login Modal */}
-      {showLogin && (
-        <div className="auth-modal">
-          <div className="auth-modal-content">
-            <div className="auth-header">
-              <h2>Login</h2>
-              <button className="auth-close" onClick={() => setShowLogin(false)}>
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleLogin} className="auth-form">
-              <div className="form-group">
-                <label htmlFor="login-email">Email</label>
-                <input
-                  type="email"
-                  id="login-email"
-                  value={loginData.email}
-                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="login-password">Password</label>
-                <input
-                  type="password"
-                  id="login-password"
-                  value={loginData.password}
-                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                  required
-                />
-              </div>
-              <button type="submit" className="auth-submit">
-                Login
-              </button>
-              <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#64748B' }}>
-                Don't have an account? <span onClick={() => { setShowLogin(false); setShowRegister(true); }} style={{ color: '#DC2626', cursor: 'pointer', fontWeight: 600 }}>Register</span>
-              </p>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modals removed in favor of dedicated pages */}
     </section>
   );
 }

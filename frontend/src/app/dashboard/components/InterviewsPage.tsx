@@ -17,6 +17,8 @@ interface ReportData {
   weaknesses?: string;
   recommendation?: string;
   proctoring_analysis?: any;
+  email_delivery_status?: string;
+  email_delivery_error?: string | null;
 }
 
 interface InterviewHistoryItem {
@@ -27,6 +29,7 @@ interface InterviewHistoryItem {
   qa_list: QA[];
   total_score: number;
   average_score: number;
+  report_url?: string | null;
   report?: ReportData;
 }
 
@@ -39,7 +42,16 @@ const EMPTY_HISTORY: InterviewHistoryItem[] = [];
 
 function buildInterviewCards(history: InterviewHistoryItem[]) {
   return history.map((item) => {
-    const scorePercent = Math.round((item.average_score || 0) * 10);
+    let score = item.report?.final_interview_score || item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const scorePercent = Math.round(score);
     const strengths = item.report?.strengths ? item.report.strengths.split(/[\n;]+/).filter(Boolean) : [];
     const weaknesses = item.report?.weaknesses ? item.report.weaknesses.split(/[\n;]+/).filter(Boolean) : [];
     const sentiment = item.report?.recommendation || 'Interview completed';
@@ -65,6 +77,7 @@ function buildInterviewCards(history: InterviewHistoryItem[]) {
       strengths,
       weaknesses,
       recommendation: item.report?.recommendation,
+      report_url: item.report_url,
       questions
     };
   });
@@ -72,10 +85,21 @@ function buildInterviewCards(history: InterviewHistoryItem[]) {
 
 function buildPerformanceTrend(history: InterviewHistoryItem[]) {
   return history
-    .map((item) => ({
-      name: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      score: Math.round((item.average_score || 0) * 10)
-    }))
+    .map((item) => {
+      let score = item.report?.final_interview_score || item.report?.hiring_readiness_score || 0;
+      if (score === 0) {
+        score = item.average_score || 0;
+        if (score > 0 && score <= 10) {
+          score = score * 10;
+        }
+      } else if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+      return {
+        name: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        score: Math.round(score)
+      };
+    })
     .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
 }
 
@@ -155,9 +179,13 @@ export default function InterviewsPage({ interviewHistory, loading }: Interviews
                       </div>
                     </div>
 
-                    <p className="text-sm text-[#475569] leading-relaxed text-left italic p-4 rounded-xl m-0" style={{ backgroundColor: '#FDFBF7', border: '1px solid #E2E8F0', boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.02)' }}>
-                      "{item.summary}"
-                    </p>
+                    <div className="text-sm text-[#475569] leading-relaxed text-left p-4 rounded-xl m-0 overflow-y-auto custom-scrollbar" style={{ maxHeight: '180px', backgroundColor: '#FDFBF7', border: '1px solid #E2E8F0', boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.02)' }}>
+                      <ol className="list-decimal list-outside ml-4 space-y-2 m-0 p-0 font-medium">
+                        {item.summary.split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim().length > 5).slice(0, 5).map((point, idx) => (
+                          <li key={idx} className="pl-1">{point.trim().replace(/^[-*•]\s*/, '')}</li>
+                        ))}
+                      </ol>
+                    </div>
 
                     <div className="flex justify-center mt-2 border-t border-[#E2E8F0] pt-4">
                       <button 
@@ -176,36 +204,64 @@ export default function InterviewsPage({ interviewHistory, loading }: Interviews
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="p-5 rounded-xl border border-[#E2E8F0]" style={{ backgroundColor: '#FDFBF7', boxShadow: '2px 2px 8px rgba(0,0,0,0.02)' }}>
                             <div className="text-xs uppercase font-extrabold text-[#10B981] tracking-wider mb-3">Key Strengths</div>
-                            <ul className="list-none p-0 m-0 space-y-2">
+                            <ol className="list-decimal list-outside ml-4 p-0 m-0 space-y-2">
                               {item.strengths.length ? item.strengths.map((str, idx) => (
-                                <li key={idx} className="text-sm text-[#334155] flex items-start gap-2">
-                                  <span className="text-[#10B981] font-bold mt-0.5">✓</span> {str}
+                                <li key={idx} className="text-sm text-[#334155] pl-1 font-medium">
+                                  {str.trim()}
                                 </li>
                               )) : (
-                                <li className="text-sm text-[#64748B]">No strengths captured</li>
+                                <li className="text-sm text-[#64748B] list-none -ml-4">No strengths captured</li>
                               )}
-                            </ul>
+                            </ol>
                           </div>
                           
                           <div className="p-5 rounded-xl border border-[#E2E8F0]" style={{ backgroundColor: '#FDFBF7', boxShadow: '2px 2px 8px rgba(0,0,0,0.02)' }}>
                             <div className="text-xs uppercase font-extrabold text-[#F59E0B] tracking-wider mb-3">Areas for Improvement</div>
-                            <ul className="list-none p-0 m-0 space-y-2">
+                            <ol className="list-decimal list-outside ml-4 p-0 m-0 space-y-2">
                               {item.weaknesses.length ? item.weaknesses.map((wk, idx) => (
-                                <li key={idx} className="text-sm text-[#334155] flex items-start gap-2">
-                                  <span className="text-[#F59E0B] font-bold mt-0.5">!</span> {wk}
+                                <li key={idx} className="text-sm text-[#334155] pl-1 font-medium">
+                                  {wk.trim()}
                                 </li>
                               )) : (
-                                <li className="text-sm text-[#64748B]">No weaknesses captured</li>
+                                <li className="text-sm text-[#64748B] list-none -ml-4">No weaknesses captured</li>
                               )}
-                            </ul>
+                            </ol>
                           </div>
                         </div>
 
                         {/* Recommendation */}
                         {item.recommendation && (
                           <div className="p-5 rounded-xl border border-[#E2E8F0]" style={{ backgroundColor: '#FDFBF7', boxShadow: '2px 2px 8px rgba(0,0,0,0.02)' }}>
-                            <div className="text-xs uppercase font-extrabold text-[#64748B] tracking-wider mb-2">Final Recommendation</div>
-                            <p className="text-sm text-[#334155] font-medium m-0">{item.recommendation}</p>
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="text-xs uppercase font-extrabold text-[#64748B] tracking-wider">Final Recommendation</div>
+                              <div className="flex items-center gap-2">
+                                {item.report?.email_delivery_status === 'sent' && (
+                                  <span className="text-[9px] font-bold text-[#10B981] bg-[#F0FDF4] px-1.5 py-0.5 rounded border border-[#DCFCE7] whitespace-nowrap">Email Sent</span>
+                                )}
+                                {item.report?.email_delivery_status === 'smtp_missing' && (
+                                  <span className="text-[9px] font-bold text-[#D97706] bg-[#FFFBEB] px-1.5 py-0.5 rounded border border-[#FEF3C7] whitespace-nowrap" title="SMTP Credentials Missing">Email Skipped</span>
+                                )}
+                                {item.report?.email_delivery_status === 'failed' && (
+                                  <span className="text-[9px] font-bold text-[#EF4444] bg-[#FEF2F2] px-1.5 py-0.5 rounded border border-[#FEE2E2] whitespace-nowrap" title={item.report.email_delivery_error || 'Delivery Failed'}>Email Failed</span>
+                                )}
+                                {item.report_url && (
+                                  <a 
+                                    href={`${item.report_url}?token=${typeof window !== 'undefined' ? localStorage.getItem('token') : ''}`} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-xs font-bold text-[#0EA5E9] hover:underline" 
+                                    style={{ cursor: 'pointer' }}
+                                  >
+                                    View Raw Report
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                            <ol className="list-decimal list-outside ml-4 p-0 m-0 space-y-2">
+                              {item.recommendation.split(/(?<=[.!?])\s+|\n+/).filter(s => s.trim().length > 5).map((point, idx) => (
+                                <li key={idx} className="text-sm text-[#334155] pl-1 font-medium">{point.trim().replace(/^[-*•]\s*/, '')}</li>
+                              ))}
+                            </ol>
                           </div>
                         )}
 
@@ -285,40 +341,7 @@ export default function InterviewsPage({ interviewHistory, loading }: Interviews
           </div>
         </div>
 
-        <h2 className="cd-section-title" style={{ marginTop: '3rem', color: '#0F172A' }}>
-          Evaluate Your Readiness
-        </h2>
-        <div className="cd-history-grid" style={{ marginBottom: '2rem' }}>
-          <div 
-            className="cd-history-card" 
-            style={{ 
-              border: '2px dashed #DC2626', 
-              backgroundColor: '#FDFBF7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              padding: '2rem',
-              borderRadius: '16px',
-              boxShadow: '4px 4px 10px rgba(0, 0, 0, 0.05)'
-            }} 
-            onClick={() => navigate('/interview')}
-          >
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                width: '60px', height: '60px', borderRadius: '50%', background: 'linear-gradient(135deg, #DC2626, #B91C1C)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: 'white',
-                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)'
-              }}>
-                <Play fill="white" size={24} />
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A' }}>Launch AI Assessment</h3>
-              <p style={{ color: '#64748B', fontSize: '0.9rem', marginTop: '0.5rem', lineHeight: '1.5' }}>
-                Start a simulated, real-time interview evaluation to get granular grading metrics and custom narrative sheets.
-              </p>
-            </div>
-          </div>
-        </div>
+
 
       </div>
     </div>

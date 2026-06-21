@@ -2,15 +2,16 @@
 main.py — Thin FastAPI app wiring all agents together.
 Preserves every existing frontend API endpoint exactly.
 """
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks, WebSocket, WebSocketDisconnect, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi import Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional, List, Dict, Any, Union
+from jose import jwt
 import os
 import sys
 import json
@@ -25,9 +26,11 @@ if str(BACKEND_DIR) not in sys.path:
 
 from database import engine, get_db, Base, SessionLocal
 from metrics import record_metric, get_average_metrics, get_all_metrics
-from models import User, UserSettings, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk, Assessment, Feedback
-from auth import router as auth_router, get_current_user
+from models import User, UserSettings, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk, Assessment, Feedback, ScheduledInterview
+from auth import router as auth_router, get_current_user, SECRET_KEY, ALGORITHM
 from admin_routes import router as admin_router
+from email_service import send_interview_schedule_email
+from websocket_manager import manager
 
 # Import agents
 from agents.resume_agent import resume_agent
@@ -90,6 +93,10 @@ async def add_process_time_header(request: Request, call_next):
 os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# Mount reports for backend generated PDFs
+os.makedirs("reports", exist_ok=True)
+app.mount("/reports", StaticFiles(directory="reports"), name="reports")
+
 # Include auth routes (register, login)
 app.include_router(auth_router)
 app.include_router(admin_router)
@@ -100,6 +107,15 @@ def get_metrics():
         "average_times": get_average_metrics(),
         "all_metrics_count": {k: len(v) for k, v in get_all_metrics().items()}
     }
+
+@app.websocket("/ws/{user_id}/{role}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str, role: str):
+    await manager.connect(websocket, user_id, role)
+    try:
+        while True:
+            data = await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
 
 
 # ── Pydantic Schemas ──────────────────────────────────
@@ -126,6 +142,11 @@ class ProctoringEventRequest(BaseModel):
     event_type: str
     details: dict = {}
 
+class ScheduleInterviewRequest(BaseModel):
+    job_role: str
+    company: str
+    scheduled_time: str
+
 
 # ── Global Error Handler ─────────────────────────────
 @app.exception_handler(Exception)
@@ -151,6 +172,7 @@ def startup_event():
     try:
         from sqlalchemy import text
         with engine.begin() as conn:
+            # Existing migrations
             try:
                 conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'student'"))
             except Exception:
@@ -159,8 +181,26 @@ def startup_event():
                 conn.execute(text("ALTER TABLE users ADD COLUMN department VARCHAR(200)"))
             except Exception:
                 pass
+            
+            # New migrations for Resume Sync System
+            new_json_columns = ['skills', 'education', 'projects', 'experience', 'certifications']
+            for col in new_json_columns:
+                try:
+                    conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} JSON"))
+                except Exception:
+                    pass
+            
+            # Answer table migrations
+            try:
+                conn.execute(text("ALTER TABLE answers ADD COLUMN user_id INTEGER DEFAULT 1"))
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE answers ADD COLUMN is_draft BOOLEAN DEFAULT 0"))
+            except Exception:
+                pass
     except Exception as e:
-        print(f"[WARN] Failed to auto-migrate users table: {e}")
+        print(f"[WARN] Failed to auto-migrate tables: {e}")
         
     # Auto-migrate missing columns from schema upgrades
     try:
@@ -237,12 +277,17 @@ def get_current_profile(current_user: User = Depends(get_current_user), db: Sess
         "name": current_user.name,
         "email": current_user.email,
         "profile_image": current_user.profile_image,
+        "phone": current_user.phone_number,
+        "role": current_user.role,
+        "department": current_user.department,
+        "location": current_user.location,
         "settings": settings_record.settings if settings_record else {}
     }
 
 
 @app.post("/user-settings")
 def save_user_settings(payload: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from auth import verify_password_native, hash_password_native
     settings_payload = payload.get("settings") if isinstance(payload, dict) else None
     if settings_payload is None:
         raise HTTPException(status_code=400, detail="Missing settings payload")
@@ -255,6 +300,11 @@ def save_user_settings(payload: dict, current_user: User = Depends(get_current_u
         current_user.email = profile_data["email"]
     if profile_data.get("name"):
         current_user.name = profile_data["name"]
+    if profile_data.get("phone_number"):
+        current_user.phone_number = profile_data["phone_number"]
+    if profile_data.get("location"):
+        current_user.location = profile_data["location"]
+        
     db.add(current_user)
 
     settings_record = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
@@ -263,9 +313,15 @@ def save_user_settings(payload: dict, current_user: User = Depends(get_current_u
         db.add(settings_record)
     else:
         settings_record.settings = settings_payload
+    password_data = settings_payload.get("password")
+    if password_data and password_data.get("current_password") and password_data.get("new_password"):
+        if not verify_password_native(password_data["current_password"], current_user.password):
+            raise HTTPException(status_code=400, detail="Incorrect current password")
+        current_user.password = hash_password_native(password_data["new_password"])
+
     db.commit()
-    db.refresh(settings_record)
-    return {"status": "success", "settings": settings_record.settings}
+    db.refresh(current_user)
+    return {"message": "Settings updated successfully", "settings": settings_record.settings}
 
 
 # ── Assessments ─────────────────────────────────────────
@@ -347,18 +403,41 @@ async def upload_resume(
     # Step 2: Extract skills
     skills = resume_agent.extract_skills(extracted_text)
 
-    # Step 3: Store in DB
+    # Step 4: Resume insight analysis
+    analysis = resume_agent.summarize_resume(extracted_text)
+
+    # Step 3: Extract personal info and update user profile
+    personal_info = resume_agent.extract_personal_info(extracted_text)
+    if personal_info:
+        if personal_info.get("name") and personal_info.get("name") != "Not Found":
+            current_user.name = personal_info["name"]
+        if personal_info.get("phone_number") and personal_info.get("phone_number") != "Not Found":
+            current_user.phone_number = personal_info["phone_number"]
+            
+        # We also attempt to update the email cautiously
+        if personal_info.get("email") and personal_info.get("email") != "Not Found":
+            existing_user = db.query(User).filter(User.email == personal_info["email"], User.id != current_user.id).first()
+            if not existing_user:
+                current_user.email = personal_info["email"]
+
+        # Store JSON arrays
+        current_user.skills = personal_info.get("skills", [])
+        current_user.education = personal_info.get("education", [])
+        current_user.projects = personal_info.get("projects", [])
+        current_user.experience = personal_info.get("experience", [])
+        current_user.certifications = personal_info.get("certifications", [])
+
+    # Step 4: Store in DB
     new_resume = Resume(
         user_id=current_user.id,
         resume_text=extracted_text,
-        skills_extracted=json.dumps(skills)
+        skills_extracted=json.dumps(skills),
+        ai_analysis=json.dumps(analysis) if isinstance(analysis, dict) else analysis
     )
     db.add(new_resume)
     db.commit()
     db.refresh(new_resume)
-
-    # Step 4: Resume insight analysis
-    analysis = resume_agent.summarize_resume(extracted_text)
+    db.refresh(current_user)
 
     return {
         "id": new_resume.id,
@@ -367,8 +446,60 @@ async def upload_resume(
         "skills": skills,
         "analysis": analysis,
         "user_id": new_resume.user_id,
-        "uploaded_at": new_resume.uploaded_at
+        "uploaded_at": new_resume.uploaded_at,
+        "updated_user": {
+            "name": current_user.name,
+            "email": current_user.email,
+            "phone_number": current_user.phone_number
+        }
     }
+
+
+@app.get("/users/me")
+def get_detailed_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "phone": current_user.phone_number,
+        "role": current_user.role,
+        "department": current_user.department,
+        "location": current_user.location,
+        "skills": current_user.skills or [],
+        "education": current_user.education or [],
+        "projects": current_user.projects or [],
+        "experience": current_user.experience or [],
+        "certifications": current_user.certifications or []
+    }
+
+
+@app.get("/my-resume")
+def get_my_resume(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).order_by(Resume.uploaded_at.desc()).first()
+    if not resume:
+        return None
+    
+    # Parse JSON if it's stored as strings
+    try:
+        skills = json.loads(resume.skills_extracted) if resume.skills_extracted else []
+    except:
+        skills = []
+        
+    try:
+        analysis = json.loads(resume.ai_analysis) if resume.ai_analysis else {}
+    except:
+        analysis = resume.ai_analysis if isinstance(resume.ai_analysis, dict) else {}
+
+    return {
+        "id": resume.id,
+        "resume_id": resume.id,
+        "text_preview": resume.resume_text[:500] if resume.resume_text else "",
+        "skills": skills,
+        "analysis": analysis,
+        "user_id": resume.user_id,
+        "uploaded_at": resume.uploaded_at
+    }
+
 # ══════════════════════════════════════════════════════
 #  INTERVIEW — Create, Questions, Answers
 # ══════════════════════════════════════════════════════
@@ -393,6 +524,7 @@ def _is_placeholder(text: str) -> bool:
 
 _generation_locks = {}
 _BACKGROUND_EXECUTOR = ThreadPoolExecutor(max_workers=8)
+_evaluating_answers = set()
 
 
 def _schedule_background_task(func, *args):
@@ -802,9 +934,21 @@ def generate_questions(
     print(f"[PERF_LOG] /generate-questions ({request.phase}) completed in {total_time:.4f}s (Placeholders/Cache Hit)")
     print(f"  - DB Query Time: {db_time:.4f}s")
     
+    # Session Recovery: Fetch answers for this interview
+    answers = db.query(Answer).filter(Answer.interview_id == request.interview_id).all()
+    answer_map = {a.question_id: a for a in answers}
+
     return {
         "message": f"{request.phase.capitalize()} questions ready",
-        "questions": [{"id": q.id, "question": q.question, "type": q.question_type} for q in existing]
+        "questions": [
+            {
+                "id": q.id, 
+                "question": q.question, 
+                "type": q.question_type,
+                "answer_text": answer_map[q.id].answer_text if q.id in answer_map else None,
+                "score": answer_map[q.id].score if q.id in answer_map else None,
+            } for q in existing
+        ]
     }
 
 
@@ -883,6 +1027,7 @@ def get_question(
 
 def _evaluate_answer_bg(answer_id: int):
     """Background task to evaluate an answer in parallel."""
+    _evaluating_answers.add(answer_id)
     db = SessionLocal()
     try:
         # Load answer
@@ -959,8 +1104,50 @@ def _evaluate_answer_bg(answer_id: int):
     except Exception as e:
         print(f"[BG-EVAL ERROR] Failed to evaluate answer ID {answer_id}: {e}")
     finally:
+        _evaluating_answers.discard(answer_id)
         db.close()
 
+
+@app.post("/submit-draft")
+def submit_draft(
+    answer_req: AnswerRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Save the current answer as a draft without evaluating."""
+    interview = db.query(Interview).filter(Interview.id == answer_req.interview_id).first()
+    if not interview or interview.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    existing_answer = db.query(Answer).filter(
+        Answer.question_id == answer_req.question_id,
+        Answer.interview_id == answer_req.interview_id
+    ).first()
+    
+    if existing_answer:
+        existing_answer.answer_text = answer_req.answer
+        existing_answer.is_draft = True
+        db.commit()
+    else:
+        question_record = db.query(InterviewQuestion).filter(
+            InterviewQuestion.id == answer_req.question_id,
+            InterviewQuestion.interview_id == answer_req.interview_id
+        ).first()
+        if not question_record:
+            raise HTTPException(status_code=404, detail="Question not found")
+            
+        new_answer = Answer(
+            question_id=answer_req.question_id,
+            interview_id=answer_req.interview_id,
+            user_id=current_user.id,
+            answer_text=answer_req.answer,
+            question_type=question_record.question_type,
+            is_draft=True
+        )
+        db.add(new_answer)
+        db.commit()
+        
+    return {"message": "Draft saved successfully"}
 
 # ── Submit Answer (eval_agent) ────────────────────────
 @app.post("/submit-answer")
@@ -990,45 +1177,56 @@ def submit_answer(
     ).first()
 
     if existing_answer:
-        # Cache hit
-        answered_ids = db.query(Answer.question_id).filter(
-            Answer.interview_id == answer_req.interview_id
-        ).subquery()
-        next_q = db.query(InterviewQuestion).filter(
-            InterviewQuestion.interview_id == answer_req.interview_id,
-            ~InterviewQuestion.id.in_(answered_ids)
-        ).order_by(InterviewQuestion.order_index.asc()).first()
-        
-        # Ensure generation continues
-        if next_q:
-            if _is_placeholder(next_q.question):
-                _safe_queue_generation(background_tasks, answer_req.interview_id, next_q.order_index, next_q.question_type)
-            next_next_q = db.query(InterviewQuestion).filter(
+        if getattr(existing_answer, 'is_draft', False):
+            # It was a draft, now submit it for real
+            existing_answer.is_draft = False
+            existing_answer.answer_text = answer_req.answer
+            db.commit()
+            db.refresh(existing_answer)
+            new_answer = existing_answer
+        else:
+            # Cache hit
+            answered_ids = db.query(Answer.question_id).filter(
+                Answer.interview_id == answer_req.interview_id,
+                Answer.is_draft == False
+            ).subquery()
+            next_q = db.query(InterviewQuestion).filter(
                 InterviewQuestion.interview_id == answer_req.interview_id,
-                InterviewQuestion.order_index == next_q.order_index + 1
-            ).first()
-            if next_next_q and _is_placeholder(next_next_q.question):
-                _safe_queue_generation(background_tasks, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
-        
-        return {
-            "message": "Answer already recorded",
-            "score": existing_answer.score or 0,
-            "feedback": existing_answer.feedback or "",
-            "next_question": next_q.question if next_q else None,
-            "question_id": next_q.id if next_q else None,
-            "is_complete": next_q is None
-        }
-
-    # Step 1: Store the candidate answer in the database instantly
-    new_answer = Answer(
-        question_id=answer_req.question_id,
-        interview_id=answer_req.interview_id,
-        answer_text=answer_req.answer,
-        question_type=question_record.question_type
-    )
-    db.add(new_answer)
-    db.commit()
-    db.refresh(new_answer)
+                ~InterviewQuestion.id.in_(answered_ids)
+            ).order_by(InterviewQuestion.order_index.asc()).first()
+            
+            # Ensure generation continues
+            if next_q:
+                if _is_placeholder(next_q.question):
+                    _safe_queue_generation(background_tasks, answer_req.interview_id, next_q.order_index, next_q.question_type)
+                next_next_q = db.query(InterviewQuestion).filter(
+                    InterviewQuestion.interview_id == answer_req.interview_id,
+                    InterviewQuestion.order_index == next_q.order_index + 1
+                ).first()
+                if next_next_q and _is_placeholder(next_next_q.question):
+                    _safe_queue_generation(background_tasks, answer_req.interview_id, next_next_q.order_index, next_next_q.question_type)
+            
+            return {
+                "message": "Answer already recorded",
+                "score": existing_answer.score or 0,
+                "feedback": existing_answer.feedback or "",
+                "next_question": next_q.question if next_q else None,
+                "question_id": next_q.id if next_q else None,
+                "is_complete": next_q is None
+            }
+    else:
+        # Step 1: Store the candidate answer in the database instantly
+        new_answer = Answer(
+            question_id=answer_req.question_id,
+            interview_id=answer_req.interview_id,
+            user_id=current_user.id,
+            answer_text=answer_req.answer,
+            question_type=question_record.question_type,
+            is_draft=False
+        )
+        db.add(new_answer)
+        db.commit()
+        db.refresh(new_answer)
 
     # Step 2: Queue evaluation and context warm-up in parallel without blocking the UI
     _schedule_background_task(_evaluate_answer_bg, new_answer.id)
@@ -1037,7 +1235,8 @@ def submit_answer(
 
     # Step 3: Get next question
     answered_ids = db.query(Answer.question_id).filter(
-        Answer.interview_id == answer_req.interview_id
+        Answer.interview_id == answer_req.interview_id,
+        Answer.is_draft == False
     ).subquery()
 
     next_q = db.query(InterviewQuestion).filter(
@@ -1074,6 +1273,67 @@ def submit_answer(
 # ══════════════════════════════════════════════════════
 #  REPORTS — Uses report_agent (Qwen)
 # ══════════════════════════════════════════════════════
+def get_user_from_token_string(token: str, db: Session):
+    try:
+        payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            return None
+        return db.query(User).filter(User.id == user_id).first()
+    except Exception:
+        return None
+
+@app.get("/download-report/{interview_id}")
+def download_report(
+    interview_id: int,
+    token: Optional[str] = None,
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Secure endpoint to download backend-generated interview report PDF.
+    Supports token verification via query parameter (for opening in new tab) or Bearer header.
+    """
+    resolved_token = None
+    if token:
+        resolved_token = token
+    elif authorization and authorization.startswith("Bearer "):
+        resolved_token = authorization.split(" ")[1]
+
+    if not resolved_token:
+        raise HTTPException(status_code=401, detail="Authentication token required")
+
+    user = get_user_from_token_string(resolved_token, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired authentication token")
+
+    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+
+    is_owner = (interview.user_id == user.id)
+    is_admin = (user.role in ("super_admin", "admin", "tpo"))
+
+    if not is_owner and not is_admin:
+        raise HTTPException(status_code=403, detail="Not authorized to download this report")
+
+    from report_generator import get_or_create_pdf_report
+    try:
+        pdf_path, _ = get_or_create_pdf_report(interview_id, db)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if not os.path.exists(pdf_path):
+        raise HTTPException(status_code=500, detail="Report PDF file not found on disk")
+
+    filename = f"report_{interview_id}.pdf"
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename=filename,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 @app.get("/interview-report/{interview_id}")
 def get_interview_report(
     interview_id: int,
@@ -1216,8 +1476,38 @@ def generate_report(
         "interview_id": interview_id
     }
 
+def _post_report_tasks(interview_id: int):
+    """Background task to generate PDF and send email after the report is saved."""
+    db = SessionLocal()
+    try:
+        from report_generator import generate_pdf_report
+        pdf_path, pdf_url = generate_pdf_report(interview_id, db)
+        interview = db.query(Interview).filter(Interview.id == interview_id).first()
+        if interview:
+            interview.report_path = pdf_path
+            interview.report_url = pdf_url
+            db.commit()
+        print(f"[POST-REPORT] Successfully generated PDF for interview {interview_id}: {pdf_path}")
+
+        # Send report email to user
+        from email_service import send_candidate_report_email
+        try:
+            send_candidate_report_email(interview_id, db)
+        except Exception as email_exc:
+            print(f"[POST-REPORT ERROR] Failed to send email for interview {interview_id}: {email_exc}")
+    except Exception as exc:
+        print(f"[POST-REPORT ERROR] Failed post-report tasks for interview {interview_id}: {exc}")
+    finally:
+        db.close()
+
+
 def _generate_report_bg(interview_id: int, report_id: int):
     """Background task to generate report and save to DB."""
+    def _ensure_string(val):
+        if isinstance(val, list):
+            return ", ".join(str(item) for item in val)
+        return str(val) if val is not None else ""
+
     db = SessionLocal()
     try:
         start_time = time.time()
@@ -1229,16 +1519,22 @@ def _generate_report_bg(interview_id: int, report_id: int):
         # then continue with the best available factor scores already stored in DB.
         import time as time_mod
         wait_start = time_mod.time()
-        while time_mod.time() - wait_start < 8:
-            db.commit()
+        while time_mod.time() - wait_start < 4.0:
+            db.expire_all()  # Clear SQLAlchemy session cache to see commits from bg threads
             pending_answers = db.query(Answer).filter(
                 Answer.interview_id == interview_id,
                 Answer.score == None
-            ).count()
-            if pending_answers == 0:
+            ).all()
+            if not pending_answers:
                 break
-            print(f"[REPORT] Waiting briefly for {pending_answers} background evaluations to complete...")
-            time_mod.sleep(1)
+            # Check if any pending answers are actively being evaluated in background
+            active_bg = [a for a in pending_answers if a.id in _evaluating_answers]
+            if not active_bg:
+                # No background threads working on them — don't wait further
+                print(f"[REPORT] {len(pending_answers)} answers pending but no active bg threads, proceeding...")
+                break
+            print(f"[REPORT] Waiting for {len(active_bg)} active background evaluations...")
+            time_mod.sleep(0.1)
 
         # Step 1: Gather Q&A data from DB
         questions = db.query(InterviewQuestion).filter(
@@ -1251,7 +1547,76 @@ def _generate_report_bg(interview_id: int, report_id: int):
 
         qa_data = []
         for q in questions:
+            db.expire_all()  # Refresh to see any scores committed by bg threads
             ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+            if ans and ans.score is None:
+                # Check if a background thread is actively evaluating this answer
+                if ans.id in _evaluating_answers:
+                    # Wait for the background thread to finish instead of duplicate eval
+                    bg_wait_start = time_mod.time()
+                    while ans.id in _evaluating_answers and time_mod.time() - bg_wait_start < 4.0:
+                        time_mod.sleep(0.1)
+                    # Re-fetch the answer to see if bg thread completed
+                    db.expire_all()
+                    ans = db.query(Answer).filter(Answer.question_id == q.id).first()
+                    if ans and ans.score is not None:
+                        print(f"[REPORT] Answer ID {ans.id} scored by background thread. Score: {ans.score}")
+                
+                # If still no score after waiting, do synchronous evaluation
+                if ans and ans.score is None:
+                    print(f"[REPORT] Evaluating missing score for Answer ID {ans.id} synchronously...")
+                    try:
+                        # 1. Resume text
+                        resume_text_eval = ""
+                        if interview.resume_id:
+                            resume = db.query(Resume).filter(Resume.id == interview.resume_id).first()
+                            if resume:
+                                resume_text_eval = resume.resume_text[:1000]
+                                
+                        # 2. Expected answer
+                        expected_answer = q.expected_answer
+                        if not expected_answer:
+                            try:
+                                rag_matches = rag_agent.get_expected_answers([q.question], db=db)
+                                if rag_matches and rag_matches[0].get("expected_answer"):
+                                    expected_answer = rag_matches[0]["expected_answer"]
+                            except Exception:
+                                pass
+                                
+                        # 3. Model Inference
+                        evaluation = eval_agent.evaluate_answer(
+                            question=q.question,
+                            user_answer=ans.answer_text,
+                            job_role=interview.job_role,
+                            company=interview.company,
+                            resume_summary=resume_text_eval,
+                            expected_answer=expected_answer,
+                            question_type=q.question_type
+                        )
+                        
+                        # 4. Save Score to Answer
+                        ans.score = evaluation["score"]
+                        ans.feedback = evaluation["feedback"]
+                        ans.evaluated_at = datetime.utcnow()
+                        if q.question_type == "technical":
+                            ans.accuracy_score = evaluation.get("accuracy", 5)
+                            ans.concept_understanding_score = evaluation.get("concept_understanding", 5)
+                            ans.problem_solving_score = evaluation.get("problem_solving", 5)
+                            ans.communication_clarity_score = evaluation.get("communication_clarity", 5)
+                            ans.code_quality_score = evaluation.get("code_quality", 5)
+                        else:
+                            ans.communication_skills_score = evaluation.get("communication_skills", 5)
+                            ans.confidence_score = evaluation.get("confidence", 5)
+                            ans.professionalism_score = evaluation.get("professionalism", 5)
+                            ans.adaptability_score = evaluation.get("adaptability", 5)
+                            ans.team_collaboration_score = evaluation.get("team_collaboration", 5)
+                        
+                        db.commit()
+                        db.refresh(ans)
+                        print(f"[REPORT] Successfully evaluated Answer ID {ans.id} synchronously. Score: {ans.score}")
+                    except Exception as eval_exc:
+                        print(f"[REPORT ERROR] Failed synchronous evaluation for Answer ID {ans.id}: {eval_exc}")
+                    
             qa_data.append({
                 "question": q.question,
                 "question_type": q.question_type,
@@ -1377,16 +1742,16 @@ def _generate_report_bg(interview_id: int, report_id: int):
             report.average_score = report_data.get("average_score", 0)
             report.total_questions = report_data.get("total_questions", 0)
             report.answered_questions = report_data.get("answered_questions", 0)
-            report.strengths = report_data.get("strengths", "")
-            report.weaknesses = report_data.get("weaknesses", "")
+            report.strengths = _ensure_string(report_data.get("strengths", ""))
+            report.weaknesses = _ensure_string(report_data.get("weaknesses", ""))
             report.recommendation = report_data.get("recommendation", "")
             report.proctoring_analysis = json.dumps(proctor_summary)
             report.technical_score = report_data.get("technical_score", 0)
             report.hr_score = report_data.get("hr_score", 0)
             report.confidence_score = report_data.get("confidence_score", 0)
-            report.missing_concepts = report_data.get("missing_concepts", "")
-            report.improvement_suggestions = report_data.get("improvement_suggestions", "")
-            report.rag_matching_data = report_data.get("rag_matching_data", "")
+            report.missing_concepts = _ensure_string(report_data.get("missing_concepts", ""))
+            report.improvement_suggestions = _ensure_string(report_data.get("improvement_suggestions", ""))
+            report.rag_matching_data = _ensure_string(report_data.get("rag_matching_data", ""))
             
             # Save factor averages and overall scores
             report.tech_accuracy_avg = round(tech_accuracy, 2)
@@ -1404,6 +1769,7 @@ def _generate_report_bg(interview_id: int, report_id: int):
             report.overall_hr_score = round(overall_hr, 2)
             
             report.final_interview_score = round(final_score, 2)
+            report.hiring_readiness_score = int(report_data.get("hiring_readiness_score") or round(final_score))
             
             report.status = report_data.get("status", "completed")
             report.generated_at = datetime.utcnow()
@@ -1412,8 +1778,12 @@ def _generate_report_bg(interview_id: int, report_id: int):
         # Mark interview completed
         interview.status = "completed"
         db.commit()
-        
+
         record_metric("generate_report_bg_task", time.time() - start_time)
+
+        # Generate PDF and send email in a separate background thread
+        # so the HTTP response is not blocked by these slow I/O tasks.
+        _schedule_background_task(_post_report_tasks, interview_id)
 
     except Exception as e:
         print(f"Error in bg report generation: {e}")
@@ -1449,6 +1819,7 @@ def get_report(
         "interview_id": interview_id,
         "job_role": interview.job_role,
         "company": interview.company,
+        "report_url": interview.report_url if interview.report_url else f"http://localhost:8000/download-report/{interview_id}",
         "narrative_summary": report.narrative_summary,
         "average_score": report.average_score,
         "total_questions": report.total_questions,
@@ -1464,6 +1835,8 @@ def get_report(
         "rag_matching_data": report.rag_matching_data,
         "status": report.status,
         "generated_at": report.generated_at,
+        "email_delivery_status": report.email_delivery_status,
+        "email_delivery_error": report.email_delivery_error,
         "interview_created_at": interview.created_at,
         
         # Factor averages & overall scores
@@ -1481,8 +1854,55 @@ def get_report(
         "hr_team_collaboration_avg": report.hr_team_collaboration_avg,
         "overall_hr_score": report.overall_hr_score,
         
-        "final_interview_score": report.final_interview_score
+        "final_interview_score": report.final_interview_score,
+        "hiring_readiness_score": report.hiring_readiness_score
     }
+
+
+# ══════════════════════════════════════════════════════
+#  SCHEDULING
+# ══════════════════════════════════════════════════════
+@app.post("/schedule-interview")
+def schedule_interview(
+    request: ScheduleInterviewRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        scheduled_time = datetime.fromisoformat(request.scheduled_time.replace('Z', '+00:00'))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    new_schedule = ScheduledInterview(
+        user_id=current_user.id,
+        job_role=request.job_role,
+        company=request.company,
+        scheduled_time=scheduled_time,
+        status="scheduled"
+    )
+    db.add(new_schedule)
+    db.commit()
+    db.refresh(new_schedule)
+
+    # Send confirmation email
+    send_interview_schedule_email(
+        to_email=current_user.email,
+        name=current_user.name,
+        job_role=request.job_role,
+        company=request.company,
+        scheduled_time=scheduled_time.strftime("%B %d, %Y at %I:%M %p")
+    )
+
+    return {"message": "Interview scheduled successfully", "id": new_schedule.id}
+
+
+@app.get("/scheduled-interviews")
+def get_scheduled_interviews(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    schedules = db.query(ScheduledInterview).filter(ScheduledInterview.user_id == current_user.id).order_by(ScheduledInterview.scheduled_time.asc()).all()
+    return [{"id": s.id, "job_role": s.job_role, "company": s.company, "scheduled_time": str(s.scheduled_time), "status": s.status} for s in schedules]
 
 
 # ══════════════════════════════════════════════════════
@@ -1520,6 +1940,18 @@ def get_interview_history(
 
         total_score = sum(qa["score"] for qa in qa_list)
 
+        # Calculate duration
+        duration_minutes = 10
+        if questions:
+            last_ans = db.query(Answer).filter(Answer.question_id == questions[-1].id).first()
+            if last_ans and last_ans.created_at and interview.created_at:
+                duration_minutes = max(1, int((last_ans.created_at - interview.created_at).total_seconds() / 60))
+
+        # Calculate trust score
+        from agents.proctoring_agent import proctor_agent
+        risk_data = proctor_agent.get_risk_score(interview.id, db)
+        trust_score = max(0, 100 - int(risk_data.get("risk_score", 0) * 100))
+
         # Get saved report details if available
         saved_report = db.query(InterviewReport).filter(
             InterviewReport.interview_id == interview.id
@@ -1532,9 +1964,12 @@ def get_interview_history(
             "mode": interview.mode,
             "status": interview.status,
             "date": str(interview.created_at),
+            "duration_minutes": duration_minutes,
+            "trust_score": trust_score,
             "qa_list": qa_list,
             "total_score": total_score,
             "average_score": total_score / len(qa_list) if qa_list else 0,
+            "report_url": interview.report_url if interview.report_url else (f"http://localhost:8000/download-report/{interview.id}" if saved_report and saved_report.status == 'completed' else None),
             "report": {
                 "narrative_summary": saved_report.narrative_summary if saved_report else "",
                 "strengths": saved_report.strengths if saved_report else "",
@@ -1543,13 +1978,19 @@ def get_interview_history(
                 "technical_score": saved_report.technical_score if saved_report else 0,
                 "hr_score": saved_report.hr_score if saved_report else 0,
                 "confidence_score": saved_report.confidence_score if saved_report else 0,
+                "tech_communication_avg": saved_report.tech_communication_avg if saved_report else 0,
+                "hr_communication_skills_avg": saved_report.hr_communication_skills_avg if saved_report else 0,
                 "missing_concepts": saved_report.missing_concepts if saved_report else "",
                 "skill_gap_analysis": saved_report.skill_gap_analysis if saved_report else "",
                 "improvement_suggestions": saved_report.improvement_suggestions if saved_report else "",
                 "hiring_readiness_score": saved_report.hiring_readiness_score if saved_report else 0,
+                "final_interview_score": saved_report.final_interview_score if saved_report else 0,
+                "email_delivery_status": saved_report.email_delivery_status if saved_report else "pending",
+                "email_delivery_error": saved_report.email_delivery_error if saved_report else None,
                 "proctoring_analysis": json.loads(saved_report.proctoring_analysis) if saved_report and saved_report.proctoring_analysis else None
             }
         })
+
 
     history.sort(key=lambda x: x["interview_id"], reverse=True)
     return history
@@ -1586,6 +2027,18 @@ def get_all_interviews(
 
         total_score = sum(qa["score"] for qa in qa_list)
 
+        # Calculate duration
+        duration_minutes = 10
+        if questions:
+            last_ans = db.query(Answer).filter(Answer.question_id == questions[-1].id).first()
+            if last_ans and last_ans.created_at and interview.created_at:
+                duration_minutes = max(1, int((last_ans.created_at - interview.created_at).total_seconds() / 60))
+
+        # Calculate trust score
+        from agents.proctoring_agent import proctor_agent
+        risk_data = proctor_agent.get_risk_score(interview.id, db)
+        trust_score = max(0, 100 - int(risk_data.get("risk_score", 0) * 100))
+
         saved_report = db.query(InterviewReport).filter(
             InterviewReport.interview_id == interview.id
         ).first()
@@ -1597,10 +2050,13 @@ def get_all_interviews(
             "job_role": interview.job_role,
             "company": interview.company,
             "date": str(interview.created_at),
+            "duration_minutes": duration_minutes,
+            "trust_score": trust_score,
             "qa_list": qa_list,
             "total_score": total_score,
             "average_score": total_score / len(qa_list) if qa_list else 0,
             "status": interview.status,
+            "report_url": interview.report_url if interview.report_url else (f"http://localhost:8000/download-report/{interview.id}" if saved_report and saved_report.status == 'completed' else None),
             "report": {
                 "narrative_summary": saved_report.narrative_summary if saved_report else "",
                 "strengths": saved_report.strengths if saved_report else "",
@@ -1612,7 +2068,10 @@ def get_all_interviews(
                 "missing_concepts": saved_report.missing_concepts if saved_report else "",
                 "skill_gap_analysis": saved_report.skill_gap_analysis if saved_report else "",
                 "improvement_suggestions": saved_report.improvement_suggestions if saved_report else "",
-                "hiring_readiness_score": saved_report.hiring_readiness_score if saved_report else 0
+                "hiring_readiness_score": saved_report.hiring_readiness_score if saved_report else 0,
+                "final_interview_score": saved_report.final_interview_score if saved_report else 0,
+                "email_delivery_status": saved_report.email_delivery_status if saved_report else "pending",
+                "email_delivery_error": saved_report.email_delivery_error if saved_report else None
             }
         })
 
@@ -1635,12 +2094,18 @@ def send_report_email(
     if not report or report.status != "completed":
         raise HTTPException(status_code=400, detail="Report not ready yet")
         
-    # Simulate email sending logic here
-    print(f"[EMAIL] Sending report for interview {interview_id} to {current_user.email}...")
-    print(f"[EMAIL] Readiness Score: {report.hiring_readiness_score}")
-    print(f"[EMAIL] Recommendation: {report.recommendation}")
-    
-    return {"message": "Email notification sent successfully", "status": "sent"}
+    from email_service import send_candidate_report_email
+    try:
+        send_candidate_report_email(interview_id, db)
+        return {"message": "Email notification sent successfully", "status": "sent"}
+    except Exception as e:
+        status_value = "failed"
+        if "SMTP credentials not configured" in str(e):
+            status_value = "smtp_missing"
+        raise HTTPException(
+            status_code=500 if status_value == "failed" else 400,
+            detail=f"Email delivery failed: {str(e)}"
+        )
 
 
 # ══════════════════════════════════════════════════════

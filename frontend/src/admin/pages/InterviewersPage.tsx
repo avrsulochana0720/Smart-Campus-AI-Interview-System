@@ -12,18 +12,35 @@ export default function InterviewersPage() {
 
   const [isAdding, setIsAdding] = useState(false);
   const [newInterviewer, setNewInterviewer] = useState({ name: '', email: '', department: 'Engineering', role: 'Interviewer' });
+  const [actionMenuOpen, setActionMenuOpen] = useState<number | null>(null);
 
   const handleAddInterviewer = async () => {
     if (!newInterviewer.name || !newInterviewer.email) {
       showToast('Name and email are required.', 'error');
       return;
     }
-    // Optimistic UI update
-    const added = { ...newInterviewer, id: Date.now(), status: 'Active', role: 'Interviewer' };
-    setInterviewers([added, ...interviewers]);
-    setIsAdding(false);
-    setNewInterviewer({ name: '', email: '', department: 'Engineering', role: 'Interviewer' });
-    showToast('Interviewer added successfully.', 'success');
+    try {
+      const newUser = await adminAPI.createUser({
+        name: newInterviewer.name,
+        email: newInterviewer.email.trim(),
+        role: 'Interviewer',
+        department: newInterviewer.department
+      });
+      const added = { 
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        department: newUser.department,
+        role: 'Interviewer',
+        status: 'Active'
+      };
+      setInterviewers([added, ...interviewers]);
+      setIsAdding(false);
+      setNewInterviewer({ name: '', email: '', department: 'Engineering', role: 'Interviewer' });
+      showToast('Interviewer added successfully.', 'success');
+    } catch (e: any) {
+      showToast(e.response?.data?.detail || 'Failed to add interviewer.', 'error');
+    }
   };
 
   useEffect(() => {
@@ -67,9 +84,14 @@ export default function InterviewersPage() {
           <div style={{ color: '#1E293B', fontWeight: 800 }}>Loading interviewers...</div>
         ) : interviewers.filter(i => (i.name || '').toLowerCase().includes(searchTerm.toLowerCase())).map((interviewer) => (
           <div key={interviewer.id} style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '2px solid #0F172A', padding: '1.5rem', position: 'relative' }}>
-            <button onClick={() => showToast('This feature is coming soon.', 'info')} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: '#0F172A', cursor: 'pointer' }}>
+            <button onClick={() => setActionMenuOpen(actionMenuOpen === interviewer.id ? null : interviewer.id)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: '#0F172A', cursor: 'pointer' }}>
               <MoreHorizontal size={18} />
             </button>
+            {actionMenuOpen === interviewer.id && (
+              <div style={{ position: 'absolute', right: '2rem', top: '2.5rem', backgroundColor: '#FAF6EE', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)' }}>
+                <button onClick={() => { setInterviewers(interviewers.filter(i => i.id !== interviewer.id)); showToast('Interviewer removed', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#EF4444', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Remove</button>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#E11D48', border: '2px solid #0F172A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontSize: '1.2rem', fontWeight: 800 }}>
                 {(interviewer.name || 'I').charAt(0).toUpperCase()}

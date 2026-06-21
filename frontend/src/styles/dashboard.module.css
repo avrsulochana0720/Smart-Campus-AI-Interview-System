@@ -144,17 +144,17 @@
 }
 
 .card, .cardCenter {
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 1rem;
   background: #FAF6EE;
   padding: 1.5rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
+  box-shadow: 4px 4px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
 .card:hover, .cardCenter:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 4px 4px 0px #0F172A;
 }
 
 .cardCenter {
@@ -164,35 +164,55 @@
 .cardTitle {
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
-  font-weight: 700;
-  color: #0F172A;
-}
-
-.progressCircle {
-  width: 120px;
-  height: 120px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  margin: 0 auto 1rem;
-  background: conic-gradient(#DC2626 0deg, #F3ECE0 0deg);
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
-}
-
-.progressText {
-  font-size: 1.5rem;
   font-weight: 800;
   color: #0F172A;
 }
 
+.progressCircle {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem auto;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
+  transition: all 0.3s ease;
+}
+
+.progressCircle::after {
+  content: '';
+  position: absolute;
+  width: 136px;
+  height: 136px;
+  background: #FAF6EE;
+  border-radius: 50%;
+  border: 2px solid #0F172A;
+  z-index: 1;
+}
+
+.progressText {
+  position: relative;
+  z-index: 2;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .accent {
   color: #DC2626;
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: 1.1rem;
 }
 
 .radar {
-  color: #64748B;
+  color: #0F172A;
 }
 
 .table {
@@ -203,30 +223,31 @@
 
 .table th, .table td {
   padding: 1rem 0.75rem;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 2px solid #0F172A;
   text-align: left;
   vertical-align: middle;
+  color: #0F172A;
 }
 
 .table th {
-  color: #475569;
-  font-weight: 700;
+  color: #0F172A;
+  font-weight: 800;
   background: #F3ECE0;
 }
 
 .score {
   color: #DC2626;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .status {
-  color: #64748B;
-  font-weight: 600;
+  color: #0F172A;
+  font-weight: 800;
 }
 
 .list {
   padding-left: 1.25rem;
-  color: #334155;
+  color: #0F172A;
   display: grid;
   gap: 0.75rem;
 }
@@ -234,12 +255,12 @@
 .alert {
   border-radius: 0.75rem;
   background: rgba(220, 38, 38, 0.05);
-  border: 1px solid rgba(220, 38, 38, 0.1);
+  border: 2px solid #0F172A;
   padding: 0.85rem;
-  color: #DC2626;
+  color: #0F172A;
   margin-bottom: 0.85rem;
   font-size: 0.925rem;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .footer {
@@ -247,14 +268,15 @@
   gap: 1.5rem;
   flex-wrap: wrap;
   padding-top: 2rem;
-  color: #64748B;
+  color: #0F172A;
   font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .footer a {
   color: #DC2626;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
   transition: color 0.2s ease;
 }
 

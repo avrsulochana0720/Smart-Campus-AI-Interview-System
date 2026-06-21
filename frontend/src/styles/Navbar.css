@@ -6,8 +6,8 @@
   z-index: 50;
   padding: 0.75rem 1.5rem;
   background: #FAF6EE;
-  border-bottom: 1px solid #E2E8F0;
-  box-shadow: 0 4px 10px rgba(139, 120, 95, 0.08);
+  border-bottom: 1px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .navbar-container {
@@ -34,14 +34,14 @@
   align-items: center;
   justify-content: center;
   background: #DC2626;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .navbar-icon-inner {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 0.5rem;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #0F172A;
   background: transparent;
 }
 
@@ -96,7 +96,7 @@
   padding: 0.5rem;
   border-radius: 9999px;
   background: #FAF6EE;
-  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -104,7 +104,7 @@
 .navbar-profile:hover {
   background: #F3ECE0;
   transform: scale(1.02);
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .navbar-profile-image {
@@ -113,8 +113,8 @@
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #DC2626;
-  box-shadow: 2px 2px 5px rgba(185, 28, 28, 0.15);
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -146,12 +146,12 @@
   background: #DC2626;
   color: #FFFFFF;
   padding: 0.75rem 1.5rem;
-  border: none;
+  border: 2px solid #0F172A;
   border-radius: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .navbar-button:hover {
@@ -161,7 +161,7 @@
 
 .navbar-button:active {
   transform: translateY(0);
-  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .navbar-button-hover {
@@ -181,7 +181,7 @@
   .navbar-menu {
     display: block;
     background: none;
-    border: none;
+    border: 2px solid #0F172A;
     color: #0F172A;
     font-size: 1.5rem;
     cursor: pointer;

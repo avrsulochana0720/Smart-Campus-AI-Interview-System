@@ -2,7 +2,7 @@ import "../../styles/CTA.css";
 
 export default function CTA() {
   return (
-    <section className="cta">
+    <section id="about" className="cta">
       {/* Background glow effects */}
       <div className="cta-glow cta-glow-blue" />
       <div className="cta-glow cta-glow-violet" />

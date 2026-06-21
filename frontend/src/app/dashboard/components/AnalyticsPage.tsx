@@ -14,7 +14,8 @@ import {
   UserCheck,
   Brain,
   Sparkles,
-  Share2
+  Share2,
+  X
 } from 'lucide-react';
 import {
   LineChart,
@@ -38,6 +39,7 @@ import {
   PolarRadiusAxis,
   Radar
 } from 'recharts';
+import axios from 'axios';
 import '../../../styles/CandidateDashboard.css';
 
 interface InterviewHistoryItem {
@@ -48,7 +50,15 @@ interface InterviewHistoryItem {
   qa_list: Array<{ question: string; answer: string; score: number; feedback?: string; question_type?: string }>;
   total_score: number;
   average_score: number;
-  report?: { narrative_summary?: string; strengths?: string; weaknesses?: string; recommendation?: string };
+  report?: { 
+    narrative_summary?: string; 
+    strengths?: string; 
+    weaknesses?: string; 
+    recommendation?: string;
+    hiring_readiness_score?: number;
+    technical_score?: number;
+    hr_score?: number;
+  };
 }
 
 const formatDateKey = (dateString: string) => {
@@ -86,11 +96,21 @@ const buildDeptDistribution = (history: InterviewHistoryItem[]) => {
 
 const buildScoreDistribution = (history: InterviewHistoryItem[]) => {
   const buckets = [0, 0, 0, 0];
-  history.forEach((item) => {
-    const score = Math.round((item.average_score || 0) * 10);
-    if (score <= 40) buckets[0] += 1;
-    else if (score <= 60) buckets[1] += 1;
-    else if (score <= 80) buckets[2] += 1;
+  const completed = history.filter(item => item.average_score !== null);
+  completed.forEach((item) => {
+    let score = item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const finalScore = Math.round(score);
+    if (finalScore <= 40) buckets[0] += 1;
+    else if (finalScore <= 60) buckets[1] += 1;
+    else if (finalScore <= 80) buckets[2] += 1;
     else buckets[3] += 1;
   });
   return [
@@ -118,12 +138,21 @@ const buildSkillData = (history: InterviewHistoryItem[]) => {
 const buildPipelineData = (history: InterviewHistoryItem[]) => {
   const counts = { Applied: 0, Shortlisted: 0, Interviewed: 0, Completed: 0, Offered: 0 };
   history.forEach((item) => {
-    const score = Math.round((item.average_score || 0) * 10);
+    let score = item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const finalScore = Math.round(score);
     counts.Applied += 1;
-    if (score >= 50) counts.Shortlisted += 1;
-    if (score >= 60) counts.Interviewed += 1;
-    if (score > 0) counts.Completed += 1;
-    if (score >= 80) counts.Offered += 1;
+    if (finalScore >= 50) counts.Shortlisted += 1;
+    if (finalScore >= 60) counts.Interviewed += 1;
+    if (finalScore > 0) counts.Completed += 1;
+    if (finalScore >= 80) counts.Offered += 1;
   });
   return Object.entries(counts).map(([stage, candidates]) => ({ stage, candidates }));
 };
@@ -134,10 +163,19 @@ const buildTopDepartments = (history: InterviewHistoryItem[]) => {
     const name = item.job_role || 'Other';
     if (!groups[name]) groups[name] = { count: 0, totalScore: 0, passed: 0, offered: 0 };
     groups[name].count += 1;
-    const score = Math.round((item.average_score || 0) * 10);
-    groups[name].totalScore += score;
-    if (score >= 60) groups[name].passed += 1;
-    if (score >= 80) groups[name].offered += 1;
+    let score = item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const finalScore = Math.round(score);
+    groups[name].totalScore += finalScore;
+    if (finalScore >= 60) groups[name].passed += 1;
+    if (finalScore >= 80) groups[name].offered += 1;
   });
   return Object.entries(groups).map(([name, summary], index) => ({
     name,
@@ -182,6 +220,9 @@ export default function AnalyticsPage({ interviewHistory, loading }: { interview
   const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
   const [dateRange, setDateRange] = useState(dateRanges[0]);
   const [notification, setNotification] = useState<string | null>(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleData, setScheduleData] = useState({ job_role: '', company: '', scheduled_time: '' });
+  const [scheduling, setScheduling] = useState(false);
 
   const showNotification = (message: string) => {
     setNotification(message);
@@ -196,7 +237,36 @@ export default function AnalyticsPage({ interviewHistory, loading }: { interview
   };
 
   const handleSchedule = () => {
-    showNotification('Schedule request created. Check your calendar for the follow-up invite.');
+    setIsScheduleModalOpen(true);
+  };
+
+  const submitSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scheduleData.job_role || !scheduleData.company || !scheduleData.scheduled_time) {
+      showNotification('Please fill in all fields');
+      return;
+    }
+    try {
+      setScheduling(true);
+      const token = localStorage.getItem('token');
+      const dt = new Date(scheduleData.scheduled_time);
+      const isoString = dt.toISOString();
+      await axios.post('http://localhost:8000/schedule-interview', {
+        job_role: scheduleData.job_role,
+        company: scheduleData.company,
+        scheduled_time: isoString
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showNotification('Interview scheduled successfully! Check your email.');
+      setIsScheduleModalOpen(false);
+      setScheduleData({ job_role: '', company: '', scheduled_time: '' });
+    } catch (error) {
+      showNotification('Failed to schedule interview');
+      console.error(error);
+    } finally {
+      setScheduling(false);
+    }
   };
 
   const handleExportReport = () => {
@@ -247,10 +317,53 @@ export default function AnalyticsPage({ interviewHistory, loading }: { interview
   };
 
   const totalInterviews = interviewHistory.length;
-  const passRate = totalInterviews ? Math.round((interviewHistory.filter((item) => Math.round((item.average_score || 0) * 10) >= 70).length / totalInterviews) * 100) : 0;
-  const avgAiScore = totalInterviews ? Math.round(interviewHistory.reduce((sum, item) => sum + Math.round((item.average_score || 0) * 10), 0) / totalInterviews) : 0;
-  const offersConv = totalInterviews ? Math.round((interviewHistory.filter((item) => Math.round((item.average_score || 0) * 10) >= 80).length / totalInterviews) * 100) : 0;
-  const timeToHire = totalInterviews ? Math.max(12, Math.round((totalInterviews * 1.5) / 1)) : 0;
+  const passRate = totalInterviews ? Math.round((interviewHistory.filter((item) => {
+    let score = item.report?.final_interview_score || item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const finalScore = Math.round(score);
+    return finalScore >= 70;
+  }).length / totalInterviews) * 100) : 0;
+  
+  const avgAiScore = totalInterviews ? Math.round(interviewHistory.reduce((sum, item) => {
+    let score = item.report?.final_interview_score || item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const finalScore = Math.round(score);
+    return sum + finalScore;
+  }, 0) / totalInterviews) : 0;
+  
+  const offersConv = totalInterviews ? Math.round((interviewHistory.filter((item) => {
+    let score = item.report?.final_interview_score || item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const finalScore = Math.round(score);
+    return finalScore >= 80;
+  }).length / totalInterviews) * 100) : 0;
+  const timeToHire = totalInterviews ? Math.max(3, Math.round(
+    interviewHistory.reduce((acc, item) => {
+      const factor = item.job_role ? (item.job_role.toLowerCase().includes('senior') ? 14 : 7) : 5;
+      return acc + factor;
+    }, 0) / totalInterviews
+  )) : 0;
 
   const interviewsOverTimeData = useMemo(() => buildTrendData(interviewHistory), [interviewHistory]);
   const deptDistributionData = useMemo(() => buildDeptDistribution(interviewHistory), [interviewHistory]);
@@ -745,6 +858,64 @@ export default function AnalyticsPage({ interviewHistory, loading }: { interview
               </div>
 
             </div>
+          </div>
+        </div>
+      )}
+
+      {isScheduleModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#ffffff', padding: '2rem', borderRadius: '1.5rem', width: '90%', maxWidth: '500px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #E5E7EB' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Calendar size={24} color="#2563eb" /> Schedule Interview
+              </h3>
+              <button onClick={() => setIsScheduleModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={submitSchedule} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Job Role</label>
+                <input 
+                  type="text" 
+                  required
+                  value={scheduleData.job_role} 
+                  onChange={(e) => setScheduleData({...scheduleData, job_role: e.target.value})}
+                  placeholder="e.g. Software Engineer"
+                  style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', fontSize: '0.95rem' }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Company</label>
+                <input 
+                  type="text" 
+                  required
+                  value={scheduleData.company} 
+                  onChange={(e) => setScheduleData({...scheduleData, company: e.target.value})}
+                  placeholder="e.g. Google"
+                  style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', fontSize: '0.95rem' }} 
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  required
+                  value={scheduleData.scheduled_time} 
+                  onChange={(e) => setScheduleData({...scheduleData, scheduled_time: e.target.value})}
+                  style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', fontSize: '0.95rem' }} 
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" onClick={() => setIsScheduleModalOpen(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0', background: '#F8FAFC', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={scheduling} style={{ padding: '0.75rem 1.5rem', borderRadius: '0.75rem', border: 'none', background: '#2563eb', color: '#ffffff', fontWeight: 600, cursor: scheduling ? 'not-allowed' : 'pointer', opacity: scheduling ? 0.7 : 1 }}>
+                  {scheduling ? 'Scheduling...' : 'Confirm Schedule'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

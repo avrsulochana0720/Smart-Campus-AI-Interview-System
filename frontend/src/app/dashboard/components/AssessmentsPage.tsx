@@ -34,6 +34,8 @@ interface InterviewHistoryItem {
   average_score: number;
   mode?: string;
   report?: { narrative_summary?: string; strengths?: string; weaknesses?: string; recommendation?: string };
+  trust_score?: number;
+  duration_minutes?: number;
 }
 
 interface AssessmentItem {
@@ -62,7 +64,16 @@ interface AssessmentItem {
 
 const deriveAssessments = (history: InterviewHistoryItem[]): AssessmentItem[] => {
   return history.map((item) => {
-    const avgScore = Math.round((item.average_score || 0) * 10);
+    let score = item.report?.final_interview_score || item.report?.hiring_readiness_score || 0;
+    if (score === 0) {
+      score = item.average_score || 0;
+      if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+    } else if (score > 0 && score <= 10) {
+      score = score * 10;
+    }
+    const avgScore = Math.round(score);
     const questionCount = item.qa_list?.length || 0;
     const strengths = item.report?.strengths ? item.report.strengths.split(/[\n;]+/).filter(Boolean) : [];
     const weaknesses = item.report?.weaknesses ? item.report.weaknesses.split(/[\n;]+/).filter(Boolean) : [];
@@ -105,8 +116,8 @@ const deriveAssessments = (history: InterviewHistoryItem[]): AssessmentItem[] =>
           status: avgScore >= 60 ? 'Passed' : 'Needs Work',
           date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           avatar: '',
-          trustScore: 98,
-          timeSpent: `${Math.max(10, questionCount * 3)}m`
+          trustScore: item.trust_score !== undefined ? item.trust_score : 98,
+          timeSpent: item.duration_minutes ? `${item.duration_minutes}m` : `${Math.max(10, questionCount * 3)}m`
         }
       ],
       questions: item.qa_list.map((qa) => ({ text: qa.question, category: 'Generated', difficulty: qa.score >= 8 ? 'Medium' : 'Easy' })),

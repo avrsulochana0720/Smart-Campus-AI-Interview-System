@@ -40,7 +40,20 @@ export default function ThankYouPage() {
 
           <div className={styles.buttons}>
             <button className={styles.primary} onClick={() => navigate(`/dashboard?score=${score}`)}>Go to Dashboard</button>
-            <button className={styles.secondary}>Logout</button>
+            <button className={styles.secondary} onClick={async () => {
+              try {
+                const { supabase } = await import('../../lib/supabase');
+                await supabase.auth.signOut();
+              } catch(e) {}
+              localStorage.removeItem("token");
+              localStorage.removeItem("adminToken");
+              localStorage.removeItem("adminRole");
+              localStorage.removeItem("resume_id");
+              localStorage.removeItem("interview_id");
+              localStorage.removeItem("job_role");
+              localStorage.removeItem("interview_mode");
+              navigate("/login");
+            }}>Logout</button>
           </div>
 
           <footer className={styles.footer}>

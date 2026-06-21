@@ -25,9 +25,8 @@
   align-items: center;
   padding: 1rem 2rem;
   background: #FAF6EE;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #0F172A;
   z-index: 100;
-  box-shadow: 0 4px 10px rgba(139, 120, 95, 0.08);
 }
 
 .navbar-brand {
@@ -93,10 +92,10 @@
   font-size: 0.9rem;
   color: #FFFFFF;
   background: #DC2626;
-  border: none;
+  border: 2px solid #0F172A;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .nav-button-primary:hover {
@@ -106,7 +105,7 @@
 
 .nav-button-primary:active {
   transform: translateY(0);
-  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .mobile-menu-toggle {
@@ -114,7 +113,7 @@
   flex-direction: column;
   gap: 4px;
   background: none;
-  border: none;
+  border: 2px solid #0F172A;
   cursor: pointer;
   padding: 0.5rem;
 }
@@ -134,12 +133,12 @@
   left: 0;
   right: 0;
   background: #FAF6EE;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 2px solid #0F172A;
   padding: 1.5rem;
   flex-direction: column;
   gap: 1rem;
   z-index: 99;
-  box-shadow: 0 4px 15px rgba(139, 120, 95, 0.08);
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .mobile-nav-link {
@@ -164,10 +163,10 @@
   font-size: 0.9rem;
   color: #FFFFFF;
   background: #DC2626;
-  border: none;
+  border: 2px solid #0F172A;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   margin-top: 0.5rem;
 }
 
@@ -199,15 +198,15 @@
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
-  border: 2px solid #DC2626;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .profile-avatar-nav:hover {
   transform: scale(1.05);
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .avatar-svg-nav {
@@ -262,8 +261,8 @@
   font-size: 1.1rem;
   color: #FFFFFF;
   background: #DC2626;
-  border: none;
-  box-shadow: 6px 6px 15px rgba(185, 28, 28, 0.3), -6px -6px 15px #FFFFFF;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -280,7 +279,7 @@
 
 .hero-button-primary:active {
   transform: translateY(0);
-  box-shadow: inset 4px 4px 8px rgba(185, 28, 28, 0.4), inset -4px -4px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .hero-button-secondary {
@@ -289,9 +288,9 @@
   font-weight: 700;
   font-size: 1.1rem;
   color: #DC2626;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   background: #FAF6EE;
-  box-shadow: 6px 6px 15px rgba(139, 120, 95, 0.15), -6px -6px 15px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -302,7 +301,7 @@
 
 .hero-button-secondary:active {
   transform: translateY(0);
-  box-shadow: inset 4px 4px 8px rgba(139, 120, 95, 0.15), inset -4px -4px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .hero-image {
@@ -314,8 +313,8 @@
   width: 100%;
   height: auto;
   border-radius: 1.5rem;
-  border: 1px solid #E2E8F0;
-  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.18), -8px -8px 24px #FFFFFF;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 /* Authentication Modal Styles - Neumorphic tactile */
@@ -338,7 +337,7 @@
   padding: 2.5rem;
   width: 90%;
   max-width: 600px;
-  box-shadow: 12px 12px 30px rgba(139, 120, 95, 0.2), -12px -12px 30px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .auth-header {
@@ -357,7 +356,7 @@
 
 .auth-close {
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   color: #0F172A;
   font-size: 1.5rem;
   cursor: pointer;
@@ -368,14 +367,14 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.75rem;
-  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
 .auth-close:hover {
   background: #F3ECE0;
   transform: rotate(90deg);
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .auth-form {
@@ -402,36 +401,36 @@
 .form-group input {
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   background: #FAF6EE;
   color: #0F172A;
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .form-group input::placeholder {
-  color: #94a3b8;
+  color: #1E293B;
 }
 
 .form-group input:focus {
   outline: none;
   border-color: #DC2626;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .auth-submit {
   padding: 1rem 2rem;
   border-radius: 0.75rem;
-  border: none;
+  border: 2px solid #0F172A;
   background: #DC2626;
   color: #FFFFFF;
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   position: relative;
   overflow: hidden;
 }
@@ -447,7 +446,7 @@
 
 .auth-submit:active {
   transform: translateY(0);
-  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 /* Profile Photo Upload Styles */
@@ -465,8 +464,8 @@
   margin: 0 auto;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #DC2626;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.2), -4px -4px 10px #FFFFFF;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .profile-preview-image {
@@ -483,7 +482,7 @@
   height: 30px;
   border-radius: 50%;
   background: #DC2626;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #0F172A;
   color: #FFFFFF;
   font-size: 16px;
   font-weight: bold;
@@ -492,7 +491,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.3);
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .remove-photo-btn:hover {
@@ -505,9 +504,9 @@
   height: 120px;
   margin: 0 auto;
   border-radius: 50%;
-  border: 2px dashed #DC2626;
+  border: 2px solid #0F172A;
   background: #FAF6EE;
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   display: flex;
   flex-direction: column;
   align-items: center;

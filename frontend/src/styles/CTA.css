@@ -3,8 +3,7 @@
   padding: 6rem 2rem;
   text-align: center;
   background: #FAF6EE;
-  border-top: 1px solid #E2E8F0;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 2px solid #0F172A;
 }
 
 .cta-glow {
@@ -57,8 +56,8 @@
   font-size: 1.1rem;
   color: #FFFFFF;
   background: #DC2626;
-  border: none;
-  box-shadow: 6px 6px 15px rgba(185, 28, 28, 0.3), -6px -6px 15px #FFFFFF;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -73,7 +72,7 @@
 
 .cta-primary:active {
   transform: translateY(0);
-  box-shadow: inset 4px 4px 8px rgba(185, 28, 28, 0.4), inset -4px -4px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .cta-secondary {
@@ -83,9 +82,9 @@
   font-weight: 700;
   font-size: 1.1rem;
   color: #DC2626;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   background: #FAF6EE;
-  box-shadow: 6px 6px 15px rgba(139, 120, 95, 0.15), -6px -6px 15px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -96,5 +95,5 @@
 
 .cta-secondary:active {
   transform: translateY(0);
-  box-shadow: inset 4px 4px 8px rgba(139, 120, 95, 0.15), inset -4px -4px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }

@@ -40,7 +40,34 @@ class EvalAgent:
         Score an answer 0-10 with deep, honest feedback.
         Includes factor-based scoring for Technical or HR questions.
         """
-        resume_ctx = resume_summary[:500] if resume_summary else "No resume context."
+        # Check for empty or not answered
+        clean_ans = user_answer.strip().lower() if user_answer else ""
+        if not clean_ans or clean_ans in ["no answer provided", "not answered", "no response provided", "not answered."]:
+            print(f"[EvalAgent] Candidate did not answer. Returning 0 score.")
+            if question_type == "technical":
+                return {
+                    "score": 0,
+                    "feedback": "No response was provided.",
+                    "next_question": "",
+                    "matching_score": 0,
+                    "accuracy": 0,
+                    "concept_understanding": 0,
+                    "problem_solving": 0,
+                    "communication_clarity": 0,
+                    "code_quality": 0
+                }
+            else:
+                return {
+                    "score": 0,
+                    "feedback": "No response was provided.",
+                    "next_question": "",
+                    "matching_score": 0,
+                    "communication_skills": 0,
+                    "confidence": 0,
+                    "professionalism": 0,
+                    "adaptability": 0,
+                    "team_collaboration": 0
+                }
 
         # Build expected answer section for the prompt
         expected_section = ""
@@ -122,7 +149,7 @@ Return ONLY a valid JSON object:
 
         try:
             start_time = time.time()
-            content = request_ollama(prompt)
+            content = request_ollama(prompt, model=self.model)
             duration = time.time() - start_time
             record_metric("evaluate_answer", duration)
             content = re.sub(r'```json\n?', '', content)
@@ -141,32 +168,7 @@ Return ONLY a valid JSON object:
                 comm = max(0, min(10, int(result.get("communication_clarity", 5))))
                 code = max(0, min(10, int(result.get("code_quality", 5))))
                 
-                # Ensure unique scores among the factors by adjusting duplicate values
-                factor_scores = {
-                    "accuracy": accuracy,
-                    "concept_understanding": concept,
-                    "problem_solving": problem,
-                    "communication_clarity": comm,
-                    "code_quality": code
-                }
-                used_scores = set()
-                for k in sorted(factor_scores.keys()):
-                    val = factor_scores[k]
-                    orig_val = val
-                    direction = 1 if val < 8 else -1
-                    while val in used_scores:
-                        val += direction
-                        if val > 10 or val < 1:
-                            direction = -direction
-                            val = orig_val + direction
-                    factor_scores[k] = val
-                    used_scores.add(val)
-                
-                accuracy = factor_scores["accuracy"]
-                concept = factor_scores["concept_understanding"]
-                problem = factor_scores["problem_solving"]
-                comm = factor_scores["communication_clarity"]
-                code = factor_scores["code_quality"]
+
                 
                 # Calculate weighted overall score (0-10 scale)
                 overall = accuracy * 0.30 + concept * 0.25 + problem * 0.20 + comm * 0.15 + code * 0.10
@@ -190,33 +192,7 @@ Return ONLY a valid JSON object:
                 adapt = max(0, min(10, int(result.get("adaptability", 5))))
                 team = max(0, min(10, int(result.get("team_collaboration", 5))))
                 
-                # Ensure unique scores among the factors by adjusting duplicate values
-                factor_scores = {
-                    "communication_skills": comm_skills,
-                    "confidence": confidence,
-                    "professionalism": prof,
-                    "adaptability": adapt,
-                    "team_collaboration": team
-                }
-                used_scores = set()
-                for k in sorted(factor_scores.keys()):
-                    val = factor_scores[k]
-                    orig_val = val
-                    direction = 1 if val < 8 else -1
-                    while val in used_scores:
-                        val += direction
-                        if val > 10 or val < 1:
-                            direction = -direction
-                            val = orig_val + direction
-                    factor_scores[k] = val
-                    used_scores.add(val)
-                
-                comm_skills = factor_scores["communication_skills"]
-                confidence = factor_scores["confidence"]
-                prof = factor_scores["professionalism"]
-                adapt = factor_scores["adaptability"]
-                team = factor_scores["team_collaboration"]
-                
+
                 # Calculate weighted overall score (0-10 scale)
                 overall = comm_skills * 0.30 + confidence * 0.20 + prof * 0.20 + adapt * 0.15 + team * 0.15
                 overall_score = max(0, min(10, int(round(overall))))
@@ -238,23 +214,30 @@ Return ONLY a valid JSON object:
 
     def _fallback_evaluation(self, question, user_answer, job_role, company, question_type: str = "technical") -> Dict:
         """Rule-based fallback when Qwen is unavailable."""
-        word_count = len(user_answer.split())
-        if word_count < 10:
-            score = 2
-            feedback = "Your answer is too brief. Please provide more detail and specific examples."
-        elif word_count < 30:
-            score = 4
-            feedback = "Your answer touches on the topic but lacks depth. Try to include concrete examples."
-        elif word_count < 60:
-            score = 6
-            feedback = "Decent answer with reasonable coverage. Adding more technical depth would strengthen it."
+        clean_ans = user_answer.strip().lower() if user_answer else ""
+        if not clean_ans or clean_ans in ["no answer provided", "not answered", "no response provided", "not answered."]:
+            score = 0
+            feedback = "No response was provided."
         else:
-            score = 7
-            feedback = "Good answer with adequate detail. Consider structuring your response more clearly."
+            word_count = len(user_answer.split())
+            if word_count < 10:
+                score = 2
+                feedback = "Your answer is too brief. Please provide more detail and specific examples."
+            elif word_count < 30:
+                score = 4
+                feedback = "Your answer touches on the topic but lacks depth. Try to include concrete examples."
+            elif word_count < 60:
+                score = 6
+                feedback = "Decent answer with reasonable coverage. Adding more technical depth would strengthen it."
+            else:
+                score = 7
+                feedback = "Good answer with adequate detail. Consider structuring your response more clearly."
 
         if question_type == "technical":
             # Map fallback score to completely unique factor scores to avoid duplicates
-            if score == 2:
+            if score == 0:
+                accuracy, concept, problem, comm, code = 0, 0, 0, 0, 0
+            elif score == 2:
                 accuracy, concept, problem, comm, code = 3, 1, 4, 2, 5
             elif score == 4:
                 accuracy, concept, problem, comm, code = 5, 3, 6, 4, 2
@@ -276,7 +259,9 @@ Return ONLY a valid JSON object:
             }
         else:
             # Map fallback score to completely unique factor scores to avoid duplicates
-            if score == 2:
+            if score == 0:
+                comm_skills, confidence, prof, adapt, team = 0, 0, 0, 0, 0
+            elif score == 2:
                 comm_skills, confidence, prof, adapt, team = 3, 1, 4, 2, 5
             elif score == 4:
                 comm_skills, confidence, prof, adapt, team = 5, 3, 6, 4, 2
@@ -442,7 +427,7 @@ Interview Data:
 Summary:"""
 
         try:
-            text = request_ollama(prompt)
+            text = request_ollama(prompt, model=self.model)
             # Remove thinking tags if present
             text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
             return text

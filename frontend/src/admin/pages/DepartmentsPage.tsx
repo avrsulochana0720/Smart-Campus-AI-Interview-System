@@ -19,11 +19,19 @@ export default function DepartmentsPage() {
       showToast('Department name is required.', 'error');
       return;
     }
-    const added = { ...newDepartment, id: Date.now() };
-    setDepartments([added, ...departments]);
-    setIsAdding(false);
-    setNewDepartment({ name: '', head: '', activeRoles: 0, candidates: 0 });
-    showToast('Department added successfully.', 'success');
+    adminAPI.createDepartment({
+      name: newDepartment.name,
+      head: newDepartment.head || "System Assigned",
+      budget: "Medium"
+    }).then(dept => {
+      setDepartments([dept, ...departments]);
+      setIsAdding(false);
+      setNewDepartment({ name: '', head: '', activeRoles: 0, candidates: 0 });
+      showToast('Department added successfully.', 'success');
+    }).catch(err => {
+      console.error(err);
+      showToast(err.response?.data?.detail || 'Failed to add department.', 'error');
+    });
   };
 
   useEffect(() => {

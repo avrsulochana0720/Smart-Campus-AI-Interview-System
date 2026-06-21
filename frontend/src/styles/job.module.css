@@ -12,12 +12,12 @@
 
 .jobCard {
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 1.5rem;
   padding: 3rem;
   width: 100%;
   max-width: 500px;
-  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.15), -8px -8px 24px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   animation: slideUp 0.5s ease-out;
 }
 
@@ -84,7 +84,7 @@
 .selectButton {
   width: 100%;
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   color: #0F172A;
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
@@ -93,7 +93,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -105,7 +105,7 @@
 .selectButton:focus {
   outline: none;
   border-color: #DC2626;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .selectValue {
@@ -137,10 +137,10 @@
   left: 0;
   right: 0;
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
-  border-top: none;
+  border: 2px solid #0F172A;
+  border-top: 2px solid #0F172A;
   border-radius: 0 0 0.75rem 0.75rem;
-  box-shadow: 4px 4px 10px rgba(139, 120, 95, 0.15);
+  box-shadow: 3px 3px 0px #0F172A;
   margin-top: -1px;
   overflow: hidden;
   animation: dropdownSlide 0.2s ease-out;
@@ -160,8 +160,8 @@
 .searchInput {
   width: 100%;
   background: #FAF6EE;
-  border: none;
-  border-bottom: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
+  border-bottom: 2px solid #0F172A;
   color: #0F172A;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
@@ -169,7 +169,7 @@
 }
 
 .searchInput::placeholder {
-  color: #94A3B8;
+  color: #1E293B;
 }
 
 .searchInput:focus {
@@ -203,14 +203,14 @@
 .dropdownItem {
   width: 100%;
   background: none;
-  border: none;
+  border: 2px solid #0F172A;
   color: #0F172A;
   padding: 0.75rem 1.25rem;
   text-align: left;
   cursor: pointer;
   font-size: 0.95rem;
   transition: all 0.15s ease;
-  border-left: 3px solid transparent;
+  border-left: 2px solid #0F172A;
 }
 
 .dropdownItem:hover {
@@ -227,18 +227,18 @@
 .textInput {
   width: 100%;
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   color: #0F172A;
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
   font-size: 1rem;
   transition: all 0.2s ease;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   box-sizing: border-box;
 }
 
 .textInput::placeholder {
-  color: #94A3B8;
+  color: #1E293B;
 }
 
 .textInput:hover {
@@ -249,24 +249,34 @@
 .textInput:focus {
   outline: none;
   border-color: #DC2626;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .toggleCustom {
   align-self: flex-start;
-  background: none;
-  border: none;
+  background: #FAF6EE;
+  border: 2px solid #0F172A;
+  border-radius: 0;
   color: #DC2626;
   font-size: 0.85rem;
+  font-weight: 800;
   cursor: pointer;
-  padding: 0;
-  transition: color 0.2s ease;
-  text-decoration: underline;
+  padding: 0.4rem 0.8rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
   margin-top: 0.5rem;
+  box-shadow: 2px 2px 0px #0F172A;
 }
 
 .toggleCustom:hover {
-  color: #EF4444;
+  background: #F3ECE0;
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0px #0F172A;
+}
+
+.toggleCustom:active {
+  transform: translateY(0);
+  box-shadow: 2px 2px 0px #0F172A;
 }
 
 .startButton {
@@ -274,7 +284,7 @@
   background: #DC2626;
   color: #FFFFFF;
   padding: 1rem;
-  border: none;
+  border: 2px solid #0F172A;
   border-radius: 1rem;
   font-size: 1.05rem;
   font-weight: 700;
@@ -284,7 +294,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .startButton:hover:not(:disabled) {
@@ -294,7 +304,7 @@
 
 .startButton:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .startButton:disabled {
@@ -312,7 +322,7 @@
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #0F172A;
   border-top-color: #FFFFFF;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -322,4 +332,28 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.noBorder {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.noBorder:hover, .noBorder:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.thinBorder {
+  border: 1px solid #0F172A !important;
+  box-shadow: 1px 1px 0px #0F172A !important;
+}
+
+.thinBorder:hover {
+  border-color: #DC2626 !important;
+}
+
+.thinBorder:focus {
+  border-color: #DC2626 !important;
+  box-shadow: 1px 1px 0px #0F172A !important;
 }

@@ -10,6 +10,9 @@ def migrate():
     inspector = inspect(engine)
     
     migrations = [
+        # users table - add missing columns
+        ("users", "phone_number", "ALTER TABLE users ADD COLUMN phone_number VARCHAR(50)"),
+        ("users", "auth_method", "ALTER TABLE users ADD COLUMN auth_method VARCHAR(50) DEFAULT 'email'"),
         # resumes table - add skills_extracted and ai_analysis
         ("resumes", "skills_extracted", "ALTER TABLE resumes ADD COLUMN skills_extracted TEXT"),
         ("resumes", "ai_analysis", "ALTER TABLE resumes ADD COLUMN ai_analysis TEXT"),

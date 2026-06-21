@@ -25,7 +25,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="features">
+    <section id="features" className="features">
       <div className="features-header">
         <h2 className="features-title">Powerful Features</h2>
         <p className="features-subtitle">

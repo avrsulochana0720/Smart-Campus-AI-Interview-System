@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import styles from "../../styles/placement-head.module.css";
 import { interviewAPI } from "../../utils/api";
-import { jsPDF } from 'jspdf';
 
 interface InterviewResult {
   id: string;
@@ -18,6 +17,7 @@ interface InterviewResult {
   communication: number;
   problemSolving: number;
   rawReport?: any;
+  report_url?: string;
 }
 
 export default function PlacementHeadDashboard() {
@@ -44,7 +44,8 @@ export default function PlacementHeadDashboard() {
           technicalSkills: d.report?.technical_score ? Math.round(d.report.technical_score * 10) : 0,
           communication: d.report?.hr_score ? Math.round(d.report.hr_score * 10) : 0,
           problemSolving: d.report?.confidence_score ? Math.round(d.report.confidence_score * 10) : 0,
-          rawReport: d.report
+          rawReport: d.report,
+          report_url: d.report_url
         }));
         setInterviews(formatted);
       } catch (err) {
@@ -80,45 +81,9 @@ export default function PlacementHeadDashboard() {
 
   const handleDownloadReport = () => {
     if (!selectedResult) return;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const margin = 40;
-    let y = 50;
-
-    doc.setFontSize(18);
-    doc.text(`Interview Report: ${selectedResult.studentName}`, margin, y);
-    y += 30;
-    doc.setFontSize(11);
-    doc.text(`Role: ${selectedResult.jobRole} @ ${selectedResult.company}`, margin, y);
-    y += 18;
-    doc.text(`Date: ${selectedResult.date}`, margin, y);
-    y += 18;
-    doc.text(`Overall Score: ${selectedResult.score}%`, margin, y);
-    y += 30;
-
-    doc.setFontSize(12);
-    doc.text('AI Feedback & Narrative Summary', margin, y);
-    y += 18;
-    doc.setFontSize(10);
-    const narrativeLines = doc.splitTextToSize(selectedResult.aiFeedback, 500);
-    doc.text(narrativeLines, margin, y);
-    y += narrativeLines.length * 15 + 10;
-
-    if (selectedResult.rawReport?.skill_gap_analysis) {
-      doc.setFontSize(11);
-      doc.text('Skill Gap Analysis', margin, y);
-      y += 18;
-      doc.setFontSize(10);
-      const gapLines = doc.splitTextToSize(selectedResult.rawReport.skill_gap_analysis, 500);
-      doc.text(gapLines, margin, y);
-      y += gapLines.length * 15 + 10;
-    }
-    
-    if (selectedResult.rawReport?.hiring_readiness_score) {
-      doc.setFontSize(11);
-      doc.text(`Hiring Readiness: ${selectedResult.rawReport.hiring_readiness_score}%`, margin, y);
-    }
-
-    doc.save(`${selectedResult.studentName.replace(/\s+/g, '_')}_Report.pdf`);
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('token') || '';
+    const reportUrl = selectedResult.report_url || `http://localhost:8000/download-report/${selectedResult.interview_id}`;
+    window.open(`${reportUrl}?token=${token}`, '_blank');
   };
 
   const handleContactStudent = async () => {

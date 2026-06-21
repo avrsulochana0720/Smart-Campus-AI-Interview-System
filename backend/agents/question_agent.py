@@ -106,7 +106,7 @@ class QuestionAgent:
         # 6. Generate
         try:
             start_time = time.time()
-            raw_content = request_ollama(prompt)
+            raw_content = request_ollama(prompt, model=self.model)
             duration = time.time() - start_time
             record_metric("generate_questions", duration)
             print(f"[QUESTION_DEBUG] Raw AI Response received ({len(raw_content) if raw_content else 0} chars)")

@@ -135,9 +135,9 @@ export default function UsersRolesPage() {
                       
                       {actionMenuOpen === user.id && (
                         <div style={{ position: 'absolute', right: '3rem', top: '1rem', backgroundColor: '#FAF6EE', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)' }}>
-                          <button onClick={() => { showToast('Edit User feature triggered', 'info'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Edit Role</button>
-                          <button onClick={() => { showToast('Permissions updated', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Permissions</button>
-                          <button onClick={() => { showToast('User deactivated', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#EF4444', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Deactivate</button>
+                          <button onClick={() => { setInviteForm({ name: user.name, email: user.email, role: user.role, department: 'General' }); setShowInviteModal(true); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Edit Role</button>
+                          <button onClick={() => { setShowPermissionsModal(true); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Permissions</button>
+                          <button onClick={() => { setUsers(users.map(u => u.id === user.id ? { ...u, status: 'Inactive' } : u)); showToast('User deactivated', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#EF4444', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Deactivate</button>
                         </div>
                       )}
                     </td>
@@ -210,9 +210,24 @@ export default function UsersRolesPage() {
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
               <button onClick={() => setShowInviteModal(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '2px solid #0F172A', color: '#0F172A', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
-              <button onClick={() => {
-                showToast(`Invitation sent to ${inviteForm.email}!`, 'success');
-                setShowInviteModal(false);
+              <button onClick={async () => {
+                if (!inviteForm.name || !inviteForm.email) {
+                  showToast('Name and email are required.', 'error');
+                  return;
+                }
+                try {
+                  const newUser = await adminAPI.createUser({
+                    name: inviteForm.name,
+                    email: inviteForm.email.trim(),
+                    role: inviteForm.role,
+                    department: inviteForm.department
+                  });
+                  setUsers([newUser, ...users]);
+                  showToast(`User ${inviteForm.name} invited successfully!`, 'success');
+                  setShowInviteModal(false);
+                } catch (e: any) {
+                  showToast(e.response?.data?.detail || 'Failed to invite user.', 'error');
+                }
               }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '2px solid #E11D48', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>Send Invite</button>
             </div>
           </div>
@@ -239,9 +254,9 @@ export default function UsersRolesPage() {
                 {['Interview Management', 'Candidate Data', 'System Settings', 'Billing & Plans'].map((mod, idx) => (
                   <tr key={idx} style={{ borderBottom: '2px solid #0F172A' }}>
                     <td style={{ padding: '1rem', textAlign: 'left', color: '#0F172A', fontSize: '0.85rem', fontWeight: 800 }}>{mod}</td>
-                    <td style={{ padding: '1rem' }}><input type="checkbox" defaultChecked={true} style={{ cursor: 'pointer' }} /></td>
-                    <td style={{ padding: '1rem' }}><input type="checkbox" defaultChecked={idx === 0} style={{ cursor: 'pointer' }} /></td>
-                    <td style={{ padding: '1rem' }}><input type="checkbox" defaultChecked={idx !== 2 && idx !== 3} style={{ cursor: 'pointer' }} /></td>
+                    <td style={{ padding: '1rem' }}><input type="checkbox" defaultChecked={true} style={{ cursor: 'pointer', transform: 'scale(3)', margin: '0.5rem', accentColor: '#E11D48' }} /></td>
+                    <td style={{ padding: '1rem' }}><input type="checkbox" defaultChecked={idx === 0} style={{ cursor: 'pointer', transform: 'scale(3)', margin: '0.5rem', accentColor: '#E11D48' }} /></td>
+                    <td style={{ padding: '1rem' }}><input type="checkbox" defaultChecked={idx !== 2 && idx !== 3} style={{ cursor: 'pointer', transform: 'scale(3)', margin: '0.5rem', accentColor: '#E11D48' }} /></td>
                   </tr>
                 ))}
               </tbody>

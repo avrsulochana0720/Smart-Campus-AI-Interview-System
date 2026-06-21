@@ -1,6 +1,6 @@
 .footer {
   padding: 2.5rem 2rem;
-  border-top: 1px solid #E2E8F0;
+  border-top: 2px solid #0F172A;
   background: #FAF6EE;
 }
 
@@ -40,15 +40,15 @@
   align-items: center;
   justify-content: center;
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
-  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  border: 2px solid #0F172A;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
 .footer-icon:hover {
   background: #F3ECE0;
   transform: scale(1.05);
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .footer-icon-svg {

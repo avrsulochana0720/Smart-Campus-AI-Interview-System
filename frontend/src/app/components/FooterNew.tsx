@@ -3,7 +3,7 @@ import "../../styles/FooterNew.css";
 
 export default function FooterNew() {
   return (
-    <footer className="footer">
+    <footer id="contact" className="footer">
       <div className="footer-container">
         {/* Copy */}
         <p className="footer-copy">

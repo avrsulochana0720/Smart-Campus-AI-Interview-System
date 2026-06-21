@@ -12,12 +12,12 @@
 
 .card {
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 1.5rem;
   padding: 3rem;
   width: 100%;
   max-width: 400px;
-  box-shadow: 8px 8px 24px rgba(139, 120, 95, 0.15), -8px -8px 24px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   animation: slideUp 0.5s ease-out;
 }
 
@@ -61,18 +61,18 @@
 .input {
   width: 100%;
   padding: 0.875rem 1.25rem;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 0.75rem;
   font-size: 1rem;
   background: #FAF6EE;
   color: #0F172A;
   transition: all 0.2s ease;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   box-sizing: border-box;
 }
 
 .input::placeholder {
-  color: #94A3B8;
+  color: #1E293B;
 }
 
 .input:hover {
@@ -82,7 +82,7 @@
 .input:focus {
   outline: none;
   border-color: #DC2626;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .error {
@@ -97,13 +97,13 @@
   padding: 0.875rem;
   background: #DC2626;
   color: #FFFFFF;
-  border: none;
+  border: 2px solid #0F172A;
   border-radius: 1rem;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 4px 4px 10px rgba(185, 28, 28, 0.25), -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .button:hover:not(:disabled) {
@@ -113,7 +113,7 @@
 
 .button:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: inset 3px 3px 6px rgba(185, 28, 28, 0.4), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .button:disabled {
@@ -124,7 +124,7 @@
 .registerText {
   text-align: center;
   margin-top: 1.5rem;
-  color: #64748B;
+  color: #1E293B;
   font-weight: 600;
   font-size: 0.95rem;
 }

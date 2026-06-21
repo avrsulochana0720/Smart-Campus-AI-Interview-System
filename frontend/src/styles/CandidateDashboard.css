@@ -30,7 +30,7 @@
 
 .cd-subtitle {
   font-size: 1.1rem;
-  color: #64748B;
+  color: #1E293B;
   font-weight: 500;
 }
 
@@ -44,10 +44,10 @@
 
 .cd-glass-card, .cd-stat-card {
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -55,7 +55,7 @@
 
 .cd-glass-card:hover, .cd-stat-card:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .cd-stat-icon {
@@ -67,14 +67,14 @@
   justify-content: center;
   margin-bottom: 1rem;
   font-size: 1.5rem;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
-.cd-stat-icon.red { background: #FAF6EE; border: 1px solid rgba(220, 38, 38, 0.2); color: #DC2626; }
-.cd-stat-icon.amber { background: #FAF6EE; border: 1px solid rgba(245, 158, 11, 0.2); color: #F59E0B; }
-.cd-stat-icon.navy { background: #FAF6EE; border: 1px solid rgba(15, 23, 42, 0.2); color: #0F172A; }
-.cd-stat-icon.blue { background: #FAF6EE; border: 1px solid rgba(220, 38, 38, 0.2); color: #DC2626; }
-.cd-stat-icon.purple { background: #FAF6EE; border: 1px solid rgba(245, 158, 11, 0.2); color: #F59E0B; }
+.cd-stat-icon.red { background: #FAF6EE; border: 2px solid #0F172A; color: #DC2626; }
+.cd-stat-icon.amber { background: #FAF6EE; border: 2px solid #0F172A; color: #F59E0B; }
+.cd-stat-icon.navy { background: #FAF6EE; border: 2px solid #0F172A; color: #0F172A; }
+.cd-stat-icon.blue { background: #FAF6EE; border: 2px solid #0F172A; color: #DC2626; }
+.cd-stat-icon.purple { background: #FAF6EE; border: 2px solid #0F172A; color: #F59E0B; }
 
 .cd-stat-value {
   font-size: 2rem;
@@ -85,7 +85,7 @@
 
 .cd-stat-label {
   font-size: 0.95rem;
-  color: #64748B;
+  color: #1E293B;
   font-weight: 600;
 }
 
@@ -96,10 +96,10 @@
 
 .cd-chart-card {
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 1rem;
   padding: 2rem;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .cd-section-title {
@@ -123,20 +123,19 @@
   align-items: center;
   padding: 1rem 2rem;
   background: #FAF6EE;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #0F172A;
   z-index: 100;
-  box-shadow: 0 4px 10px rgba(139, 120, 95, 0.08);
 }
 
 .cd-btn-primary {
   background-color: #DC2626;
   color: white;
-  border: none;
+  border: 2px solid #0F172A;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 3px 3px 8px rgba(185, 28, 28, 0.25), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -147,18 +146,18 @@
 
 .cd-btn-primary:active {
   transform: translateY(0);
-  box-shadow: inset 2px 2px 5px rgba(185, 28, 28, 0.4), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .cd-btn-secondary {
   background-color: #FAF6EE;
   color: #0F172A;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 3px 3px 8px rgba(139, 120, 95, 0.12), -3px -3px 8px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
   transition: all 0.2s ease;
 }
 
@@ -169,23 +168,23 @@
 
 .cd-btn-secondary:active {
   transform: translateY(0);
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .cd-input {
   width: 100%;
   background: #FAF6EE;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #0F172A;
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   color: #0F172A;
   outline: none;
   font-size: 0.9rem;
   transition: all 0.2s ease;
-  box-shadow: inset 2px 2px 5px rgba(139, 120, 95, 0.12), inset -2px -2px 5px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .cd-input:focus {
   border-color: #DC2626;
-  box-shadow: inset 3px 3px 6px rgba(139, 120, 95, 0.15), inset -3px -3px 6px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }

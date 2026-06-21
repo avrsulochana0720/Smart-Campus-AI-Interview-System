@@ -31,11 +31,129 @@ const Interview: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [interviewId, setInterviewId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+
+  const [finalReport, setFinalReport] = useState<any>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const isRecordingRef = useRef(false);
+  const currentQuestionIndexRef = useRef(0);
+
+  useEffect(() => {
+    currentQuestionIndexRef.current = currentQuestionIndex;
+  }, [currentQuestionIndex]);
+
+  const startSpeechRecognition = () => {
+    if (isRecordingRef.current) return;
+    
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event: any) => {
+        let interim = '';
+        let final = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            final += transcript + ' ';
+          } else {
+            interim += transcript;
+          }
+        }
+
+        if (final) {
+          setAnswer(prev => {
+            const base = prev.endsWith(' ') ? prev : prev + (prev ? ' ' : '');
+            const newVal = base + final;
+            answerRef.current = newVal;
+            
+            setAnswers(prevAnswers => {
+              const newAnswers = [...prevAnswers];
+              newAnswers[currentQuestionIndexRef.current] = newVal;
+              return newAnswers;
+            });
+            return newVal;
+          });
+          setInterimAnswer('');
+        } else {
+          setInterimAnswer(interim);
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
+          setTimeout(() => {
+            if (isRecordingRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.log('Failed to restart recognition:', e);
+              }
+            }
+          }, 1000);
+        }
+      };
+
+      recognition.onend = () => {
+        if (isRecordingRef.current && recognitionRef.current) {
+          setTimeout(() => {
+            try {
+              recognitionRef.current.start();
+            } catch (e) {
+              console.log('Failed to restart recognition on end:', e);
+            }
+          }, 100);
+        }
+      };
+
+      recognitionRef.current = recognition;
+      try {
+        recognition.start();
+        setIsRecording(true);
+        isRecordingRef.current = true;
+      } catch (e) {
+        console.error('Failed to start speech recognition:', e);
+      }
+    }
+  };
+
+  const stopSpeechRecognition = () => {
+    isRecordingRef.current = false;
+    setIsRecording(false);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.stop();
+      } catch (e) {
+        console.log('Error stopping recognition:', e);
+      }
+    }
+    setInterimAnswer('');
+  };
 
   useEffect(() => {
     if (isCompleted && interviewId) {
-      // Trigger report generation in background
-      interviewAPI.generateReport(interviewId).catch(err => console.error("Report generation failed", err));
+      setIsGeneratingReport(true);
+      // Trigger report generation synchronously
+      interviewAPI.generateReport(interviewId)
+        .then(() => {
+          // Fetch the full report details
+          return interviewAPI.fetchSavedReport(interviewId);
+        })
+        .then(reportData => {
+          setFinalReport(reportData);
+          setIsGeneratingReport(false);
+        })
+        .catch(err => {
+          console.error("Report generation failed", err);
+          setIsGeneratingReport(false);
+        });
     }
   }, [isCompleted, interviewId]);
 
@@ -74,7 +192,7 @@ const Interview: React.FC = () => {
 
   const startCamera = async () => {
     try {
-      const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setStream(newStream);
       setCameraEnabled(true);
     } catch (error) {
@@ -103,77 +221,16 @@ const Interview: React.FC = () => {
         console.error("Failed to decode token", e);
       }
     }
-
-    // Initialize speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-      
-      recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        
-        if (finalTranscript) {
-          setAnswer(prev => {
-            const newVal = prev + finalTranscript;
-            answerRef.current = newVal;
-            return newVal;
-          });
-        }
-      };
-      
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        // Handle various error cases and continue listening
-        if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
-          // Try to restart after a delay for continuous listening
-          setTimeout(() => {
-            if (isRecording) {
-              try {
-                recognition.start();
-              } catch (e) {
-                console.log('Failed to restart recognition:', e);
-              }
-            }
-          }, 1000);
-        }
-      };
-      
-      recognition.onend = () => {
-        // Always restart if we're still in recording mode
-        if (isRecording) {
-          setTimeout(() => {
-            try {
-              recognition.start();
-            } catch (e) {
-              console.log('Failed to restart recognition on end:', e);
-            }
-          }, 100);
-        }
-      };
-      
-      recognitionRef.current = recognition;
-    }
-  }, [isRecording]);
+  }, []);
 
   // Real-time Dual Interviewer Voice + Highlight Synchronization
   const currentQuestionText = questions[currentQuestionIndex]?.question;
   
   useEffect(() => {
-    if (!currentQuestionText || isLoading || isCompleted || isPlaceholderQuestion(currentQuestionText) || isErrorQuestion(currentQuestionText)) return;
+    if (!currentQuestionText || isLoading || isCompleted || isPlaceholderQuestion(currentQuestionText) || isErrorQuestion(currentQuestionText)) {
+      stopSpeechRecognition();
+      return;
+    }
     
     // Check if we already spoke this question to prevent continuous repeating bugs
     if (hasSpokenRef.current === currentQuestionIndex) return;
@@ -185,6 +242,7 @@ const Interview: React.FC = () => {
     const speak = () => {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
+      stopSpeechRecognition();
 
       const utterance = new SpeechSynthesisUtterance(currentQuestionText);
       
@@ -204,14 +262,17 @@ const Interview: React.FC = () => {
       utterance.onstart = () => {
         setIsSpeaking(true);
         setActiveSpeaker(speakerToActivate);
+        stopSpeechRecognition();
       };
 
       utterance.onend = () => {
         setIsSpeaking(false);
+        startSpeechRecognition();
       };
 
       utterance.onerror = () => {
         setIsSpeaking(false);
+        startSpeechRecognition();
       };
 
       window.speechSynthesis.speak(utterance);
@@ -227,6 +288,7 @@ const Interview: React.FC = () => {
     return () => {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
+      stopSpeechRecognition();
     };
   }, [currentQuestionIndex, currentQuestionText, isLoading, isCompleted]);
 
@@ -260,8 +322,27 @@ const Interview: React.FC = () => {
       // Check where candidate is in the interview
       const currentStatus = await interviewAPI.getQuestion(id);
 
+      // Session Recovery
+      const recoveredAnswers = new Array(combinedQuestions.length).fill('');
+      const recoveredScores: number[] = [];
+      
+      combinedQuestions.forEach((q, idx) => {
+        if (q.answer_text) {
+          recoveredAnswers[idx] = q.answer_text;
+        }
+        if (q.score !== null && q.score !== undefined) {
+          recoveredScores.push(q.score);
+        }
+      });
+
       setQuestions(combinedQuestions);
-      setAnswers(new Array(combinedQuestions.length).fill(''));
+      setAnswers(recoveredAnswers);
+      setScores(recoveredScores);
+      
+      if (recoveredScores.length > 0) {
+        const avg = recoveredScores.reduce((a, b) => a + b, 0) / recoveredScores.length;
+        setPerformanceScore((avg * 10).toFixed(0));
+      }
 
       if (currentStatus.is_complete) {
         setIsCompleted(true);
@@ -297,28 +378,16 @@ const Interview: React.FC = () => {
 
     const currentAnswer = answerRef.current;
 
-    // Fast skip if answer is empty
-    if (!currentAnswer.trim()) {
-      if (currentQuestionIndex < questions.length - 1) {
-        const nextIndex = currentQuestionIndex + 1;
-        setCurrentQuestionIndex(nextIndex);
-        setAnswer('');
-        answerRef.current = '';
-        updateSpeaker(questions[nextIndex]);
-      } else {
-        // We are at the end of the current questions list
-        setIsCompleted(true);
-      }
-      return;
-    }
+    const finalAnswer = currentAnswer.trim() || "No answer provided";
 
     try {
       setIsSubmitting(true);
-      const result = await interviewAPI.submitAnswer(interviewId, currentQ.id, answer);
+      stopSpeechRecognition();
+      const result = await interviewAPI.submitAnswer(interviewId, currentQ.id, finalAnswer);
 
       // Update answers array
       const newAnswers = [...answers];
-      newAnswers[currentQuestionIndex] = answer;
+      newAnswers[currentQuestionIndex] = finalAnswer;
       setAnswers(newAnswers);
 
       // Update performance score
@@ -458,11 +527,7 @@ const Interview: React.FC = () => {
 
   const toggleRecording = async () => {
     if (isRecording) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-        setIsRecording(false);
-        setInterimAnswer('');
-      }
+      stopSpeechRecognition();
     } else {
       // Request microphone access (works with both built-in and Bluetooth microphones)
       try {
@@ -472,85 +537,28 @@ const Interview: React.FC = () => {
         alert('Could not access microphone. Please check permissions.');
         return;
       }
-
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onresult = (event: any) => {
-          let interim = '';
-          let final = '';
-
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              final += transcript + ' ';
-            } else {
-              interim += transcript;
-            }
-          }
-
-          if (final) {
-            setAnswer(prev => {
-              const base = prev.endsWith(' ') ? prev : prev + (prev ? ' ' : '');
-              const newVal = base + final;
-              answerRef.current = newVal;
-              // Sync with answers array
-              const newAnswers = [...answers];
-              newAnswers[currentQuestionIndex] = newVal;
-              setAnswers(newAnswers);
-              return newVal;
-            });
-            setInterimAnswer('');
-          } else {
-            setInterimAnswer(interim);
-          }
-        };
-
-        recognition.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          // Continue listening even on errors for robust voice capture
-          if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
-            setTimeout(() => {
-              if (recognitionRef.current && isRecording) {
-                try {
-                  recognitionRef.current.start();
-                } catch (e) {
-                  console.log('Failed to restart recognition:', e);
-                }
-              }
-            }, 1000);
-          }
-        };
-
-        recognition.onend = () => {
-          // Always restart for continuous listening
-          if (isRecording && recognitionRef.current) {
-            setTimeout(() => {
-              try {
-                recognitionRef.current.start();
-              } catch (e) {
-                console.log('Failed to restart recognition on end:', e);
-              }
-            }, 100);
-          }
-        };
-
-        recognitionRef.current = recognition;
-        recognition.start();
-        setIsRecording(true);
-      } else {
-        alert('Speech recognition is not supported in your browser.');
-      }
+      startSpeechRecognition();
     }
   };
 
   const handleNextQuestion = () => {
     // Move to next question "fastly" as requested
     submitAnswer();
+  };
+
+  const handleSaveDraft = async () => {
+    const currentQ = questions[currentQuestionIndex];
+    if (!currentQ || !interviewId) return;
+    const currentAnswer = answerRef.current;
+    if (!currentAnswer.trim()) return;
+    try {
+      setIsSavingDraft(true);
+      await interviewAPI.saveDraft(interviewId, currentQ.id, currentAnswer.trim());
+    } catch (err) {
+      console.error('Failed to save draft:', err);
+    } finally {
+      setIsSavingDraft(false);
+    }
   };
 
   const handlePreviousQuestion = () => {
@@ -575,39 +583,60 @@ const Interview: React.FC = () => {
         <div className={thankStyles.container}>
           <div className={thankStyles.background}></div>
           <div className={thankStyles.card}>
-            <div className={thankStyles.left}>
-              <div className={thankStyles.icon}>
-                <span>✔</span>
+            {isGeneratingReport ? (
+              <div style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+                <h2 style={{ fontSize: '1.5rem', color: '#1E293B', marginBottom: '1rem' }}>Analyzing Interview...</h2>
+                <p style={{ color: '#64748B' }}>Please wait while our AI engine grades your responses and generates your final report.</p>
+                <div style={{ marginTop: '2rem', display: 'inline-block', width: '40px', height: '40px', border: '4px solid #E2E8F0', borderTopColor: '#059669', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
               </div>
-              <h1 className={thankStyles.heading}>Interview Submitted!</h1>
-              <p className={thankStyles.subtext}>
-                Your responses have been securely uploaded and the AI analysis is now in progress.
-              </p>
-            </div>
-            <div className={thankStyles.right}>
-              <div className={thankStyles.details}>
-                <p><span className={thankStyles.label}>Reference ID:</span> SI-{interviewId || '0000'}-AI</p>
-                <p><span className={thankStyles.label}>Timestamp:</span> {interviewDetails.created_at ? new Date(interviewDetails.created_at).toLocaleString() : new Date().toLocaleString()}</p>
-                <p><span className={thankStyles.label}>Position:</span> {interviewDetails.job_role} at {interviewDetails.company}</p>
-              </div>
-              <div className={thankStyles.next}>
-                <h2>What happens next?</h2>
-                <p>
-                  Our recruitment team will review the AI-generated report alongside your video responses.
-                  You will receive an update via your campus portal within 3–5 business days.
-                </p>
-              </div>
-              <div className={thankStyles.buttons}>
-                <button className={thankStyles.primary} onClick={() => navigate("/dashboard")}>Go to Dashboard</button>
-                <button className={thankStyles.secondary}>Logout</button>
-              </div>
-              <footer className={thankStyles.footer}>
-                <p className={thankStyles.secured}>Secured by SmartInterview AI Infrastructure</p>
-                <p>Support | Privacy Policy | System Status</p>
-                <p>© 2024 SmartInterview AI, Kinetic Nexus Systems.</p>
-              </footer>
-            </div>
+            ) : (
+              <>
+                <div className={thankStyles.left}>
+                  <div className={thankStyles.icon} style={{ background: '#059669', color: '#fff', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', marginBottom: '1.5rem' }}>
+                    <span>✔</span>
+                  </div>
+                  <h1 className={thankStyles.heading}>Interview Complete</h1>
+                  <p className={thankStyles.subtext}>
+                    Your responses have been successfully analyzed by AI. The final results are logged.
+                  </p>
+                </div>
+                <div className={thankStyles.right}>
+                   {finalReport?.email_delivery_status === 'failed' && (
+                     <div style={{ padding: '0.75rem 1rem', background: '#FEF2F2', border: '1px solid #EF4444', borderRadius: '0.5rem', color: '#991B1B', fontSize: '0.8rem', fontWeight: 500, marginBottom: '1rem', lineHeight: '1.4' }}>
+                       ❌ Error: Report email delivery failed ({finalReport?.email_delivery_error || 'Unknown SMTP error'}).
+                     </div>
+                   )}
+                   {finalReport?.email_delivery_status === 'sent' && (
+                     <div style={{ padding: '0.75rem 1rem', background: '#F0FDF4', border: '1px solid #10B981', borderRadius: '0.5rem', color: '#15803D', fontSize: '0.8rem', fontWeight: 500, marginBottom: '1rem', lineHeight: '1.4' }}>
+                       ✅ A copy of this report has been sent to your email.
+                     </div>
+                   )}
+                   <div className={thankStyles.details} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: '#F8FAFC', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #E2E8F0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Candidate</span><span style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A' }}>{candidateInfo.name}</span></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Company</span><span style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A' }}>{finalReport?.company || interviewDetails.company}</span></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Role</span><span style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A' }}>{finalReport?.job_role || interviewDetails.job_role}</span></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Duration</span><span style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A' }}>{Math.round((new Date().getTime() - new Date(interviewDetails.created_at).getTime()) / 60000) || 30} mins</span></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Questions Answered</span><span style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A' }}>{finalReport?.answered_questions || questions.length}</span></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}><span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Completion Time</span><span style={{ fontSize: '1rem', fontWeight: 600, color: '#0F172A' }}>{finalReport?.generated_at ? new Date(finalReport.generated_at).toLocaleTimeString() : new Date().toLocaleTimeString()}</span></div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', gridColumn: '1 / -1', background: '#fff', border: '1px solid #E2E8F0', padding: '1rem', borderRadius: '0.5rem', marginTop: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Overall Score</span>
+                      <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669' }}>{finalReport?.hiring_readiness_score || finalReport?.final_interview_score || finalReport?.average_score || performanceScore}%</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', gridColumn: '1 / -1', background: '#fff', border: '1px solid #E2E8F0', padding: '1rem', borderRadius: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Recommendation</span>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#0F172A' }}>{finalReport?.recommendation || 'Analysis Complete'}</span>
+                    </div>
+                  </div>
+                  <div className={thankStyles.buttons} style={{ marginTop: '2rem' }}>
+                    <button className={thankStyles.primary} onClick={() => navigate("/dashboard")} style={{ width: '100%' }}>Return to Dashboard</button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
+          <style>{`
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+          `}</style>
         </div>
       ) : (
         <div className={styles.layout}>
@@ -821,10 +850,11 @@ const Interview: React.FC = () => {
                   Previous
                 </button>
                 <button 
-                  disabled={isSubmitting}
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting || isSavingDraft}
                   className={`${styles.button} ${styles.buttonSave}`}
                 >
-                  Save Draft
+                  {isSavingDraft ? 'Saving...' : 'Save Draft'}
                 </button>
                 <button
                   onClick={handleNextQuestion}

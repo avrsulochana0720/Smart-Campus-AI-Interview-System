@@ -29,7 +29,7 @@ export default function AdminOverview({ setActiveTab }: { setActiveTab?: (tab: s
   }, []);
 
   if (loading) {
-    return <div style={{ color: '#fff', padding: '2rem' }}>Loading dashboard...</div>;
+    return <div style={{ color: '#0F172A', padding: '2rem', fontWeight: 800 }}>Loading dashboard...</div>;
   }
 
   // Map real pie data from company stats if available, otherwise fallback

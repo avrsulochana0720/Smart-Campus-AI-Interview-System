@@ -48,8 +48,8 @@
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 6px 6px 16px rgba(139, 120, 95, 0.15), -6px -6px 16px #FFFFFF;
-  border: 1px solid #E2E8F0;
+  box-shadow: 3px 3px 0px #0F172A;
+  border: 2px solid #0F172A;
 }
 
 .feature-card::before {
@@ -66,7 +66,7 @@
 
 .feature-card:hover {
   transform: translateY(-1px);
-  box-shadow: inset 4px 4px 10px rgba(139, 120, 95, 0.12), inset -4px -4px 10px #FFFFFF;
+  box-shadow: 3px 3px 0px #0F172A;
 }
 
 .feature-card:hover::before {

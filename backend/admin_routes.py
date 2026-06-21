@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, or_, text
 from typing import List, Optional
@@ -8,9 +8,10 @@ import psutil
 import random
 
 from database import get_db, engine
-from models import User, Interview, Answer, InterviewReport, Resume, Company, JobRoleTemplate, QuestionBank, PDFDocument, JSONDocument, InterviewQuestion
-from auth import require_admin
+from models import User, Interview, Answer, InterviewReport, Resume, Company, JobRoleTemplate, QuestionBank, PDFDocument, JSONDocument, InterviewQuestion, ProctoringLog, UserSettings, Assessment, Feedback
+from auth import require_admin, hash_password_native
 from pydantic import BaseModel
+from websocket_manager import manager
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -413,25 +414,162 @@ def get_reports(page: int = 1, limit: int = 20, db: Session = Depends(get_db), c
 
 @router.get("/reports/export")
 def export_reports(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    from fastapi.responses import StreamingResponse
+    import io
+    import csv
+
     results = db.query(
         InterviewReport, Interview, User.name, User.email
     ).join(Interview, Interview.id == InterviewReport.interview_id)\
      .join(User, User.id == Interview.user_id).all()
      
-    data = []
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Candidate Name", "Email", "Job Role", "Company", 
+        "Technical Score", "HR Score", "Final Score", "Recommendation", "Hiring Readiness"
+    ])
+    
     for rep, iv, name, email in results:
-        data.append({
-            "candidate_name": name,
-            "email": email,
-            "job_role": iv.job_role,
-            "company": iv.company,
-            "technical_score": rep.overall_technical_score,
-            "hr_score": rep.overall_hr_score,
-            "final_score": rep.final_interview_score,
-            "recommendation": rep.recommendation,
-            "readiness_score": rep.hiring_readiness_score
-        })
-    return {"data": data}
+        writer.writerow([
+            name, email, iv.job_role, iv.company,
+            rep.overall_technical_score or 0, rep.overall_hr_score or 0, rep.final_interview_score or 0,
+            rep.recommendation or "N/A", rep.hiring_readiness_score or 0
+        ])
+        
+    output.seek(0)
+    return StreamingResponse(
+        io.StringIO(output.getvalue()),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=reports_export.csv"}
+    )
+
+@router.get("/candidates/export")
+def export_candidates(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    from fastapi.responses import StreamingResponse
+    import io
+    import csv
+
+    users = db.query(User).filter(User.role == "student").all()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Name", "Email", "Department", "Phone", "Location", "Verified"])
+    
+    for u in users:
+        writer.writerow([
+            u.id, u.name, u.email, u.department or "N/A",
+            u.phone_number or "N/A", u.location or "N/A",
+            "Yes" if u.is_verified else "No"
+        ])
+        
+    output.seek(0)
+    return StreamingResponse(
+        io.StringIO(output.getvalue()),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=candidates_export.csv"}
+    )
+
+@router.get("/interviews/export")
+def export_interviews(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    from fastapi.responses import StreamingResponse
+    import io
+    import csv
+
+    results = db.query(
+        Interview, User.name, User.email, InterviewReport.final_interview_score
+    ).join(User, User.id == Interview.user_id)\
+     .outerjoin(InterviewReport, InterviewReport.interview_id == Interview.id).all()
+     
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Candidate Name", "Email", "Job Role", "Company", "Mode", "Status", "Final Score", "Date"])
+    
+    for iv, name, email, score in results:
+        writer.writerow([
+            iv.id, name, email, iv.job_role, iv.company, iv.mode or "Practice",
+            iv.status, score or "N/A", str(iv.created_at).split('.')[0]
+        ])
+        
+    output.seek(0)
+    return StreamingResponse(
+        io.StringIO(output.getvalue()),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=interviews_export.csv"}
+    )
+
+class ReportCreateRequest(BaseModel):
+    candidate_name: str
+    job_role: str
+    final_score: float
+
+@router.post("/reports")
+def create_custom_report(data: ReportCreateRequest, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    # Find or create user
+    email_slug = data.candidate_name.lower().replace(" ", ".")
+    user = db.query(User).filter(User.name == data.candidate_name).first()
+    if not user:
+        user = User(
+            name=data.candidate_name,
+            email=f"{email_slug}@greenfield.edu",
+            role="student",
+            password=hash_password_native("student123"),
+            is_verified=True,
+            department="Computer Science"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    # Find or create interview
+    interview = db.query(Interview).filter(Interview.user_id == user.id, Interview.job_role == data.job_role).first()
+    if not interview:
+        interview = Interview(
+            user_id=user.id,
+            job_role=data.job_role,
+            company="Greenfield Custom Report",
+            status="completed",
+            mode="Practice"
+        )
+        db.add(interview)
+        db.commit()
+        db.refresh(interview)
+
+    # Create Report
+    new_report = InterviewReport(
+        interview_id=interview.id,
+        overall_technical_score=data.final_score,
+        overall_hr_score=data.final_score,
+        final_interview_score=data.final_score,
+        hiring_readiness_score=int(data.final_score),
+        strengths=json.dumps(["Strong technical background", "Clear communication"]),
+        weaknesses=json.dumps(["Needs more confidence"]),
+        improvement_suggestions=json.dumps(["Practice mock interviews", "Study system design"]),
+        recommendation="Hire",
+        status="completed"
+    )
+    db.add(new_report)
+    db.commit()
+    db.refresh(new_report)
+
+    log_admin_action(db, f"Generated custom report for {data.candidate_name}", current_admin.email, {"report_id": new_report.id}, "user")
+
+    return {
+        "id": new_report.id,
+        "interview_id": interview.id,
+        "candidate_name": user.name,
+        "job_role": interview.job_role,
+        "company": interview.company,
+        "technical_score": new_report.overall_technical_score,
+        "hr_score": new_report.overall_hr_score,
+        "final_score": new_report.final_interview_score,
+        "readiness": new_report.hiring_readiness_score,
+        "generated_at": str(new_report.generated_at),
+        "strengths": new_report.strengths,
+        "weaknesses": new_report.weaknesses,
+        "improvement_suggestions": new_report.improvement_suggestions,
+        "recommendation": new_report.recommendation
+    }
 
 @router.get("/reports/{interview_id}")
 def get_single_report(interview_id: int, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
@@ -801,14 +939,19 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_admin: User
     if current_admin.role != "super_admin" and user.role != "student":
         raise HTTPException(status_code=403, detail="You can only delete students")
 
-    # Delete related data
-    db.query(Resume).filter(Resume.user_id == user_id).delete()
-    
     interviews = db.query(Interview).filter(Interview.user_id == user_id).all()
     for iv in interviews:
-        db.query(Answer).filter(Answer.interview_id == iv.id).delete()
-        db.query(InterviewReport).filter(InterviewReport.interview_id == iv.id).delete()
+        db.query(Answer).filter(Answer.interview_id == iv.id).delete(synchronize_session=False)
+        db.query(InterviewQuestion).filter(InterviewQuestion.interview_id == iv.id).delete(synchronize_session=False)
+        db.query(ProctoringLog).filter(ProctoringLog.interview_id == iv.id).delete(synchronize_session=False)
+        db.query(InterviewReport).filter(InterviewReport.interview_id == iv.id).delete(synchronize_session=False)
         db.delete(iv)
+        
+    # Delete related data that doesn't block Interview deletion
+    db.query(UserSettings).filter(UserSettings.user_id == user_id).delete(synchronize_session=False)
+    db.query(Assessment).filter(Assessment.user_id == user_id).delete(synchronize_session=False)
+    db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
+    db.query(Resume).filter(Resume.user_id == user_id).delete(synchronize_session=False)
         
     db.delete(user)
     db.commit()
@@ -856,38 +999,112 @@ def get_all_users(db: Session = Depends(get_db), current_admin: User = Depends(r
         "department": u.department or "General"
     } for u in users]
 
+class DepartmentCreateRequest(BaseModel):
+    name: str
+    head: str = "System Assigned"
+    activeRoles: int = 0
+    candidates: int = 0
+    budget: str = "Medium"
+
 @router.get("/departments")
 def get_departments(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
-    departments = db.query(
-        User.department, 
-        func.count(User.id).label("candidates")
-    ).filter(User.role == "student").group_by(User.department).all()
+    from models import Department
+    # Seed from users if empty
+    dept_count = db.query(Department).count()
+    if dept_count == 0:
+        unique_depts = db.query(User.department).filter(User.role == "student", User.department != None).distinct().all()
+        for d in unique_depts:
+            if d[0]:
+                candidates_count = db.query(User).filter(User.role == "student", User.department == d[0]).count()
+                new_dept = Department(
+                    name=d[0],
+                    head_name="System Assigned",
+                    budget_level="Medium"
+                )
+                db.add(new_dept)
+        db.commit()
+
+    depts = db.query(Department).all()
+    result = []
+    for d in depts:
+        candidates_count = db.query(User).filter(User.role == "student", User.department == d.name).count()
+        result.append({
+            "id": d.id,
+            "name": d.name,
+            "head": d.head_name or "System Assigned",
+            "candidates": candidates_count,
+            "activeRoles": max(1, candidates_count // 10),
+            "budget": d.budget_level or "Medium"
+        })
+    return result
+
+@router.post("/departments")
+def create_department(data: DepartmentCreateRequest, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    from models import Department
+    existing = db.query(Department).filter(Department.name == data.name).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Department already exists")
     
-    return [{
-        "id": i,
-        "name": d[0] or "General Division",
-        "head": "System Assigned",
-        "candidates": d[1],
-        "activeRoles": max(1, d[1] // 10),
-        "budget": "Medium"
-    } for i, d in enumerate(departments, 1) if d[0]]
+    new_dept = Department(
+        name=data.name,
+        head_name=data.head or "System Assigned",
+        budget_level=data.budget or "Medium"
+    )
+    db.add(new_dept)
+    db.commit()
+    db.refresh(new_dept)
+    
+    log_admin_action(db, f"Created department {data.name}", current_admin.email, {"department_id": new_dept.id}, "system")
+    
+    return {
+        "id": new_dept.id,
+        "name": new_dept.name,
+        "head": new_dept.head_name,
+        "candidates": 0,
+        "activeRoles": 0,
+        "budget": new_dept.budget_level
+    }
+
 
 @router.get("/courses")
 def get_courses(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
-    # Course table doesn't exist, use job_roles as proxy for "courses/tracks"
-    roles = db.query(
+    from models import JobRoleTemplate
+    templates = db.query(JobRoleTemplate).filter(JobRoleTemplate.is_active == True).all()
+    
+    stats = db.query(
         Interview.job_role, 
         func.count(Interview.id).label("enrolled"),
         func.avg(InterviewReport.final_interview_score).label("avg_score")
-    ).join(InterviewReport, InterviewReport.interview_id == Interview.id).group_by(Interview.job_role).all()
+    ).outerjoin(InterviewReport, InterviewReport.interview_id == Interview.id).group_by(Interview.job_role).all()
     
-    return [{
-        "id": f"TRK-{i}",
-        "title": r[0],
-        "enrolled": r[1],
-        "avgScore": round(r[2] or 0),
-        "modules": 12
-    } for i, r in enumerate(roles, 1)]
+    stats_map = {s[0]: (s[1], s[2]) for s in stats if s[0]}
+    
+    data = []
+    seen_titles = set()
+    for i, t in enumerate(templates, 1):
+        enrolled, score = stats_map.get(t.title, (0, 0))
+        data.append({
+            "id": f"TRK-{t.id}",
+            "title": t.title,
+            "enrolled": enrolled,
+            "avgScore": round(score or 0),
+            "modules": 12
+        })
+        seen_titles.add(t.title)
+        
+    idx = len(templates) + 1
+    for title, (enrolled, score) in stats_map.items():
+        if title not in seen_titles:
+            data.append({
+                "id": f"TRK-ext-{idx}",
+                "title": title,
+                "enrolled": enrolled,
+                "avgScore": round(score or 0),
+                "modules": 12
+            })
+            idx += 1
+            
+    return data
 
 @router.get("/batches")
 def get_batches(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
@@ -914,9 +1131,9 @@ def get_ai_evaluations(db: Session = Depends(get_db), current_admin: User = Depe
         "id": f"EVAL-{r[0].id}",
         "candidate": r[2],
         "time": str(r[0].generated_at).split('.')[0],
-        "confidence": round(r[0].overall_technical_score or 85),
-        "flag": "Low Confidence" if (r[0].overall_technical_score or 100) < 50 else None,
-        "status": "Review Required" if (r[0].overall_technical_score or 100) < 50 else "Completed"
+        "confidence": round(r[0].overall_technical_score) if r[0].overall_technical_score is not None else 0,
+        "flag": "Low Confidence" if r[0].overall_technical_score is not None and r[0].overall_technical_score < 50 else None,
+        "status": "Review Required" if r[0].overall_technical_score is not None and r[0].overall_technical_score < 50 else "Completed"
     } for r in reports]
 
 @router.get("/feedback")
@@ -967,10 +1184,11 @@ def get_skill_insights(db: Session = Depends(get_db), current_admin: User = Depe
     surging = []
     competency = []
     
+    total_skills = sum(skill_freq.values()) if skill_freq else 1
     for i, (skill, count) in enumerate(sorted_skills[:5]):
         surging.append({
             "skill": skill,
-            "growth": f"+{count * 15}%",  # mock growth based on real frequency
+            "growth": f"+{round((count / total_skills) * 100)}%",  # Real frequency percentage
             "color": colors[i % len(colors)]
         })
         # Cap the max size to prevent extremely large text
@@ -1017,22 +1235,58 @@ def get_integrations(db: Session = Depends(get_db), current_admin: User = Depend
         "color": i.color
     } for i in integrations]
 
+def log_admin_action(db, action: str, admin_email: str, details: dict = None, log_type: str = "system"):
+    try:
+        from models import AuditLog
+        new_log = AuditLog(
+            action=action,
+            user_email=admin_email,
+            user_role="admin",
+            ip_address="127.0.0.1",
+            log_type=log_type,
+            details=details
+        )
+        db.add(new_log)
+        db.commit()
+    except Exception as e:
+        print(f"Failed to log admin action: {e}")
+
 @router.get("/audit-logs")
 def get_audit_logs(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
     try:
-        from models import ProctoringLog
-        logs = db.query(ProctoringLog).order_by(desc(ProctoringLog.timestamp)).limit(50).all()
-        return [{
-            "id": f"AL-{l.id}",
-            "action": l.event_type,
-            "user": "System",
-            "role": "Proctor",
-            "ip": "Auto",
-            "time": str(l.timestamp).split('.')[0],
-            "type": "security" if l.status == "critical" else "system"
-        } for l in logs]
-    except:
+        from models import AuditLog, ProctoringLog
+        db_logs = db.query(AuditLog).order_by(desc(AuditLog.timestamp)).limit(50).all()
+        
+        formatted_logs = []
+        for l in db_logs:
+            formatted_logs.append({
+                "id": f"AL-{l.id}",
+                "action": l.action,
+                "user": l.user_email or "System",
+                "role": l.user_role or "Admin",
+                "ip": l.ip_address or "127.0.0.1",
+                "time": str(l.timestamp).split('.')[0],
+                "type": l.log_type or "system"
+            })
+            
+        # Fallback to ProctoringLog if no admin logs exist yet
+        if not formatted_logs:
+            p_logs = db.query(ProctoringLog).order_by(desc(ProctoringLog.timestamp)).limit(20).all()
+            for l in p_logs:
+                formatted_logs.append({
+                    "id": f"PL-{l.id}",
+                    "action": f"Proctor Event: {l.event_type}",
+                    "user": "Student Candidate",
+                    "role": "Student",
+                    "ip": "Auto Detected",
+                    "time": str(l.timestamp).split('.')[0],
+                    "type": "security" if l.status == "critical" else "system"
+                })
+        return formatted_logs
+    except Exception as e:
+        print(f"Error getting audit logs: {e}")
         return []
+
 
 @router.get("/system-monitoring")
 def get_system_monitoring(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
@@ -1093,17 +1347,30 @@ def update_settings(data: SettingUpdate, db: Session = Depends(get_db), current_
     for k, v in data.settings.items():
         setting = db.query(SystemSettings).filter(SystemSettings.setting_key == k).first()
         if setting:
-            setting.setting_value = str(v)
+            setting.setting_value = v
         else:
-            db.add(SystemSettings(setting_key=k, setting_value=str(v)))
+            db.add(SystemSettings(setting_key=k, setting_value=v))
     db.commit()
+    log_admin_action(db, "Updated settings", current_admin.email, data.settings, "system")
+    return {"message": "Settings updated successfully"}
 @router.post("/interviews/{interview_id}/cancel")
-def cancel_interview(interview_id: int, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+def cancel_interview(interview_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
     interview = db.query(Interview).filter(Interview.id == interview_id).first()
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
     interview.status = "cancelled"
     db.commit()
+    log_admin_action(db, f"Cancelled interview {interview_id}", current_admin.email, {"interview_id": interview_id}, "user")
+    
+    # Notify user
+    if interview.user_id:
+        msg = {
+            "type": "INTERVIEW_CANCELED",
+            "message": f"Your interview for {interview.job_role} at {interview.company} has been canceled.",
+            "data": {"interview_id": interview.id}
+        }
+        background_tasks.add_task(manager.send_personal_message, msg, str(interview.user_id))
+        
     return {"message": "Interview cancelled successfully", "status": "cancelled"}
 
 @router.get("/interviews/{interview_id}/report")
@@ -1132,7 +1399,7 @@ class RescheduleData(BaseModel):
     new_time: str
 
 @router.post("/interviews/{interview_id}/reschedule")
-def reschedule_interview(interview_id: int, data: RescheduleData, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+def reschedule_interview(interview_id: int, data: RescheduleData, background_tasks: BackgroundTasks, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
     interview = db.query(Interview).filter(Interview.id == interview_id).first()
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
@@ -1147,4 +1414,282 @@ def reschedule_interview(interview_id: int, data: RescheduleData, db: Session = 
     if interview.status == "cancelled":
         interview.status = "upcoming"
     db.commit()
+    log_admin_action(db, f"Rescheduled interview {interview_id}", current_admin.email, {"interview_id": interview_id, "new_time": str(new_date)}, "user")
+    
+    # Notify user
+    if interview.user_id:
+        msg = {
+            "type": "INTERVIEW_RESCHEDULED",
+            "message": f"Your interview for {interview.job_role} has been rescheduled to {new_date.strftime('%b %d, %Y %H:%M')}.",
+            "data": {"interview_id": interview.id, "new_time": str(new_date)}
+        }
+        background_tasks.add_task(manager.send_personal_message, msg, str(interview.user_id))
+        
     return {"message": "Interview rescheduled successfully", "new_time": str(new_date)}
+
+@router.delete("/interviews/{interview_id}")
+def delete_interview(interview_id: int, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+    interview = db.query(Interview).filter(Interview.id == interview_id).first()
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    
+    # Delete associated records to prevent foreign key integrity errors
+    db.query(Answer).filter(Answer.interview_id == interview_id).delete(synchronize_session=False)
+    db.query(InterviewQuestion).filter(InterviewQuestion.interview_id == interview_id).delete(synchronize_session=False)
+    db.query(ProctoringLog).filter(ProctoringLog.interview_id == interview_id).delete(synchronize_session=False)
+    db.query(InterviewReport).filter(InterviewReport.interview_id == interview_id).delete(synchronize_session=False)
+        
+    db.delete(interview)
+    db.commit()
+    log_admin_action(db, f"Deleted interview {interview_id}", current_admin.email, {"interview_id": interview_id}, "user")
+    return {"message": "Interview deleted successfully"}
+
+# ── 7. New Admin CRUD Operations ────────────────────────────
+
+class AdminScheduleRequest(BaseModel):
+    candidate_name: str
+    email: str
+    job_role: str
+    scheduled_time: str
+
+@router.post("/interviews")
+def admin_schedule_interview(
+    data: AdminScheduleRequest,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    # 1. Find or create the user (student) by email
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        user = User(
+            name=data.candidate_name,
+            email=data.email,
+            role="student",
+            password=hash_password_native("student123"),
+            is_verified=True,
+            department="General"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    try:
+        sch_time = datetime.fromisoformat(data.scheduled_time.replace('Z', '+00:00'))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    # Ensure a placeholder resume exists
+    resume = db.query(Resume).filter(Resume.user_id == user.id).first()
+    if not resume:
+        resume = Resume(
+            user_id=user.id,
+            resume_text="Placeholder resume for scheduled interview.",
+            skills_extracted="[]"
+        )
+        db.add(resume)
+        db.commit()
+        db.refresh(resume)
+
+    new_interview = Interview(
+        user_id=user.id,
+        resume_id=resume.id,
+        job_role=data.job_role,
+        company="Greenfield University",
+        created_at=sch_time,
+        status="upcoming"
+    )
+    db.add(new_interview)
+    db.commit()
+    db.refresh(new_interview)
+
+    return {
+        "id": new_interview.id,
+        "candidate_name": user.name,
+        "email": user.email,
+        "job_role": new_interview.job_role,
+        "company": new_interview.company,
+        "created_at": str(new_interview.created_at),
+        "status": new_interview.status
+    }
+
+class AdminInviteStudentRequest(BaseModel):
+    name: str
+    email: str
+
+@router.post("/students")
+def admin_invite_student(
+    data: AdminInviteStudentRequest,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    existing = db.query(User).filter(User.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+
+    user = User(
+        name=data.name,
+        email=data.email,
+        role="student",
+        password=hash_password_native("student123"),
+        is_verified=True,
+        department="General"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "department": user.department or "General",
+        "has_resume": False,
+        "job_role": "N/A",
+        "company": "N/A",
+        "interview_status": "pending",
+        "overall_score": None
+    }
+
+class AdminCreateUserRequest(BaseModel):
+    name: str
+    email: str
+    role: str
+    department: str = "General"
+
+@router.post("/users")
+def admin_create_user(
+    data: AdminCreateUserRequest,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    if current_admin.role != "super_admin" and data.role in ("Admin", "Super Admin", "TPO", "admin", "super_admin", "tpo"):
+        raise HTTPException(status_code=403, detail="Only super_admin can create administrative users")
+
+    existing = db.query(User).filter(User.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+
+    role_map = {
+        "Super Admin": "super_admin",
+        "Admin": "admin",
+        "TPO": "tpo",
+        "Interviewer": "interviewer",
+        "Student": "student"
+    }
+    db_role = role_map.get(data.role, data.role.lower())
+
+    user = User(
+        name=data.name,
+        email=data.email,
+        role=db_role,
+        password=hash_password_native("password123"),
+        is_verified=True,
+        department=data.department
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": data.role,
+        "status": "Active" if user.is_verified else "Inactive",
+        "department": user.department or "General"
+    }
+
+class BatchCreateRequest(BaseModel):
+    name: str
+    status: str
+    totalStudents: int
+
+@router.post("/batches")
+def create_batch(
+    data: BatchCreateRequest,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    from models import Batch
+    import random
+    b_id = f"B-{random.randint(1000, 9999)}"
+    new_batch = Batch(
+        batch_id=b_id,
+        name=data.name,
+        students_count=data.totalStudents,
+        interviews_done=0,
+        avg_score=0.0,
+        status=data.status
+    )
+    db.add(new_batch)
+    db.commit()
+    db.refresh(new_batch)
+    return {
+        "id": new_batch.batch_id,
+        "name": new_batch.name,
+        "students": new_batch.students_count,
+        "interviews_done": new_batch.interviews_done,
+        "avg_score": 0,
+        "status": new_batch.status
+    }
+
+class CourseCreateRequest(BaseModel):
+    title: str
+    modules: int = 12
+
+@router.post("/courses")
+def create_course(
+    data: CourseCreateRequest,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    from models import JobRoleTemplate
+    existing = db.query(JobRoleTemplate).filter(JobRoleTemplate.title == data.title).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Course track already exists")
+        
+    template = JobRoleTemplate(
+        title=data.title,
+        description=f"Course preparation track for {data.title}",
+        is_active=True
+    )
+    db.add(template)
+    db.commit()
+    db.refresh(template)
+    
+    return {
+        "id": f"TRK-{template.id}",
+        "title": template.title,
+        "enrolled": 0,
+        "avgScore": 0,
+        "modules": data.modules
+    }
+
+@router.put("/courses/{track_id}")
+def update_course(
+    track_id: str,
+    data: CourseCreateRequest,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    from models import JobRoleTemplate
+    try:
+        db_id = int(track_id.replace("TRK-", ""))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid course track ID")
+        
+    template = db.query(JobRoleTemplate).filter(JobRoleTemplate.id == db_id).first()
+    if not template:
+        raise HTTPException(status_code=404, detail="Course track not found")
+        
+    template.title = data.title
+    db.commit()
+    db.refresh(template)
+    
+    return {
+        "id": track_id,
+        "title": template.title,
+        "enrolled": 0,
+        "avgScore": 0,
+        "modules": data.modules
+    }

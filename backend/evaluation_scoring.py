@@ -18,8 +18,16 @@ HR Factors (30% of final score):
 """
 import json
 import re
+import os
+import sys
 from typing import Dict, List, Optional
 from datetime import datetime
+
+try:
+    from ollama_helper import request_ollama
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from ollama_helper import request_ollama
 
 
 class EvaluationScoring:
@@ -63,61 +71,122 @@ class EvaluationScoring:
     ) -> Dict:
         """
         Evaluate a technical answer and return factor scores.
-        
-        Returns:
-        {
-            "accuracy": 0-10,
-            "concept_understanding": 0-10,
-            "problem_solving": 0-10,
-            "communication_clarity": 0-10,
-            "code_quality": 0-10,
-            "overall_technical_score": 0-100,
-            "factor_scores_100": {...},  # Same factors but 0-100 scale
-            "key_strengths": [list],
-            "key_weaknesses": [list],
-            "improvement_suggestions": [list],
-            "detailed_feedback": "text"
-        }
         """
+        # Check if the answer is empty or not answered
+        clean_ans = candidate_answer.strip().lower() if candidate_answer else ""
+        if not clean_ans or clean_ans in ["no answer provided", "not answered", "no response provided", "not answered."]:
+            print(f"[EvaluationScoring] Blank or No answer provided. Returning 0 score.")
+            factor_scores = {
+                "accuracy": 0,
+                "concept_understanding": 0,
+                "problem_solving": 0,
+                "communication_clarity": 0,
+                "code_quality": 0
+            }
+            factor_scores_100 = {k: 0.0 for k in factor_scores}
+            return {
+                "accuracy": 0.0,
+                "concept_understanding": 0.0,
+                "problem_solving": 0.0,
+                "communication_clarity": 0.0,
+                "code_quality": 0.0,
+                "overall_technical_score": 0.0,
+                "factor_scores_100": factor_scores_100,
+                "key_strengths": [],
+                "key_weaknesses": ["No response provided."],
+                "improvement_suggestions": ["Please provide a detailed answer next time."],
+                "detailed_feedback": "Question was not answered."
+            }
+
+        prompt = f"""/no_think
+You are an expert technical interviewer evaluating a candidate's answer for a {job_role} role at {company}.
+Question: {question}
+
+EXPECTED ANSWER (Sourced from RAG PDF Knowledge Base):
+{reference_answer}
+
+Candidate's Answer: {candidate_answer}
+
+Compare the Candidate's Answer to the RAG Expected Answer. Evaluate and return a strict JSON object with the following schema:
+{{
+    "technical_accuracy": <int 0-10>,
+    "depth_of_knowledge": <int 0-10>,
+    "problem_solving": <int 0-10>,
+    "communication": <int 0-10>,
+    "code_quality": <int 0-10>,
+    "relevance": <int 0-10>,
+    "feedback": "<detailed constructive feedback comparing to the RAG context>",
+    "question_score": <int 0-10>
+}}
+Ensure the output is ONLY valid JSON.
+"""
+        factor_scores = {}
+        strengths = []
+        weaknesses = []
+        suggestions = []
+        feedback_text = ""
+        overall_score = 0
         
-        # Use Qwen to evaluate factors (in real implementation)
-        # For now, implement heuristic scoring that can be enhanced with Qwen
-        
-        factor_scores = {
-            "accuracy": self._score_accuracy(candidate_answer, reference_answer, question),
-            "concept_understanding": self._score_concept_understanding(candidate_answer, reference_answer, question_topic),
-            "problem_solving": self._score_problem_solving(candidate_answer),
-            "communication_clarity": self._score_communication_clarity(candidate_answer),
-            "code_quality": self._score_code_quality(candidate_answer, question_topic)
-        }
-        
-        # Ensure unique scores among the factors by adjusting duplicate values
-        used_scores = set()
-        for k in sorted(factor_scores.keys()):
-            val = factor_scores[k]
-            orig_val = val
-            direction = 1 if val < 8 else -1
-            while val in used_scores:
-                val += direction
-                if val > 10 or val < 1:
-                    direction = -direction
-                    val = orig_val + direction
-            factor_scores[k] = val
-            used_scores.add(val)
+        try:
+            raw_response = request_ollama(prompt)
+            content = re.sub(r'```json\n?', '', raw_response)
+            content = re.sub(r'```\n?', '', content)
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(0)
+            
+            result = json.loads(content)
+            
+            factor_scores = {
+                "accuracy": max(0, min(10, int(result.get("technical_accuracy", 5)))),
+                "concept_understanding": max(0, min(10, int(result.get("depth_of_knowledge", 5)))),
+                "problem_solving": max(0, min(10, int(result.get("problem_solving", 5)))),
+                "communication_clarity": max(0, min(10, int(result.get("communication", 5)))),
+                "code_quality": max(0, min(10, int(result.get("code_quality", 5))))
+            }
+            feedback_text = result.get("feedback", "")
+            overall_score = max(0, min(100, int(result.get("question_score", 5)) * 10))
+
+        except Exception as e:
+            print(f"[EvaluationScoring] Qwen fallback in evaluate_technical_answer: {e}")
+            factor_scores = {
+                "accuracy": self._score_accuracy(candidate_answer, reference_answer, question),
+                "concept_understanding": self._score_concept_understanding(candidate_answer, reference_answer, question_topic),
+                "problem_solving": self._score_problem_solving(candidate_answer),
+                "communication_clarity": self._score_communication_clarity(candidate_answer),
+                "code_quality": self._score_code_quality(candidate_answer, question_topic)
+            }
+            # Ensure unique scores among the factors by adjusting duplicate values
+            used_scores = set()
+            for k in sorted(factor_scores.keys()):
+                val = factor_scores[k]
+                orig_val = val
+                direction = 1 if val < 8 else -1
+                while val in used_scores:
+                    val += direction
+                    if val > 10 or val < 1:
+                        direction = -direction
+                        val = orig_val + direction
+                factor_scores[k] = val
+                used_scores.add(val)
+            
+            # Calculate weighted overall technical score
+            overall = sum(
+                factor_scores[factor] * self.TECHNICAL_WEIGHTS[factor]
+                for factor in factor_scores
+            ) * 10  # Convert to 0-100
+            overall_score = round(overall, 2)
         
         # Convert to 0-100 scale
         factor_scores_100 = {k: v * 10 for k, v in factor_scores.items()}
         
-        # Calculate weighted overall technical score
-        overall_score = sum(
-            factor_scores[factor] * self.TECHNICAL_WEIGHTS[factor]
-            for factor in factor_scores
-        ) * 10  # Convert to 0-100
-        
-        # Generate insights
-        strengths = self._extract_strengths_technical(factor_scores)
-        weaknesses = self._extract_weaknesses_technical(factor_scores)
-        suggestions = self._generate_suggestions_technical(factor_scores, question_topic)
+        # Generate insights (use heuristic if LLM feedback is too short)
+        if len(feedback_text) < 20:
+            strengths = self._extract_strengths_technical(factor_scores)
+            weaknesses = self._extract_weaknesses_technical(factor_scores)
+            suggestions = self._generate_suggestions_technical(factor_scores, question_topic)
+            feedback_text = self._generate_technical_feedback(factor_scores, strengths, weaknesses)
         
         return {
             "accuracy": factor_scores["accuracy"],
@@ -125,12 +194,12 @@ class EvaluationScoring:
             "problem_solving": factor_scores["problem_solving"],
             "communication_clarity": factor_scores["communication_clarity"],
             "code_quality": factor_scores["code_quality"],
-            "overall_technical_score": round(overall_score, 2),
+            "overall_technical_score": overall_score,
             "factor_scores_100": {k: round(v, 2) for k, v in factor_scores_100.items()},
             "key_strengths": strengths,
             "key_weaknesses": weaknesses,
             "improvement_suggestions": suggestions,
-            "detailed_feedback": self._generate_technical_feedback(factor_scores, strengths, weaknesses)
+            "detailed_feedback": feedback_text
         }
     
     def evaluate_hr_answer(
@@ -142,58 +211,115 @@ class EvaluationScoring:
     ) -> Dict:
         """
         Evaluate an HR answer and return factor scores.
-        
-        Returns:
-        {
-            "communication_skills": 0-10,
-            "confidence": 0-10,
-            "professionalism": 0-10,
-            "adaptability": 0-10,
-            "team_collaboration": 0-10,
-            "overall_hr_score": 0-100,
-            "factor_scores_100": {...},
-            "key_strengths": [list],
-            "key_weaknesses": [list],
-            "improvement_suggestions": [list],
-            "detailed_feedback": "text"
-        }
         """
+        # Check if the answer is empty or not answered
+        clean_ans = candidate_answer.strip().lower() if candidate_answer else ""
+        if not clean_ans or clean_ans in ["no answer provided", "not answered", "no response provided", "not answered."]:
+            print(f"[EvaluationScoring] Blank or No answer provided. Returning 0 score.")
+            factor_scores = {
+                "communication_skills": 0,
+                "confidence": 0,
+                "professionalism": 0,
+                "adaptability": 0,
+                "team_collaboration": 0
+            }
+            factor_scores_100 = {k: 0.0 for k in factor_scores}
+            return {
+                "communication_skills": 0.0,
+                "confidence": 0.0,
+                "professionalism": 0.0,
+                "adaptability": 0.0,
+                "team_collaboration": 0.0,
+                "overall_hr_score": 0.0,
+                "factor_scores_100": factor_scores_100,
+                "key_strengths": [],
+                "key_weaknesses": ["No response provided."],
+                "improvement_suggestions": ["Please provide a detailed answer next time."],
+                "detailed_feedback": "Question was not answered."
+            }
+
+        prompt = f"""/no_think
+You are an expert HR manager evaluating a candidate's behavioral answer for a {job_role} role at {company}.
+Question: {question}
+Candidate's Answer: {candidate_answer}
+
+Evaluate the candidate's answer and return a strict JSON object with the following schema:
+{{
+    "relevance": <int 0-10>,
+    "depth_of_knowledge": <int 0-10>,
+    "problem_solving": <int 0-10>,
+    "communication": <int 0-10>,
+    "confidence": <int 0-10>,
+    "feedback": "<detailed constructive feedback>",
+    "question_score": <int 0-10>
+}}
+Ensure the output is ONLY valid JSON.
+"""
+        factor_scores = {}
+        strengths = []
+        weaknesses = []
+        suggestions = []
+        feedback_text = ""
+        overall_score = 0
         
-        factor_scores = {
-            "communication_skills": self._score_communication_skills(candidate_answer),
-            "confidence": self._score_confidence(candidate_answer),
-            "professionalism": self._score_professionalism(candidate_answer),
-            "adaptability": self._score_adaptability(candidate_answer, question),
-            "team_collaboration": self._score_team_collaboration(candidate_answer, question)
-        }
-        
-        # Ensure unique scores among the factors by adjusting duplicate values
-        used_scores = set()
-        for k in sorted(factor_scores.keys()):
-            val = factor_scores[k]
-            orig_val = val
-            direction = 1 if val < 8 else -1
-            while val in used_scores:
-                val += direction
-                if val > 10 or val < 1:
-                    direction = -direction
-                    val = orig_val + direction
-            factor_scores[k] = val
-            used_scores.add(val)
-        
-        # Convert to 0-100 scale
-        factor_scores_100 = {k: v * 10 for k, v in factor_scores.items()}
-        
-        # Calculate weighted overall HR score
-        overall_score = sum(
-            factor_scores[factor] * self.HR_WEIGHTS[factor]
-            for factor in factor_scores
-        ) * 10  # Convert to 0-100
+        try:
+            raw_response = request_ollama(prompt)
+            content = re.sub(r'```json\n?', '', raw_response)
+            content = re.sub(r'```\n?', '', content)
+            content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                content = json_match.group(0)
+            
+            result = json.loads(content)
+            
+            factor_scores = {
+                "communication_skills": max(0, min(10, int(result.get("communication", 5)))),
+                "confidence": max(0, min(10, int(result.get("confidence", 5)))),
+                "professionalism": max(0, min(10, int(result.get("relevance", 5)))),  # mapped
+                "adaptability": max(0, min(10, int(result.get("problem_solving", 5)))), # mapped
+                "team_collaboration": max(0, min(10, int(result.get("depth_of_knowledge", 5)))) # mapped
+            }
+            feedback_text = result.get("feedback", "")
+            overall_score = max(0, min(100, int(result.get("question_score", 5)) * 10))
+
+        except Exception as e:
+            print(f"[EvaluationScoring] Qwen fallback in evaluate_hr_answer: {e}")
+            factor_scores = {
+                "communication_skills": self._score_communication_skills(candidate_answer),
+                "confidence": self._score_confidence(candidate_answer),
+                "professionalism": self._score_professionalism(candidate_answer),
+                "adaptability": self._score_adaptability(candidate_answer, question),
+                "team_collaboration": self._score_team_collaboration(candidate_answer, question)
+            }
+            
+            # Ensure unique scores among the factors by adjusting duplicate values
+            used_scores = set()
+            for k in sorted(factor_scores.keys()):
+                val = factor_scores[k]
+                orig_val = val
+                direction = 1 if val < 8 else -1
+                while val in used_scores:
+                    val += direction
+                    if val > 10 or val < 1:
+                        direction = -direction
+                        val = orig_val + direction
+                factor_scores[k] = val
+                used_scores.add(val)
+            
+            # Calculate weighted overall HR score
+            overall = sum(
+                factor_scores[factor] * self.HR_WEIGHTS[factor]
+                for factor in factor_scores
+            ) * 10  # Convert to 0-100
+            overall_score = round(overall, 2)
         
         # Generate insights
-        strengths = self._extract_strengths_hr(factor_scores)
-        weaknesses = self._extract_weaknesses_hr(factor_scores)
-        suggestions = self._generate_suggestions_hr(factor_scores, question)
+        if len(feedback_text) < 20:
+            strengths = self._extract_strengths_hr(factor_scores)
+            weaknesses = self._extract_weaknesses_hr(factor_scores)
+            suggestions = self._generate_suggestions_hr(factor_scores, question)
+            feedback_text = self._generate_hr_feedback(factor_scores, strengths, weaknesses)
         
         return {
             "communication_skills": factor_scores["communication_skills"],
@@ -201,12 +327,12 @@ class EvaluationScoring:
             "professionalism": factor_scores["professionalism"],
             "adaptability": factor_scores["adaptability"],
             "team_collaboration": factor_scores["team_collaboration"],
-            "overall_hr_score": round(overall_score, 2),
+            "overall_hr_score": overall_score,
             "factor_scores_100": {k: round(v, 2) for k, v in factor_scores_100.items()},
             "key_strengths": strengths,
             "key_weaknesses": weaknesses,
             "improvement_suggestions": suggestions,
-            "detailed_feedback": self._generate_hr_feedback(factor_scores, strengths, weaknesses)
+            "detailed_feedback": feedback_text
         }
     
     def calculate_final_score(
@@ -229,10 +355,22 @@ class EvaluationScoring:
             hr_normalized * self.FINAL_SCORE_WEIGHTS["hr"]
         )
         
+        recommendation = ""
+        if final_score >= 80:
+            recommendation = "Strong Hire. The candidate demonstrates excellent technical and communication skills."
+        elif final_score >= 65:
+            recommendation = "Hire. Solid performance with minor areas for improvement."
+        elif final_score >= 50:
+            recommendation = "Consider. Average performance, might require additional training."
+        else:
+            recommendation = "Do Not Hire. Does not meet the baseline requirements."
+            
         return {
             "technical_score": round(tech_normalized, 2),
             "hr_score": round(hr_normalized, 2),
             "final_interview_score": round(final_score, 2),
+            "overall_score": round(final_score, 2),
+            "recommendation": recommendation,
             "score_breakdown": {
                 "technical_contribution": round(tech_normalized * 0.70, 2),
                 "hr_contribution": round(hr_normalized * 0.30, 2)

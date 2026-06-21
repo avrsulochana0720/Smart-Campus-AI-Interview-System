@@ -46,11 +46,7 @@ import {
 import '../../../styles/CandidateDashboard.css';
 import axios from 'axios';
 
-// --- PENDING FEEDBACK DATA ---
-const PENDING_FEEDBACK: any[] = [];
 
-// --- FORMS TEMPLATES ---
-const FORM_TEMPLATES: any[] = [];
 
 // --- ANALYTICS DATA BUILDERS ---
 const buildTrendsData = (feedbacks: any[], interviewHistory: any[]) => {
@@ -68,7 +64,18 @@ const buildTrendsData = (feedbacks: any[], interviewHistory: any[]) => {
       const d = new Date(h.date || new Date());
       const month = d.toLocaleDateString('en-US', { month: 'short' });
       const existing = map.get(month) || { month, Rating: 0, count: 0 };
-      existing.Rating += (h.average_score / 2);
+      
+      let score = h.report?.final_interview_score || h.report?.hiring_readiness_score || 0;
+      if (score === 0) {
+        score = h.average_score || 0;
+        if (score > 0 && score <= 10) {
+          score = score * 10;
+        }
+      } else if (score > 0 && score <= 10) {
+        score = score * 10;
+      }
+      
+      existing.Rating += (score / 20);
       existing.count += 1;
       map.set(month, existing);
     });
@@ -297,11 +304,22 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
   // Calculate genuine stats
   const totalFeedbackCount = feedbacks.length + (interviewHistory?.length || 0);
   const avgSystemScore = (interviewHistory?.length || 0) > 0 
-    ? interviewHistory.reduce((acc, h) => acc + (h.average_score / 2), 0) / interviewHistory.length 
+    ? interviewHistory.reduce((acc, h) => {
+        let score = h.report?.final_interview_score || h.report?.hiring_readiness_score || 0;
+        if (score === 0) {
+          score = h.average_score || 0;
+          if (score > 0 && score <= 10) {
+            score = score * 10;
+          }
+        } else if (score > 0 && score <= 10) {
+          score = score * 10;
+        }
+        return acc + (score / 20);
+      }, 0) / interviewHistory.length 
     : 0;
   const totalRatingSum = feedbacks.reduce((acc, f) => acc + f.rating, 0) + (avgSystemScore * (interviewHistory?.length || 0));
   const avgRating = totalFeedbackCount > 0 ? (totalRatingSum / totalFeedbackCount).toFixed(1) : '0.0';
-  const pendingCount = PENDING_FEEDBACK.length;
+  const pendingCount = 0;
 
   // Handle reminder click
   const triggerReminder = (id: number) => {
@@ -334,7 +352,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
         
         {/* Tab Navigation inside header */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1.5rem', justifyContent: 'center', background: '#F8FAFC', padding: '0.5rem', borderRadius: '1rem', border: '1px solid #E5E7EB', maxWidth: 'max-content', margin: '1.5rem auto 0 auto' }}>
-          {['Received Feedback', 'Pending Feedback', 'Feedback Forms', 'Analytics'].map(tab => {
+          {['Received Feedback', 'Pending Feedback', 'Feedback Forms'].map(tab => {
             const key = tab.split(' ')[0] as any;
             const isActive = activeTab === key;
             return (
@@ -455,19 +473,20 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
                         type="button"
                         onClick={() => setFeedbackForm(prev => ({ ...prev, rating: num }))}
                         style={{
-                          width: '2.25rem',
-                          height: '2.25rem',
-                          borderRadius: '0.75rem',
-                          border: '1px solid #E5E7EB',
-                          background: num <= feedbackForm.rating ? '#DC2626' : '#F8FAFC',
+                          background: 'transparent',
+                          border: 'none',
+                          padding: '0.25rem',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s ease'
+                          transition: 'transform 0.1s ease'
                         }}
+                        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+                        onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                       >
-                        <Star size={18} color={num <= feedbackForm.rating ? '#FFFFFF' : '#94A3B8'} fill={num <= feedbackForm.rating ? '#FFFFFF' : 'none'} />
+                        <Star size={28} color={num <= feedbackForm.rating ? '#F59E0B' : '#CBD5E1'} fill={num <= feedbackForm.rating ? '#F59E0B' : 'none'} />
                       </button>
                     ))}
                   </div>
@@ -678,7 +697,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
                 </tr>
               </thead>
               <tbody>
-                {PENDING_FEEDBACK.length === 0 ? (
+                {true ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '4rem', textAlign: 'center' }}>
                       <CheckCircle size={48} color="#10B981" style={{ opacity: 0.5, margin: '0 auto 1rem' }} />
@@ -686,8 +705,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
                       <p style={{ margin: 0, color: '#64748B', fontSize: '0.9rem' }}>There are no pending evaluations waiting for review.</p>
                     </td>
                   </tr>
-                ) : (
-                  PENDING_FEEDBACK.map(p => (
+                ) : [].map(p => (
                     <tr key={p.id} style={{ borderBottom: '1px solid #E5E7EB', transition: 'all 0.2s' }}>
                       <td style={{ padding: '1.25rem 1.5rem' }}>
                         <div style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.95rem' }}>{p.candidate}</div>
@@ -723,7 +741,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
                         </div>
                       </td>
                     </tr>
-                  ))
+                  )
                 )}
               </tbody>
             </table>
@@ -744,7 +762,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
             </button>
           </div>
 
-          {FORM_TEMPLATES.length === 0 ? (
+          {true ? (
             <div style={{ padding: '4rem', textAlign: 'center', background: '#ffffff', borderRadius: '1rem', border: '1px dashed #E5E7EB' }}>
               <FileText size={48} color="#94A3B8" style={{ opacity: 0.5, margin: '0 auto 1rem' }} />
               <h5 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.2rem', fontWeight: 700 }}>No Templates Found</h5>
@@ -752,7 +770,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {FORM_TEMPLATES.map(form => (
+              {[].map(form => (
                 <div key={form.id} className="cd-glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1.5rem', padding: '1.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     <span style={{ alignSelf: 'flex-start', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '1px', background: '#F8FAFC', color: '#64748B', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #E5E7EB' }}>
@@ -777,132 +795,7 @@ const FeedbackPage: React.FC<FeedbackPageProps> = ({ interviewHistory, loading }
         </div>
       )}
 
-      {/* --- ANALYTICS TAB (Recharts Visual Charts) --- */}
-      {activeTab === 'Analytics' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          {(feedbacks.length === 0 && (!interviewHistory || interviewHistory.length === 0)) ? (
-            <div className="cd-glass-card" style={{ padding: '4rem', textAlign: 'center' }}>
-              <TrendingUp size={64} color="#94A3B8" style={{ opacity: 0.3, margin: '0 auto 1.5rem' }} />
-              <h5 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.2rem', fontWeight: 700 }}>Not Enough Data</h5>
-              <p style={{ margin: 0, color: '#64748B', fontSize: '0.9rem' }}>Complete more interviews and submit feedback to generate analytics.</p>
-            </div>
-          ) : (
-            <>
-              {/* Row 1: Line Chart & Radar (2 equal cols) */}
-              <div className="cd-main-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
-            
-            {/* LineChart: Rating trend over time */}
-            <div className="cd-glass-card" style={{ padding: '2rem' }}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.1rem', fontWeight: 700 }}>Rating Trend Over Time</h4>
-                <p style={{ margin: 0, color: '#64748B', fontSize: '0.85rem' }}>Average submitted score ratings compiled over 6 months</p>
-              </div>
 
-              <div style={{ height: '250px', width: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={TRENDS_DATA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-                    <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} domain={[3.0, 5.0]} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="Rating" stroke="#DC2626" strokeWidth={3.5} activeDot={{ r: 6, fill: '#DC2626', stroke: '#fff' }} dot={{ strokeWidth: 2, r: 4, fill: '#ffffff' }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* BarChart: Skill Competency */}
-            <div className="cd-glass-card" style={{ padding: '2rem' }}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.1rem', fontWeight: 700 }}>Skill Competency Comparison</h4>
-                <p style={{ margin: 0, color: '#64748B', fontSize: '0.85rem' }}>Holistic scores comparing current candidates (A) versus baseline (B)</p>
-              </div>
-
-              <div style={{ height: '250px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={SKILL_RADAR_DATA} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={true} vertical={false} />
-                    <XAxis type="number" domain={[0, 100]} stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis type="category" dataKey="subject" stroke="#334155" fontSize={12} fontWeight={600} tickLine={false} axisLine={false} width={120} />
-                    <Tooltip cursor={{ fill: 'rgba(0,0,0,0.02)' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }} />
-                    <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#64748B' }} />
-                    <Bar dataKey="A" name="Current Score" fill="#0EA5E9" radius={[0, 4, 4, 0]} barSize={16} />
-                    <Bar dataKey="B" name="Baseline" fill="#E2E8F0" radius={[0, 4, 4, 0]} barSize={16} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Row 2: Interviewer Quality scores & Word Cloud */}
-          <div className="cd-main-grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
-            
-            {/* Table: Interviewer quality leaderboard */}
-            <div className="cd-glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', background: '#F8FAFC' }}>
-                <h4 style={{ margin: '0 0 0.25rem 0', color: '#0F172A', fontSize: '1.1rem', fontWeight: 700 }}>Interviewer Quality Leaderboard</h4>
-                <p style={{ margin: 0, color: '#64748B', fontSize: '0.85rem' }}>Tracking evaluator response speed, review quantity, and scoring metrics</p>
-              </div>
-
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ background: '#ffffff', color: '#64748B', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '1px', borderBottom: '2px solid #E5E7EB' }}>
-                      <th style={{ padding: '1rem 1.5rem', fontWeight: 800 }}>Interviewer</th>
-                      <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 800 }}>Reviews Logged</th>
-                      <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 800 }}>Avg Rating</th>
-                      <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontWeight: 800 }}>Response Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {QUALITY_SCORES.map((q, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #E5E7EB', transition: 'all 0.2s' }}>
-                        <td style={{ padding: '1.25rem 1.5rem', color: '#0F172A', fontWeight: 700, fontSize: '0.95rem' }}>{q.name}</td>
-                        <td style={{ padding: '1.25rem 1rem', textAlign: 'center', color: '#334155', fontWeight: 600 }}>{q.count}</td>
-                        <td style={{ padding: '1.25rem 1rem', textAlign: 'center' }}>
-                          <span style={{ color: '#F59E0B', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                            <Star size={12} fill="#F59E0B" /> {q.avg.toFixed(1)}
-                          </span>
-                        </td>
-                        <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right', color: '#10B981', fontWeight: 800 }}>{q.rate}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Word Cloud */}
-            <div className="cd-glass-card" style={{ padding: '2rem' }}>
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#0F172A', fontSize: '1.1rem', fontWeight: 700 }}>Common Keywords</h4>
-                <p style={{ margin: 0, color: '#64748B', fontSize: '0.85rem' }}>Top parsed phrases in feedback files</p>
-              </div>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', padding: '1rem', background: '#F8FAFC', border: '1px solid #E5E7EB', borderRadius: '0.75rem', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
-                {WORD_CLOUD.length === 0 ? (
-                  <span style={{ color: '#94A3B8' }}>No keywords found</span>
-                ) : (
-                  WORD_CLOUD.map((tag, idx) => (
-                    <span key={idx} style={{ 
-                      padding: '0.4rem 0.8rem', borderRadius: '2rem', background: '#ffffff', 
-                      border: `1px solid ${tag.color}`, color: tag.color, 
-                      fontSize: tag.size, fontWeight: 700, cursor: 'default', transition: 'all 0.3s',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                    }}>
-                      {tag.text}
-                    </span>
-                  ))
-                )}
-              </div>
-            </div>
-
-          </div>
-          </>
-          )}
-        </div>
-      )}
 
     </div>
   );

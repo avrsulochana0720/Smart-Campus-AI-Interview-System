@@ -13,16 +13,24 @@ export default function BatchManagementPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [newBatch, setNewBatch] = useState({ name: '', status: 'Preparation Phase', startDate: '', gradDate: '', totalStudents: 0, placed: 0 });
 
-  const handleCreateBatch = () => {
+  const handleCreateBatch = async () => {
     if (!newBatch.name) {
       showToast('Batch name is required.', 'error');
       return;
     }
-    const added = { ...newBatch, id: Date.now() };
-    setBatches([added, ...batches]);
-    setIsAdding(false);
-    setNewBatch({ name: '', status: 'Preparation Phase', startDate: '', gradDate: '', totalStudents: 0, placed: 0 });
-    showToast('Batch created successfully.', 'success');
+    try {
+      const created = await adminAPI.createBatch({
+        name: newBatch.name,
+        status: newBatch.status,
+        totalStudents: newBatch.totalStudents
+      });
+      setBatches([created, ...batches]);
+      setIsAdding(false);
+      setNewBatch({ name: '', status: 'Preparation Phase', startDate: '', gradDate: '', totalStudents: 0, placed: 0 });
+      showToast('Batch created successfully.', 'success');
+    } catch (e: any) {
+      showToast('Failed to create batch.', 'error');
+    }
   };
 
   useEffect(() => {

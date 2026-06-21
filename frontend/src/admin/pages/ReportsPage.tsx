@@ -20,14 +20,22 @@ export default function ReportsPage() {
   const [dateFilter, setDateFilter] = useState('All Time');
 
   const downloadReport = (report: any) => {
-    const csvData = `Report Type: Candidate Evaluation\nCandidate,${report.candidate_name}\nJob Role,${report.job_role}\nFinal Score,${Math.round(report.final_score)}\nGenerated At,${new Date(report.generated_at).toLocaleString()}`;
-    const blob = new Blob([csvData], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `${(report.candidate_name || 'candidate').replace(/ /g, '_')}_Evaluation.csv`);
-    a.click();
-    showToast(`Report for ${report.candidate_name} downloaded successfully!`, 'success');
+    if (!report.interview_id) {
+      // If no interview_id (like custom generated ones without interview), fallback to local CSV
+      const csvData = `Report Type: Candidate Evaluation\nCandidate,${report.candidate_name}\nJob Role,${report.job_role}\nFinal Score,${Math.round(report.final_score)}\nGenerated At,${new Date(report.generated_at).toLocaleString()}`;
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', `${(report.candidate_name || 'candidate').replace(/ /g, '_')}_Evaluation.csv`);
+      a.click();
+      showToast(`Report for ${report.candidate_name} downloaded successfully!`, 'success');
+      return;
+    }
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+    const downloadUrl = `http://localhost:8000/download-report/${report.interview_id}?token=${token}`;
+    window.open(downloadUrl, '_blank');
+    showToast(`Downloading PDF Report for ${report.candidate_name}...`, 'success');
   };
 
   const handleGenerateReport = () => {
@@ -35,17 +43,19 @@ export default function ReportsPage() {
       showToast('Candidate name and role are required.', 'error');
       return;
     }
-    const added = { 
-      id: Date.now(),
+    adminAPI.createReport({
       candidate_name: newReport.candidate_name,
       job_role: newReport.job_role,
-      final_score: newReport.final_score,
-      generated_at: new Date().toISOString()
-    };
-    setReports([added, ...reports]);
-    setIsGenerating(false);
-    setNewReport({ candidate_name: '', job_role: '', final_score: 0 });
-    showToast('Custom report generated successfully.', 'success');
+      final_score: Number(newReport.final_score)
+    }).then(rep => {
+      setReports([rep, ...reports]);
+      setIsGenerating(false);
+      setNewReport({ candidate_name: '', job_role: '', final_score: 0 });
+      showToast('Custom report generated successfully.', 'success');
+    }).catch(err => {
+      console.error(err);
+      showToast('Failed to generate custom report.', 'error');
+    });
   };
 
   useEffect(() => {
@@ -149,9 +159,9 @@ export default function ReportsPage() {
                 <h3 style={{ fontSize: '1rem', color: '#0F172A', fontWeight: 800, margin: '0 0 0.25rem 0', lineHeight: 1.3 }}>{report.candidate_name} Evaluation</h3>
                 <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: '#1E293B', fontWeight: 700, marginTop: '0.5rem' }}>
                   <span>{report.job_role}</span>
-                  <span>•</span>
+                  <span></span>
                   <span>{new Date(report.generated_at).toLocaleDateString()}</span>
-                  <span>•</span>
+                  <span></span>
                   <span>Score: {Math.round(report.final_score)}</span>
                 </div>
               </div>

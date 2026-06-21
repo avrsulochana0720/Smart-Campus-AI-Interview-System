@@ -277,7 +277,7 @@ Return ONLY a valid JSON object:
         """Call Ollama."""
         try:
             full_prompt = f"/no_think\n{prompt}"
-            text = request_ollama(full_prompt)
+            text = request_ollama(full_prompt, model=self.ollama_model)
             text = text.strip()
             # Remove thinking tags if present
             text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()

@@ -58,30 +58,30 @@ export default function AuditLogsPage() {
     <div style={{ paddingBottom: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#0F172A', margin: 0 }}>Security & Audit Logs</h2>
-          <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>Strict chronological record of all system modifications and access events.</p>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>Security & Audit Logs</h2>
+          <p style={{ fontSize: '0.85rem', color: '#1E293B', fontWeight: 600, margin: '0.25rem 0 0 0' }}>Strict chronological record of all system modifications and access events.</p>
         </div>
-        <button onClick={exportToCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 500, cursor: 'pointer', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#334155'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0F172A'}>
+        <button onClick={exportToCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '3px 3px 0px #0F172A' }}>
           Export Logs (CSV)
         </button>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', backgroundColor: '#FAF6EE', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #334155' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', backgroundColor: '#FAF6EE', padding: '1rem', borderRadius: '0.75rem', border: '2px solid #0F172A' }}>
         <div style={{ position: 'relative', width: '400px' }}>
-          <Search size={16} color="#64748B" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={16} color="#E11D48" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input 
             type="text" 
             placeholder="Search by action, user, or IP address..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', outline: 'none' }} 
+            style={{ width: '100%', backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem 0.5rem 2.25rem', fontSize: '0.85rem', fontWeight: 600, outline: 'none' }} 
           />
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <select 
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            style={{ backgroundColor: '#E11D48', color: '#FFFFFF', border: '1px solid #BE123C', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+            style={{ backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
           >
             <option value="All Types">All Event Types</option>
             <option value="security">Security</option>
@@ -91,34 +91,34 @@ export default function AuditLogsPage() {
         </div>
       </div>
 
-      <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden', fontFamily: 'monospace' }}>
+      <div style={{ backgroundColor: '#FAF6EE', borderRadius: '0.75rem', border: '2px solid #0F172A', overflow: 'hidden', fontFamily: 'monospace' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '1px solid #BE123C' }}>
+          <thead style={{ backgroundColor: '#E11D48', color: '#FFFFFF', borderBottom: '2px solid #0F172A' }}>
             <tr>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Log ID</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Action Event</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>Actor (User)</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase' }}>IP Address</th>
-              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', textAlign: 'right' }}>Timestamp</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase' }}>Log ID</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase' }}>Action Event</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase' }}>Actor (User)</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase' }}>IP Address</th>
+              <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase', textAlign: 'right' }}>Timestamp</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>Loading audit logs...</td></tr>
+              <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#0F172A', fontWeight: 800 }}>Loading audit logs...</td></tr>
             ) : filteredLogs.map((log, idx) => (
-              <tr key={idx} style={{ borderBottom: idx === logs.length - 1 ? 'none' : '1px solid #334155' }}>
-                <td style={{ padding: '1rem', color: '#64748B', fontSize: '0.8rem' }}>{log.id}</td>
+              <tr key={idx} style={{ borderBottom: idx === logs.length - 1 ? 'none' : '2px solid #0F172A' }}>
+                <td style={{ padding: '1rem', color: '#E11D48', fontWeight: 700, fontSize: '0.8rem' }}>{log.id}</td>
                 <td style={{ padding: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 700, color: '#0F172A' }}>
                     {getTypeIcon(log.type)} {log.action}
                   </div>
                 </td>
                 <td style={{ padding: '1rem' }}>
-                  <div style={{ fontSize: '0.85rem', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><User size={12} color="#64748B"/> {log.user}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748B', marginTop: '0.2rem' }}>{log.role}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#0F172A', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}><User size={12} color="#E11D48"/> {log.user}</div>
+                  <div style={{ fontSize: '0.7rem', color: '#1E293B', fontWeight: 600, marginTop: '0.2rem' }}>{log.role}</div>
                 </td>
-                <td style={{ padding: '1rem', color: '#64748B', fontSize: '0.8rem' }}>{log.ip}</td>
-                <td style={{ padding: '1rem', textAlign: 'right', color: '#64748B', fontSize: '0.8rem' }}>{log.time}</td>
+                <td style={{ padding: '1rem', color: '#0F172A', fontWeight: 700, fontSize: '0.8rem' }}>{log.ip}</td>
+                <td style={{ padding: '1rem', textAlign: 'right', color: '#0F172A', fontWeight: 700, fontSize: '0.8rem' }}>{log.time}</td>
               </tr>
             ))}
           </tbody>
