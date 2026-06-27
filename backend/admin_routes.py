@@ -288,14 +288,28 @@ class RoleUpdate(BaseModel):
     role: str
 
 @router.put("/students/{user_id}/role")
+@router.put("/users/{user_id}/role")
 def update_user_role(user_id: int, data: RoleUpdate, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
-    if current_admin.role != "super_admin" and data.role in ("admin", "super_admin"):
+    role_map = {
+        "Super Admin": "super_admin",
+        "Admin": "admin",
+        "TPO": "tpo",
+        "Interviewer": "interviewer",
+        "Student": "student"
+    }
+    db_role = role_map.get(data.role, data.role.lower())
+
+    if current_admin.role != "super_admin" and db_role in ("admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Only super_admin can promote to admin")
         
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    user.role = data.role
+
+    if current_admin.role != "super_admin" and user.role in ("admin", "super_admin"):
+        raise HTTPException(status_code=403, detail="Only super_admin can modify admin accounts")
+
+    user.role = db_role
     db.commit()
     return {"message": "Role updated successfully", "role": user.role}
 
@@ -925,11 +939,36 @@ def delete_job_role(id: int, db: Session = Depends(get_db), current_admin: User 
 
 # ── 10. User & Role Management ───────────────────────────
 @router.get("/users")
-def get_all_users(role: Optional[str] = None, search: Optional[str] = None, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
+def get_all_users(
+    role: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(require_admin)
+):
+    """Retrieve users with optional role and search filters, returning enriched details."""
     query = db.query(User)
-    if role: query = query.filter(User.role == role)
-    if search: query = query.filter(or_(User.name.ilike(f"%{search}%"), User.email.ilike(f"%{search}%")))
-    return query.order_by(User.id).all()
+    if role:
+        query = query.filter(User.role == role)
+    if search:
+        query = query.filter(or_(User.name.ilike(f"%{search}%"), User.email.ilike(f"%{search}%")))
+    users = query.order_by(User.id).all()
+    return [
+        {
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "role": (
+                "Super Admin" if u.role == "super_admin"
+                else "Admin" if u.role == "admin"
+                else "TPO" if u.role == "tpo"
+                else "Interviewer" if u.role == "interviewer"
+                else "Student"
+            ),
+            "status": "Active" if getattr(u, "is_verified", False) else "Inactive",
+            "department": u.department or "General",
+        }
+        for u in users
+    ]
 
 @router.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
@@ -987,17 +1026,6 @@ def get_system_status(db: Session = Depends(get_db), current_admin: User = Depen
 
 # ── NEW: Phase 2 UI Data Endpoints ────────────────────────────────
 
-@router.get("/users")
-def get_all_users(db: Session = Depends(get_db), current_admin: User = Depends(require_admin)):
-    users = db.query(User).all()
-    return [{
-        "id": u.id,
-        "name": u.name,
-        "email": u.email,
-        "role": "Super Admin" if u.role == "super_admin" else "Admin" if u.role == "admin" else "Interviewer" if u.role == "interviewer" else "Student",
-        "status": "Active" if u.is_verified else "Inactive",
-        "department": u.department or "General"
-    } for u in users]
 
 class DepartmentCreateRequest(BaseModel):
     name: str

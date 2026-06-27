@@ -26,7 +26,7 @@ class ProctorAgent:
         self.risk_weights = RISK_WEIGHTS
 
     def log_violation(
-        self, interview_id: int, event_type: str, details: Dict[str, Any], db
+        self, interview_id: int, user_id: int, event_type: str, details: Dict[str, Any], db
     ) -> Dict[str, Any]:
         """
         Log a proctoring violation and compute the risk score for this event.
@@ -45,6 +45,7 @@ class ProctorAgent:
 
         log_entry = ProctoringLog(
             interview_id=interview_id,
+            user_id=user_id,
             event_type=event_type,
             event_data=json.dumps(details),
             risk_score=weight,

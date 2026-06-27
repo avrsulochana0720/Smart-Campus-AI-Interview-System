@@ -80,7 +80,7 @@ export default function Hero() {
           <button className="hero-button-primary" onClick={() => navigate('/register')}>
             Register
           </button>
-          <button className="hero-button-secondary" onClick={() => navigate('/login')}>
+          <button className="hero-button-secondary" onClick={() => navigate('/resume')}>
             Login
           </button>
           <button className="hero-button-primary">Launch Recruitment</button>

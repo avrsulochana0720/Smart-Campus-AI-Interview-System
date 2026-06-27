@@ -55,6 +55,15 @@ export default function DashboardPage() {
   const [interviewHistory, setInterviewHistory] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | null }>({ message: '', type: null });
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast({ message: '', type: null });
+    }, 4000);
+  };
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -100,84 +109,22 @@ export default function DashboardPage() {
     }
   };
 
-  const downloadPdfReport = () => {
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const margin = 40;
-    let y = 50;
-
-    doc.setFontSize(18);
-    doc.text('SmartInterview Dashboard Report', margin, y);
-    y += 30;
-    doc.setFontSize(11);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
-    y += 20;
-
-    doc.setFontSize(12);
-    doc.text('Summary', margin, y);
-    y += 20;
-    doc.setFontSize(10);
-    doc.text(`Total Interviews: ${totalInterviews}`, margin, y);
-    y += 16;
-    doc.text(`QA Volume: ${qaVolume}`, margin, y);
-    y += 16;
-    doc.text(`Overall Score: ${overallPct > 0 ? `${overallPct}%` : 'N/A'}`, margin, y);
-    y += 16;
-    doc.text(`Technical Score: ${techPct > 0 ? `${techPct}%` : 'N/A'}`, margin, y);
-    y += 16;
-    doc.text(`HR Score: ${hrPct > 0 ? `${hrPct}%` : 'N/A'}`, margin, y);
-    y += 16;
-    doc.text(`Pass Rate: ${passRate > 0 ? `${passRate}%` : 'N/A'}`, margin, y);
-    y += 30;
-
-    if (interviewHistory.length > 0) {
-      const latest = interviewHistory[0];
-      doc.setFontSize(12);
-      doc.text('Latest Interview', margin, y);
-      y += 20;
-      doc.setFontSize(10);
-      doc.text(`Position: ${latest.job_role} @ ${latest.company}`, margin, y);
-      y += 16;
-      doc.text(`Date: ${new Date(latest.date).toLocaleDateString()}`, margin, y);
-      y += 16;
-      const realScore = latest.report?.hiring_readiness_score || Math.round(latest.average_score * 10);
-      doc.text(`Latest Interview Score: ${realScore}%`, margin, y);
-      y += 30;
-      doc.setFontSize(11);
-      doc.text('Top Feedback', margin, y);
-      y += 18;
-      const narrative = latest.report?.narrative_summary || 'No narrative summary available.';
-      const lines = doc.splitTextToSize(narrative, 500);
-      doc.setFontSize(10);
-      doc.text(lines, margin, y);
-      y += lines.length * 15 + 10;
-      
-      if (latest.report?.skill_gap_analysis) {
-        doc.setFontSize(11);
-        doc.text('Skill Gap Analysis', margin, y);
-        y += 18;
-        const gapLines = doc.splitTextToSize(latest.report.skill_gap_analysis, 500);
-        doc.setFontSize(10);
-        doc.text(gapLines, margin, y);
-      }
-    } else {
-      doc.setFontSize(10);
-      doc.text('No interview data available yet. Complete an interview to generate report details.', margin, y);
-    }
-
-    doc.save('smartinterview-dashboard-report.pdf');
-  };
-
   const handleSendEmail = async () => {
     if (interviewHistory.length > 0) {
+      const interviewId = interviewHistory[0].interview_id;
       try {
+        setIsSendingEmail(true);
         const token = localStorage.getItem("token");
-        await axios.post(`http://localhost:8000/send-report-email/${interviewHistory[0].interview_id}`, {}, {
+        await axios.post(`http://localhost:8000/send-report-email/${interviewId}`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        alert('Email notification sent successfully!');
-      } catch (error) {
+        showToast("Interview report sent successfully to your email.", "success");
+      } catch (error: any) {
         console.error("Error sending email:", error);
-        alert('Failed to send email notification.');
+        const errMsg = error.response?.data?.detail || "Failed to send email notification.";
+        showToast(errMsg, "error");
+      } finally {
+        setIsSendingEmail(false);
       }
     }
   };
@@ -280,10 +227,166 @@ export default function DashboardPage() {
     return Math.round(score);
   };
 
+  const formatBulletPoints = (text: string) => {
+    if (!text) return [];
+    return text
+      .split(/(?:\r?\n|- |\* |\.\s+)/)
+      .map(s => s.trim())
+      .filter(s => s.length > 3);
+  };
+
   const performanceTrend = overallPct > 0 && averageScore > 0 ? (overallPct - averageScore) : 0;
   const trendStr = performanceTrend > 0 ? `+${performanceTrend}%` : `${performanceTrend}%`;
 
   const recentInterviews = interviewHistory.slice(0, 3);
+
+  const downloadPdfReport = () => {
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const margin = 40;
+    let y = 50;
+
+    const qaVolume = completedInterviews.reduce((sum, item) => sum + (item.qa_list?.length || 0), 0);
+    const passRate = totalInterviews > 0 ? Math.round((completedInterviews.filter(item => getNormalizedScore(item) >= 60).length / totalInterviews) * 100) : 0;
+
+    const checkPageBreak = (neededHeight: number) => {
+      if (y + neededHeight > 780) {
+        doc.addPage();
+        y = 50;
+        return true;
+      }
+      return false;
+    };
+
+    const addParagraph = (text: string, fontSize: number, fontStyle: 'normal' | 'bold' | 'italic' = 'normal', spacing = 15) => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', fontStyle);
+      const lines = doc.splitTextToSize(text, 515);
+      lines.forEach((line: string) => {
+        checkPageBreak(spacing);
+        doc.text(line, margin, y);
+        y += spacing;
+      });
+    };
+
+    // Header Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('SmartInterview Performance Report', margin, y);
+    y += 35;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+    y += 25;
+
+    // Summary Section
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('1. Overall Summary Metrics', margin, y);
+    y += 20;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Interviews Attempted: ${totalInterviews}`, margin, y);
+    y += 16;
+    doc.text(`Total Questions Answered: ${qaVolume}`, margin, y);
+    y += 16;
+    doc.text(`Overall Average Score: ${overallPct > 0 ? `${overallPct}%` : 'N/A'}`, margin, y);
+    y += 16;
+    doc.text(`Technical Average Score: ${techAverage > 0 ? `${techAverage}%` : 'N/A'}`, margin, y);
+    y += 16;
+    doc.text(`HR/Behavioral Average Score: ${behavioralAverage > 0 ? `${behavioralAverage}%` : 'N/A'}`, margin, y);
+    y += 16;
+    doc.text(`Qualified Pass Rate: ${passRate > 0 ? `${passRate}%` : 'N/A'}`, margin, y);
+    y += 30;
+
+    if (interviewHistory.length > 0) {
+      const latest = interviewHistory[0];
+      
+      checkPageBreak(120);
+      // Latest Interview Section
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('2. Latest Interview Details', margin, y);
+      y += 20;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Position / Role: ${latest.job_role}`, margin, y);
+      y += 16;
+      doc.text(`Target Company: ${latest.company}`, margin, y);
+      y += 16;
+      doc.text(`Date of Interview: ${new Date(latest.date).toLocaleDateString()}`, margin, y);
+      y += 16;
+      const realScore = latest.report?.hiring_readiness_score || Math.round(latest.average_score * 10);
+      doc.text(`Hiring Readiness Rating: ${realScore}%`, margin, y);
+      y += 30;
+
+      // Top Feedback Section
+      checkPageBreak(100);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text('3. Top Feedback & AI Summary', margin, y);
+      y += 20;
+
+      const narrative = latest.report?.narrative_summary || 'No narrative summary available.';
+      addParagraph(narrative, 10, 'normal', 15);
+      y += 15;
+
+      // Skill Gap Section
+      if (latest.report?.skill_gap_analysis) {
+        checkPageBreak(100);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('4. Skill Gap Analysis', margin, y);
+        y += 20;
+
+        addParagraph(latest.report.skill_gap_analysis, 10, 'normal', 15);
+        y += 15;
+      }
+
+      // Q&A list details
+      if (latest.qa_list && latest.qa_list.length > 0) {
+        checkPageBreak(120);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('5. Questions & Answers Review', margin, y);
+        y += 20;
+
+        latest.qa_list.forEach((item, idx) => {
+          checkPageBreak(60);
+          
+          // Question - wrapped
+          addParagraph(`Q${idx + 1}: ${item.question}`, 10.5, 'bold', 16);
+          y += 4;
+
+          // Score
+          checkPageBreak(20);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.text(`Score: ${item.score > 0 && item.score <= 10 ? item.score * 10 : item.score}%`, margin, y);
+          y += 16;
+
+          // Answer - wrapped
+          addParagraph(`Your Answer: ${item.answer}`, 10, 'normal', 15);
+          y += 4;
+          
+          // Feedback - wrapped
+          if (item.feedback) {
+            addParagraph(`Feedback: ${item.feedback}`, 9.5, 'italic', 14);
+          }
+          y += 12; // spacer between questions
+        });
+      }
+    } else {
+      checkPageBreak(50);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.text('No interview data available yet. Complete an interview to generate report details.', margin, y);
+    }
+
+    doc.save('smartinterview-dashboard-report.pdf');
+  };
 
   return (
     <>
@@ -366,7 +469,20 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button className={styles.button} style={{ background: '#F1F5F9', color: '#0F172A', border: '1px solid #CBD5E1' }} onClick={handleSendEmail}>Email Report</button>
+                  <button 
+                    className={styles.button} 
+                    style={{ 
+                      background: '#F1F5F9', 
+                      color: '#0F172A', 
+                      border: '1px solid #CBD5E1',
+                      opacity: (isSendingEmail || interviewHistory.length === 0) ? 0.6 : 1,
+                      cursor: (isSendingEmail || interviewHistory.length === 0) ? 'not-allowed' : 'pointer'
+                    }} 
+                    onClick={handleSendEmail}
+                    disabled={isSendingEmail || interviewHistory.length === 0}
+                  >
+                    {isSendingEmail ? 'Sending...' : 'Email Report'}
+                  </button>
                   <button className={styles.button} onClick={downloadPdfReport}>Download PDF</button>
                 </div>
               </div>
@@ -546,19 +662,34 @@ export default function DashboardPage() {
                 ) : interviewHistory.length === 0 ? (
                   <p style={{ color: '#0F172A', marginTop: '1rem', fontWeight: 700 }}>Complete an interview to see insights here.</p>
                 ) : (
-                  <div>
-                    <p style={{ color: '#0F172A', marginBottom: '0.75rem', lineHeight: '1.6', fontWeight: 700 }}>
-                      {interviewHistory[0].report?.narrative_summary
-                        ? interviewHistory[0].report.narrative_summary.split('. ').slice(0, 2).join('. ') + '.'
-                        : `Latest interview average score is ${getNormalizedScore(interviewHistory[0])}% with clear room for improvement.`}
-                    </p>
+                  <div style={{ maxHeight: '190px', overflowY: 'auto', paddingRight: '8px' }}>
+                    <ul style={{ 
+                      listStyleType: 'disc', 
+                      paddingLeft: '1.25rem', 
+                      marginTop: '0', 
+                      marginBottom: '0.75rem', 
+                      color: '#0F172A', 
+                      fontSize: '0.85rem',
+                      lineHeight: '1.5', 
+                      fontWeight: 700,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.4rem'
+                    }}>
+                      {formatBulletPoints(interviewHistory[0].report?.narrative_summary).map((point, idx) => (
+                        <li key={idx}>{point}.</li>
+                      ))}
+                      {formatBulletPoints(interviewHistory[0].report?.narrative_summary).length === 0 && (
+                        <li>Latest interview average score is {getNormalizedScore(interviewHistory[0])}% with clear room for improvement.</li>
+                      )}
+                    </ul>
                     {interviewHistory[0].report?.skill_gap_analysis && (
-                      <div style={{ marginTop: '0.5rem', marginBottom: '0.75rem', padding: '0.5rem 0.75rem', background: '#F8FAFC', border: '2px solid #0F172A', borderLeft: '6px solid #F59E0B', borderRadius: '0.5rem', boxShadow: '2px 2px 0px #0F172A' }}>
-                        <strong style={{ fontSize: '0.85rem', color: '#0F172A', display: 'block', marginBottom: '0.25rem', fontWeight: 800 }}>Skill Gap Analysis:</strong>
-                        <span style={{ fontSize: '0.85rem', color: '#0F172A', fontWeight: 700 }}>{interviewHistory[0].report.skill_gap_analysis}</span>
+                      <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem', padding: '0.5rem 0.75rem', background: '#F8FAFC', border: '2px solid #0F172A', borderLeft: '6px solid #F59E0B', borderRadius: '0.5rem', boxShadow: '2px 2px 0px #0F172A' }}>
+                        <strong style={{ fontSize: '0.8rem', color: '#0F172A', display: 'block', marginBottom: '0.25rem', fontWeight: 800 }}>Skill Gap Analysis:</strong>
+                        <span style={{ fontSize: '0.8rem', color: '#0F172A', fontWeight: 700 }}>{interviewHistory[0].report.skill_gap_analysis}</span>
                       </div>
                     )}
-                    <p style={{ color: '#0F172A', lineHeight: '1.6', fontWeight: 700 }}>
+                    <p style={{ color: '#0F172A', fontSize: '0.85rem', lineHeight: '1.5', fontWeight: 700 }}>
                       <strong style={{ color: '#DC2626', fontWeight: 800 }}>Hiring Readiness: {getNormalizedScore(interviewHistory[0])}%</strong> — {interviewHistory[0].report?.recommendation
                         ? interviewHistory[0].report.recommendation
                         : 'Focus on stronger answer structure and more concise technical examples in the next session.'}
@@ -633,6 +764,29 @@ export default function DashboardPage() {
 
         </main>
       </div>
+      {toast.type && (
+        <div style={{
+          position: 'fixed',
+          top: '24px',
+          right: '24px',
+          backgroundColor: toast.type === 'success' ? '#F0FDF4' : '#FEF2F2',
+          color: toast.type === 'success' ? '#16A34A' : '#DC2626',
+          border: `1px solid ${toast.type === 'success' ? '#BBF7D0' : '#FECACA'}`,
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+          zIndex: 9999,
+          fontWeight: 600,
+          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          pointerEvents: 'none'
+        }}>
+          <span>{toast.type === 'success' ? '✅' : '❌'}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
     </>
   );
 }

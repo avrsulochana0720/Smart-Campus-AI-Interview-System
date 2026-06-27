@@ -284,9 +284,13 @@ export default function InterviewsPage() {
           <tbody>
             {loading ? (
               <tr><td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#1E293B' }}>Loading interviews...</td></tr>
-            ) : filteredInterviews.map((interview, idx) => (
-              <tr key={idx} style={{ borderBottom: idx === filteredInterviews.length - 1 ? 'none' : '1px solid #0F172A', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.05)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                <td style={{ padding: '1rem' }}>
+            ) : filteredInterviews.map((interview, idx) => {
+              const isLastRow = idx === filteredInterviews.length - 1;
+              const paddingStyle = isLastRow ? { padding: '1rem 1rem 2.25rem 1rem' } : { padding: '1rem' };
+              
+              return (
+              <tr key={idx} style={{ borderBottom: isLastRow ? 'none' : '1px solid #0F172A', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.05)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <td style={paddingStyle}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(225, 29, 72, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E11D48', fontSize: '0.85rem', fontWeight: 800 }}>
                       {(interview.candidate_name || 'U').charAt(0).toUpperCase()}
@@ -297,13 +301,13 @@ export default function InterviewsPage() {
                     </div>
                   </div>
                 </td>
-                <td style={{ padding: '1rem' }}>
+                <td style={paddingStyle}>
                   <div style={{ fontSize: '0.9rem', color: '#0F172A', marginBottom: '0.2rem' }}>{interview.job_role}</div>
                   <div style={{ fontSize: '0.75rem', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <Video size={12} /> {interview.mode || 'AI Evaluation'}
                   </div>
                 </td>
-                <td style={{ padding: '1rem' }}>
+                <td style={paddingStyle}>
                   {interview.status === 'cancelled' ? (
                     <div style={{ fontSize: '1rem', color: '#64748B', fontWeight: 800 }}>—</div>
                   ) : (
@@ -317,13 +321,13 @@ export default function InterviewsPage() {
                     </>
                   )}
                 </td>
-                <td style={{ padding: '1rem', fontSize: '0.85rem', color: '#1E293B' }}>
+                <td style={{ ...paddingStyle, fontSize: '0.85rem', color: '#1E293B' }}>
                   System AI
                 </td>
-                <td style={{ padding: '1rem' }}>
+                <td style={paddingStyle}>
                   {getStatusBadge(interview.status === 'in_progress' ? 'Live' : interview.status === 'completed' ? 'Completed' : interview.status === 'cancelled' ? 'Cancelled' : 'Upcoming')}
                 </td>
-                <td style={{ padding: '1rem', textAlign: 'right', position: 'relative' }}>
+                <td style={{ ...paddingStyle, textAlign: 'right', position: 'relative' }}>
                   {interview.status === 'in_progress' ? (
                     <button onClick={() => showToast(`Monitoring INT-${interview.id}`, 'info')} style={{ backgroundColor: '#EF4444', color: '#FFFFFF', border: 'none', borderRadius: '0.3rem', padding: '0.4rem 0.75rem', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', marginRight: '0.5rem' }}>
                       Monitor
@@ -334,7 +338,18 @@ export default function InterviewsPage() {
                   </button>
                   
                   {activeMenuId === interview.id && (
-                    <div style={{ position: 'absolute', right: '2rem', top: '2.5rem', backgroundColor: '#FFFFFF', border: '2px solid #E11D48', borderRadius: '0.5rem', padding: '0.25rem', zIndex: 10, minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
+                    <div style={{ 
+                      position: 'absolute', 
+                      right: '2rem', 
+                      ...(isLastRow && filteredInterviews.length > 1 ? { bottom: '2.5rem' } : { top: '2.5rem' }),
+                      backgroundColor: '#FFFFFF', 
+                      border: '2px solid #E11D48', 
+                      borderRadius: '0.5rem', 
+                      padding: '0.25rem', 
+                      zIndex: 10, 
+                      minWidth: '120px', 
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' 
+                    }}>
                       {interview.status === 'completed' && (
                         <div onClick={() => handleViewReport(interview.id)} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                           View Report
@@ -344,7 +359,7 @@ export default function InterviewsPage() {
                       <div onClick={() => handleOpenRescheduleModal(interview.id, interview.created_at)} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#0F172A', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                         Reschedule
                       </div>
-
+                      
                       {(interview.status === 'cancelled' || interview.status === 'completed') ? (
                         <div onClick={() => handleDelete(interview.id)} style={{ padding: '0.5rem', fontSize: '0.75rem', color: '#EF4444', cursor: 'pointer', textAlign: 'left', borderRadius: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                           Delete Interview
@@ -358,7 +373,7 @@ export default function InterviewsPage() {
                   )}
                 </td>
               </tr>
-            ))}
+            )})}`
           </tbody>
         </table>
       </div>

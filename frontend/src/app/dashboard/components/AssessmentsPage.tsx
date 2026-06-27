@@ -503,7 +503,13 @@ export default function AssessmentsPage({ interviewHistory, loading }: { intervi
                       <Sparkles size={18} /> AI Assessment Insights
                     </h6>
                     <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#334155', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {selectedAssessment.aiInsights.map((ins, i) => <li key={i}>{ins}</li>)}
+                      {selectedAssessment.aiInsights.reduce<string[]>((acc, ins) => {
+                        if (!ins) return acc;
+                        const points = ins.split(/(?:\r?\n|- |\* |\.\s+)/).map(s => s.trim()).filter(s => s.length > 3);
+                        return [...acc, ...points];
+                      }, []).map((ins, i) => (
+                        <li key={i} style={{ lineHeight: '1.5', color: '#334155' }}>{ins.endsWith('.') ? ins : ins + '.'}</li>
+                      ))}
                     </ul>
                   </div>
 

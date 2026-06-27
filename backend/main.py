@@ -29,8 +29,11 @@ from metrics import record_metric, get_average_metrics, get_all_metrics
 from models import User, UserSettings, Interview, Resume, InterviewQuestion, Answer, InterviewReport, ProctoringLog, PDFDocument, PDFChunk, Assessment, Feedback, ScheduledInterview
 from auth import router as auth_router, get_current_user, SECRET_KEY, ALGORITHM
 from admin_routes import router as admin_router
-from email_service import send_interview_schedule_email
+from email_service import send_interview_schedule_email, validate_smtp_config
 from websocket_manager import manager
+
+# Validate SMTP configuration at startup
+validate_smtp_config()
 
 # Import agents
 from agents.resume_agent import resume_agent
@@ -2002,7 +2005,7 @@ def get_all_interviews(
 ):
     """Get all interview history for all users (for TPO Dashboard)."""
     # Assuming current_user is TPO or has permissions. In production, add role check.
-    interviews = db.query(Interview).all()
+    interviews = db.query(Interview).filter(Interview.mode == "Real").all()
     if not interviews:
         return []
 
@@ -2093,17 +2096,25 @@ def send_report_email(
     report = db.query(InterviewReport).filter(InterviewReport.interview_id == interview_id).first()
     if not report or report.status != "completed":
         raise HTTPException(status_code=400, detail="Report not ready yet")
+
+    # Security check: users can only send their own, admins/tpo can send any
+    is_admin = current_user.role in ("super_admin", "admin", "tpo", "Admin", "Super Admin")
+    if not is_admin and interview.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You do not have permission to email this report")
         
     from email_service import send_candidate_report_email
     try:
         send_candidate_report_email(interview_id, db)
         return {"message": "Email notification sent successfully", "status": "sent"}
     except Exception as e:
-        status_value = "failed"
-        if "SMTP credentials not configured" in str(e):
-            status_value = "smtp_missing"
+        # DB status tracking is handled inside send_candidate_report_email,
+        # but let's make sure report status is updated correctly and exception is raised.
+        db.refresh(report)
+        report.email_delivery_status = "failed"
+        report.email_delivery_error = str(e)
+        db.commit()
         raise HTTPException(
-            status_code=500 if status_value == "failed" else 400,
+            status_code=500,
             detail=f"Email delivery failed: {str(e)}"
         )
 
@@ -2124,6 +2135,7 @@ def log_proctoring_event(
 
     result = proctor_agent.log_violation(
         interview_id=request.interview_id,
+        user_id=current_user.id,
         event_type=request.event_type,
         details=request.details,
         db=db

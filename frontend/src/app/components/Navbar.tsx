@@ -57,8 +57,8 @@ export default function Navbar() {
             </button>
           ) : (
             <>
-              <Link to="/login" style={{ fontWeight: 600 }}>Login</Link>
-              <Link to="/register" style={{ fontWeight: 600 }}>Register</Link>
+              <Link to="/resume" style={{ fontWeight: 600 }}>Login</Link>
+              <Link to="/register" style={{ fontWeight: 600 }}>Sign Up</Link>
             </>
           )}
 

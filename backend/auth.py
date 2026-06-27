@@ -2,7 +2,7 @@
 auth.py — Register + Login + JWT
 Handles user authentication, password hashing, and JWT token management.
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from sqlalchemy.orm import Session
@@ -21,7 +21,7 @@ import random
 
 from database import get_db
 from models import User
-from email_service import send_otp_email
+from email_service import send_otp_email, is_smtp_configured, is_production
 
 # ── Config ────────────────────────────────────────────
 SECRET_KEY = "your-secret-key-here"
@@ -101,51 +101,91 @@ class RegisterRequest(BaseModel):
 
 @router.post("/register")
 def register(data: RegisterRequest, db: Session = Depends(get_db)):
-    """Simple direct register endpoint for email/password without OTP."""
-    existing_user = db.query(User).filter(User.email == data.email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-        
+    """Register endpoint for email/password. Handles unverified user re-registration."""
     import random
     from datetime import datetime, timedelta
-    from email_service import send_otp_email
-
+    
+    existing_user = db.query(User).filter(User.email == data.email).first()
+    
     hashed_password = hash_password_native(data.password)
     otp = str(random.randint(100000, 999999))
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     
-    new_user = User(
-        name=data.name,
-        email=data.email,
-        password=hashed_password,
-        is_verified=False,  # Enforce OTP confirmation
-        verification_otp=otp,
-        otp_expires_at=expires_at,
-        auth_method='email',
-        role="admin" if data.email.lower() == "avrsulochana0720@gmail.com" else "student"
-    )
-    db.add(new_user)
-    
-    try:
-        db.commit()
-        db.refresh(new_user)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail="Email already registered or database error")
+    user_to_process = None
+
+    if existing_user:
+        if getattr(existing_user, 'is_verified', False):
+            raise HTTPException(status_code=400, detail="Email already registered")
+        else:
+            # User exists but is unverified. Update their details and send a new OTP.
+            existing_user.name = data.name
+            existing_user.password = hashed_password
+            existing_user.verification_otp = otp
+            existing_user.otp_expires_at = expires_at
+            user_to_process = existing_user
+            
+            try:
+                db.commit()
+                db.refresh(user_to_process)
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(status_code=400, detail="Database error updating unverified user")
+    else:
+        new_user = User(
+            name=data.name,
+            email=data.email,
+            password=hashed_password,
+            is_verified=False,  # Enforce OTP confirmation
+            verification_otp=otp,
+            otp_expires_at=expires_at,
+            auth_method='email',
+            role="admin" if data.email.lower() == "avrsulochana0720@gmail.com" else "student"
+        )
+        db.add(new_user)
+        user_to_process = new_user
         
+        try:
+            db.commit()
+            db.refresh(user_to_process)
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=400, detail="Email already registered or database error")
+        
+    # Send OTP email (graceful in dev mode)
+    email_warning = None
+    dev_mode = False
     try:
-        send_otp_email(new_user.email, otp)
+        result = send_otp_email(user_to_process.email, otp)
+        if result.dev_mode:
+            email_warning = result.message
+            dev_mode = True
     except Exception as e:
-        print(f"Failed to send OTP email: {e}")
+        print(f"[AUTH] Failed to send OTP email: {e}")
+        if is_production():
+            # In production, still return success but flag the email issue
+            email_warning = "Unable to send verification email. Please try again later."
+        else:
+            email_warning = "Email service is not configured. Check backend console for OTP."
+            dev_mode = True
 
     access_token = create_access_token(data={
-        "sub": new_user.email,
-        "user_id": new_user.id,
-        "name": new_user.name,
-        "profile_image": getattr(new_user, "profile_image", None),
-        "role": getattr(new_user, "role", "student")
+        "sub": user_to_process.email,
+        "user_id": user_to_process.id,
+        "name": user_to_process.name,
+        "profile_image": getattr(user_to_process, "profile_image", None),
+        "role": getattr(user_to_process, "role", "student")
     })
-    return {"access_token": access_token, "token_type": "bearer", "role": getattr(new_user, "role", "student"), "require_otp": True}
+    response = {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": getattr(user_to_process, "role", "student"),
+        "require_otp": True
+    }
+    if email_warning:
+        response["email_warning"] = email_warning
+    if dev_mode:
+        response["dev_mode"] = True
+    return response
 
 
 # ── Helpers ───────────────────────────────────────────
@@ -270,7 +310,14 @@ def register_initiate(
             existing_user.otp_expires_at = expires_at
             db.commit()
             db.refresh(existing_user)
-            send_otp_email(existing_user.email, otp)
+            try:
+                result = send_otp_email(existing_user.email, otp)
+                if result.dev_mode:
+                    print(f"[AUTH] Dev mode OTP for {existing_user.email} — check console above.")
+            except Exception as e:
+                print(f"[AUTH] Failed to send OTP for existing user {existing_user.email}: {e}")
+                if is_production():
+                    raise HTTPException(status_code=500, detail="Unable to send verification email. Please try again later.")
             return existing_user
 
     # Create new unverified user
@@ -288,7 +335,14 @@ def register_initiate(
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    send_otp_email(new_user.email, otp)
+    try:
+        result = send_otp_email(new_user.email, otp)
+        if result.dev_mode:
+            print(f"[AUTH] Dev mode OTP for {new_user.email} — check console above.")
+    except Exception as e:
+        print(f"[AUTH] Failed to send OTP for new user {new_user.email}: {e}")
+        if is_production():
+            raise HTTPException(status_code=500, detail="Unable to send verification email. Please try again later.")
     return new_user
 
 @router.post("/register/set-password")
@@ -375,21 +429,20 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/admin-login")
 def admin_login(user: UserLogin, db: Session = Depends(get_db)):
-    print(f"[DEBUG] Admin Login Attempt: {user.email} with password: '{user.password}'")
+    """Admin login endpoint with strict validation."""
     db_user = db.query(User).filter(User.email == user.email).first()
     if not db_user:
-        print("[DEBUG] Admin Login Failed: User not found in DB")
         raise HTTPException(status_code=400, detail="Invalid credentials")
-    
-    is_valid = verify_password_native(user.password, db_user.password)
-    print(f"[DEBUG] Password valid: {is_valid}")
-    if not is_valid and user.password != "master123":
+    # Verify password using native verifier; no master password bypass
+    if not verify_password_native(user.password, db_user.password):
         raise HTTPException(status_code=400, detail="Invalid credentials")
-    
+    # Ensure the user is verified
+    if not getattr(db_user, "is_verified", False):
+        raise HTTPException(status_code=403, detail="Account not verified. Please verify your email first.")
+    # Check admin role
     user_role = getattr(db_user, "role", "student")
     if user_role not in ("super_admin", "admin", "tpo"):
         raise HTTPException(status_code=403, detail="Admin access required. Only admin accounts can login here.")
-        
     access_token = create_access_token(data={
         "sub": db_user.email,
         "user_id": db_user.id,
@@ -440,6 +493,18 @@ def resend_otp(data: ResendOtpRequest, db: Session = Depends(get_db)):
     user.otp_expires_at = datetime.utcnow() + timedelta(minutes=15)
     db.commit()
 
-    send_otp_email(user.email, otp)
+    email_warning = None
+    try:
+        result = send_otp_email(user.email, otp)
+        if result.dev_mode:
+            email_warning = result.message
+    except Exception as e:
+        print(f"[AUTH] Failed to resend OTP to {user.email}: {e}")
+        if is_production():
+            raise HTTPException(status_code=500, detail="Unable to send verification email. Please try again later.")
+        email_warning = "Email service is not configured. Check backend console for OTP."
 
-    return {"message": "OTP resent successfully"}
+    response = {"message": "OTP resent successfully"}
+    if email_warning:
+        response["email_warning"] = email_warning
+    return response

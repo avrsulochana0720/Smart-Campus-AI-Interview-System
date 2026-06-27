@@ -29,11 +29,16 @@ export default function RegisterPage() {
 
 
   const [error, setError] = useState("");
+  const [emailWarning, setEmailWarning] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const redirectChecked = useRef(false);
 
   useEffect(() => {
+    // If already authenticated via JWT, skip Supabase bridge to prevent refresh loop
+    if (localStorage.getItem('token') || localStorage.getItem('adminToken')) {
+      return;
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         if (redirectChecked.current) return;
@@ -94,7 +99,12 @@ export default function RegisterPage() {
       setStep(2);
     } catch (err: any) {
       console.error("Register error:", err);
-      setError(err.response?.data?.detail || err.message || "Registration failed");
+      const detail = err.response?.data?.detail;
+      if (detail && typeof detail === 'string' && (detail.includes('SMTP') || detail.includes('email'))) {
+        setError("Unable to send verification email. Please try again later.");
+      } else {
+        setError(detail || err.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -119,10 +129,21 @@ export default function RegisterPage() {
   const handleEmailResendOtp = async () => {
     setError("");
     try {
-      await authAPI.resendOtp(email);
-      alert("OTP resent to your email.");
+      const data = await authAPI.resendOtp(email);
+      if (data.email_warning) {
+        setEmailWarning(data.email_warning);
+        showToast("OTP regenerated. Check backend console.", "info");
+      } else {
+        setEmailWarning("");
+        showToast("OTP resent to your email.", "success");
+      }
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to resend OTP");
+      const detail = err.response?.data?.detail;
+      if (detail && typeof detail === 'string' && (detail.includes('SMTP') || detail.includes('email'))) {
+        setError("Unable to send verification email. Please try again later.");
+      } else {
+        setError(detail || err.message || "Failed to resend OTP");
+      }
     }
   };
 
@@ -151,10 +172,16 @@ export default function RegisterPage() {
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setEmailWarning("");
     setLoading(true);
     try {
       const data = await authAPI.register(name, email, password);
-      showToast("Registration successful. Please check your email for OTP.", "success");
+      if (data.email_warning) {
+        setEmailWarning(data.email_warning);
+        showToast("Registration successful. " + data.email_warning, "info");
+      } else {
+        showToast("Registration successful. Please check your email for OTP.", "success");
+      }
       if (data.require_otp || !data.access_token) {
         setStep(2);
       } else {
@@ -167,7 +194,12 @@ export default function RegisterPage() {
       }
     } catch (err: any) {
       console.error("Register error:", err);
-      setError(err.response?.data?.detail || err.message || "Registration failed");
+      const detail = err.response?.data?.detail;
+      if (detail && typeof detail === 'string' && (detail.includes('SMTP') || detail.includes('email'))) {
+        setError("Unable to send verification email. Please try again later.");
+      } else {
+        setError(detail || err.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -178,9 +210,15 @@ export default function RegisterPage() {
       <div className={styles.container}>
         <div className={styles.card}>
           <h1 className={styles.title}>Verify Your Email</h1>
-          <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            We've sent a 6-digit code to <strong>{email}</strong>. Please enter it below.
-          </p>
+          {emailWarning ? (
+            <p style={{ textAlign: 'center', color: '#d97706', backgroundColor: '#fef3c7', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+              ⚠️ {emailWarning}
+            </p>
+          ) : (
+            <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              We've sent a 6-digit code to <strong>{email}</strong>. Please enter it below.
+            </p>
+          )}
           {error && <p className={styles.error} style={{ textAlign: 'center' }}>{error}</p>}
           <form onSubmit={handleEmailVerifyOtp} className={styles.form}>
             <div className={styles.formGroup}>

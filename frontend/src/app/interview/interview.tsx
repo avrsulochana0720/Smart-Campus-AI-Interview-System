@@ -43,6 +43,11 @@ const Interview: React.FC = () => {
     currentQuestionIndexRef.current = currentQuestionIndex;
   }, [currentQuestionIndex]);
 
+  // Keep answerRef always in sync with answer state
+  useEffect(() => {
+    answerRef.current = answer;
+  }, [answer]);
+
   const startSpeechRecognition = () => {
     if (isRecordingRef.current) return;
     
@@ -86,14 +91,16 @@ const Interview: React.FC = () => {
       };
 
       recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
+        if (event.error !== 'no-speech') {
+          console.error('Speech recognition error:', event.error);
+        }
         if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'not-allowed') {
           setTimeout(() => {
             if (isRecordingRef.current && recognitionRef.current) {
               try {
                 recognitionRef.current.start();
               } catch (e) {
-                console.log('Failed to restart recognition:', e);
+                // Silently ignore InvalidStateError
               }
             }
           }, 1000);
@@ -106,7 +113,7 @@ const Interview: React.FC = () => {
             try {
               recognitionRef.current.start();
             } catch (e) {
-              console.log('Failed to restart recognition on end:', e);
+              // Silently ignore InvalidStateError
             }
           }, 100);
         }
@@ -143,12 +150,25 @@ const Interview: React.FC = () => {
       // Trigger report generation synchronously
       interviewAPI.generateReport(interviewId)
         .then(() => {
-          // Fetch the full report details
-          return interviewAPI.fetchSavedReport(interviewId);
-        })
-        .then(reportData => {
-          setFinalReport(reportData);
-          setIsGeneratingReport(false);
+          const pollReport = async () => {
+            try {
+              const reportData = await interviewAPI.fetchSavedReport(interviewId);
+              if (reportData && reportData.status === 'completed') {
+                setFinalReport(reportData);
+                setIsGeneratingReport(false);
+              } else if (reportData && reportData.status === 'failed') {
+                console.error("Report generation failed");
+                setIsGeneratingReport(false);
+              } else {
+                // Keep polling every 3 seconds if pending
+                setTimeout(pollReport, 3000);
+              }
+            } catch (err) {
+              console.error("Error polling report:", err);
+              setTimeout(pollReport, 3000);
+            }
+          };
+          pollReport();
         })
         .catch(err => {
           console.error("Report generation failed", err);
@@ -350,7 +370,16 @@ const Interview: React.FC = () => {
         const index = combinedQuestions.findIndex((q: any) => q.id === (currentStatus.question_id || currentStatus.id));
         if (index !== -1) {
           setCurrentQuestionIndex(index);
+          // Sync answer + answerRef with the recovered answer for this question
+          const recoveredAnswer = recoveredAnswers[index] || '';
+          setAnswer(recoveredAnswer);
+          answerRef.current = recoveredAnswer;
           updateSpeaker(combinedQuestions[index]);
+        } else {
+          // Resuming at question 0 — sync its recovered answer too
+          const recoveredAnswer = recoveredAnswers[0] || '';
+          setAnswer(recoveredAnswer);
+          answerRef.current = recoveredAnswer;
         }
       }
     } catch (error) {
@@ -565,7 +594,9 @@ const Interview: React.FC = () => {
     if (currentQuestionIndex > 0) {
       const prevIndex = currentQuestionIndex - 1;
       setCurrentQuestionIndex(prevIndex);
-      setAnswer(answers[prevIndex] || '');
+      const prevAnswer = answers[prevIndex] || '';
+      setAnswer(prevAnswer);
+      answerRef.current = prevAnswer;
     }
   };
 

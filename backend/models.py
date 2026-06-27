@@ -53,7 +53,7 @@ class UserSettings(Base):
     __tablename__ = "user_settings"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
     settings = Column(JSON, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -62,7 +62,7 @@ class Resume(Base):
     __tablename__ = "resumes"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     resume_text = Column(Text, nullable=True)
     skills_extracted = Column(Text, nullable=True)        # JSON string of extracted skills
     ai_analysis = Column(Text, nullable=True)             # Qwen analysis of the resume
@@ -73,8 +73,8 @@ class Interview(Base):
     __tablename__ = "interviews"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    resume_id = Column(Integer, ForeignKey("resumes.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    resume_id = Column(Integer, ForeignKey("resumes.id", ondelete="SET NULL"), nullable=True)
     job_role = Column(String(200), nullable=False)
     company = Column(String(200), nullable=False)
     mode = Column(String(50), default="Practice")
@@ -89,7 +89,7 @@ class InterviewQuestion(Base):
     __tablename__ = "interview_questions"
 
     id = Column(Integer, primary_key=True, index=True)
-    interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=False)
+    interview_id = Column(Integer, ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False)
     question = Column(Text, nullable=False)
     question_type = Column(String(50), default="technical")  # technical or hr
     expected_answer = Column(Text, nullable=True)            # Derived from RAG PDF
@@ -101,9 +101,9 @@ class Answer(Base):
     __tablename__ = "answers"
 
     id = Column(Integer, primary_key=True, index=True)
-    question_id = Column(Integer, ForeignKey("interview_questions.id"), nullable=False)
-    interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, default=1)
+    question_id = Column(Integer, ForeignKey("interview_questions.id", ondelete="CASCADE"), nullable=False)
+    interview_id = Column(Integer, ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, default=1)
     answer_text = Column(Text, nullable=False)
     score = Column(Integer, nullable=True)                # 0-10 from eval_agent
     feedback = Column(Text, nullable=True)                # detailed feedback from eval_agent
@@ -136,7 +136,7 @@ class InterviewReport(Base):
     __tablename__ = "interview_reports"
 
     id = Column(Integer, primary_key=True, index=True)
-    interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=False, unique=True)
+    interview_id = Column(Integer, ForeignKey("interviews.id", ondelete="CASCADE"), nullable=False, unique=True)
     narrative_summary = Column(Text, nullable=True)
     average_score = Column(Integer, nullable=True)
     total_questions = Column(Integer, nullable=True)
@@ -191,7 +191,8 @@ class ProctoringLog(Base):
     __tablename__ = "proctoring_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    interview_id = Column(Integer, ForeignKey("interviews.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    interview_id = Column(Integer, ForeignKey("interviews.id", ondelete="CASCADE"), nullable=True)
     event_type = Column(String(100), nullable=False)      # tab_switch, camera_off, etc
     event_data = Column(Text, nullable=True)              # JSON string of event details
     risk_score = Column(Float, default=0.0)               # 0.0 - 1.0
@@ -203,7 +204,7 @@ class ScheduledInterview(Base):
     __tablename__ = "scheduled_interviews"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     job_role = Column(String(200), nullable=False)
     company = Column(String(200), nullable=False)
     scheduled_time = Column(DateTime, nullable=False)

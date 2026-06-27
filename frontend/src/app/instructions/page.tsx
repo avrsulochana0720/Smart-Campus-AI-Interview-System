@@ -4,6 +4,8 @@ import styles from "../../styles/instructions.module.css";
 
 export default function InstructionsPage() {
   const [systemChecks, setSystemChecks] = useState([false, false, false, false]);
+  const [checkedInstructions, setCheckedInstructions] = useState([false, false, false]);
+  const [showErrors, setShowErrors] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,8 +28,20 @@ export default function InstructionsPage() {
     });
   }, []);
 
+  const handleCheckboxChange = (index: number) => {
+    setCheckedInstructions(prev => {
+      const updated = [...prev];
+      updated[index] = !updated[index];
+      return updated;
+    });
+  };
+
   const handleNext = () => {
-    navigate("/interview");
+    if (checkedInstructions.every(v => v === true)) {
+      navigate("/interview");
+    } else {
+      setShowErrors(true);
+    }
   };
 
   return (
@@ -39,36 +53,60 @@ export default function InstructionsPage() {
         <div className={styles.card}>
           <h2 className={styles.title}>Important Instructions</h2>
 
-          <div className={styles.section}>
-            <input type="checkbox" className={styles.instructionCheckbox} />
+          <div className={styles.section} style={{ position: 'relative' }}>
+            <input 
+              type="checkbox" 
+              className={styles.instructionCheckbox} 
+              checked={checkedInstructions[0]}
+              onChange={() => handleCheckboxChange(0)}
+            />
             <div className={styles.icon}>1</div>
             <div>
               <p className={styles.itemTitle}>Stable Environment</p>
               <p className={styles.itemDesc}>
                 Ensure you are in a quiet, well-lit space with minimal distractions.
               </p>
+              {showErrors && !checkedInstructions[0] && (
+                <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: '0.25rem 0 0 0' }}>* Required</p>
+              )}
             </div>
           </div>
 
-          <div className={styles.section}>
-            <input type="checkbox" className={styles.instructionCheckbox} />
+          <div className={styles.section} style={{ position: 'relative' }}>
+            <input 
+              type="checkbox" 
+              className={styles.instructionCheckbox} 
+              checked={checkedInstructions[1]}
+              onChange={() => handleCheckboxChange(1)}
+            />
             <div className={styles.icon}>2</div>
             <div>
               <p className={styles.itemTitle}>Device Setup</p>
               <p className={styles.itemDesc}>
                 Test your camera and microphone before starting the interview.
               </p>
+              {showErrors && !checkedInstructions[1] && (
+                <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: '0.25rem 0 0 0' }}>* Required</p>
+              )}
             </div>
           </div>
 
-          <div className={styles.section}>
-            <input type="checkbox" className={styles.instructionCheckbox} />
+          <div className={styles.section} style={{ position: 'relative' }}>
+            <input 
+              type="checkbox" 
+              className={styles.instructionCheckbox} 
+              checked={checkedInstructions[2]}
+              onChange={() => handleCheckboxChange(2)}
+            />
             <div className={styles.icon}>3</div>
             <div>
               <p className={styles.itemTitle}>Time Management</p>
               <p className={styles.itemDesc}>
                 Keep track of allotted time and pace yourself during responses.
               </p>
+              {showErrors && !checkedInstructions[2] && (
+                <p style={{ color: '#EF4444', fontSize: '0.75rem', fontWeight: 700, margin: '0.25rem 0 0 0' }}>* Required</p>
+              )}
             </div>
           </div>
 

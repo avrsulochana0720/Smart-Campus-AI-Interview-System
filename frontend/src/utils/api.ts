@@ -507,6 +507,10 @@ export const adminAPI = {
     const res = await api.post('/admin/users', payload);
     return res.data;
   },
+  updateUserRole: async (userId: number, role: string) => {
+    const res = await api.put(`/admin/users/${userId}/role`, { role });
+    return res.data;
+  },
   createBatch: async (payload: { name: string; status: string; totalStudents: number }) => {
     const res = await api.post('/admin/batches', payload);
     return res.data;

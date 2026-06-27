@@ -16,6 +16,8 @@ export default function UsersRolesPage() {
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState<number | null>(null);
 
+  const [editingUser, setEditingUser] = useState<any | null>(null);
+
   // Form States
   const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'Admin', department: 'General' });
 
@@ -47,7 +49,7 @@ export default function UsersRolesPage() {
           <p style={{ fontSize: '0.85rem', color: '#1E293B', margin: '0.25rem 0 0 0' }}>Manage system access, assign roles, and configure permissions.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={() => setShowInviteModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
+          <button onClick={() => { setEditingUser(null); setInviteForm({ name: '', email: '', role: 'Admin', department: 'General' }); setShowInviteModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(225, 29, 72, 0.3)' }}>
             <Plus size={16} />
             Invite User
           </button>
@@ -135,7 +137,7 @@ export default function UsersRolesPage() {
                       
                       {actionMenuOpen === user.id && (
                         <div style={{ position: 'absolute', right: '3rem', top: '1rem', backgroundColor: '#FAF6EE', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.5rem', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: '120px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2)' }}>
-                          <button onClick={() => { setInviteForm({ name: user.name, email: user.email, role: user.role, department: 'General' }); setShowInviteModal(true); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Edit Role</button>
+                           <button onClick={() => { setInviteForm({ name: user.name, email: user.email, role: user.role, department: user.department || 'General' }); setEditingUser(user); setShowInviteModal(true); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Edit Role</button>
                           <button onClick={() => { setShowPermissionsModal(true); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#0F172A', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(225, 29, 72, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Permissions</button>
                           <button onClick={() => { setUsers(users.map(u => u.id === user.id ? { ...u, status: 'Inactive' } : u)); showToast('User deactivated', 'success'); setActionMenuOpen(null); }} style={{ textAlign: 'left', padding: '0.5rem', backgroundColor: 'transparent', border: 'none', color: '#EF4444', fontWeight: 800, cursor: 'pointer', borderRadius: '0.25rem', fontSize: '0.85rem' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Deactivate</button>
                         </div>
@@ -186,16 +188,16 @@ export default function UsersRolesPage() {
       {showInviteModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <div style={{ backgroundColor: '#FAF6EE', padding: '2rem', borderRadius: '0.75rem', border: '2px solid #0F172A', width: '400px', maxWidth: '90%' }}>
-            <h2 style={{ fontSize: '1.25rem', color: '#0F172A', margin: '0 0 1.5rem 0', fontWeight: 800 }}>Invite New User</h2>
+            <h2 style={{ fontSize: '1.25rem', color: '#0F172A', margin: '0 0 1.5rem 0', fontWeight: 800 }}>{editingUser ? 'Edit User Role' : 'Invite New User'}</h2>
             
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#0F172A', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem' }}>Name</label>
-              <input type="text" value={inviteForm.name} onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})} style={{ width: '100%', backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.75rem', fontWeight: 600, outline: 'none' }} placeholder="John Doe" />
+              <input type="text" value={inviteForm.name} disabled={!!editingUser} onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})} style={{ width: '100%', backgroundColor: editingUser ? '#E2E8F0' : '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.75rem', fontWeight: 600, outline: 'none' }} placeholder="John Doe" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', color: '#0F172A', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem' }}>Email Address</label>
-              <input type="email" value={inviteForm.email} onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})} style={{ width: '100%', backgroundColor: '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.75rem', fontWeight: 600, outline: 'none' }} placeholder="john@example.com" />
+              <input type="email" value={inviteForm.email} disabled={!!editingUser} onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})} style={{ width: '100%', backgroundColor: editingUser ? '#E2E8F0' : '#FFFFFF', color: '#0F172A', border: '2px solid #0F172A', borderRadius: '0.5rem', padding: '0.75rem', fontWeight: 600, outline: 'none' }} placeholder="john@example.com" />
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
@@ -205,30 +207,38 @@ export default function UsersRolesPage() {
                 <option value="Super Admin">Super Admin</option>
                 <option value="Interviewer">Interviewer</option>
                 <option value="TPO">TPO</option>
+                <option value="Student">Student</option>
               </select>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <button onClick={() => setShowInviteModal(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '2px solid #0F172A', color: '#0F172A', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={() => { setShowInviteModal(false); setEditingUser(null); }} style={{ flex: 1, padding: '0.75rem', backgroundColor: 'transparent', border: '2px solid #0F172A', color: '#0F172A', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>Cancel</button>
               <button onClick={async () => {
                 if (!inviteForm.name || !inviteForm.email) {
                   showToast('Name and email are required.', 'error');
                   return;
                 }
                 try {
-                  const newUser = await adminAPI.createUser({
-                    name: inviteForm.name,
-                    email: inviteForm.email.trim(),
-                    role: inviteForm.role,
-                    department: inviteForm.department
-                  });
-                  setUsers([newUser, ...users]);
-                  showToast(`User ${inviteForm.name} invited successfully!`, 'success');
+                  if (editingUser) {
+                    await adminAPI.updateUserRole(editingUser.id, inviteForm.role);
+                    setUsers(users.map(u => u.id === editingUser.id ? { ...u, role: inviteForm.role } : u));
+                    showToast(`Role updated successfully for ${inviteForm.name}!`, 'success');
+                  } else {
+                    const newUser = await adminAPI.createUser({
+                      name: inviteForm.name,
+                      email: inviteForm.email.trim(),
+                      role: inviteForm.role,
+                      department: inviteForm.department
+                    });
+                    setUsers([newUser, ...users]);
+                    showToast(`User ${inviteForm.name} invited successfully!`, 'success');
+                  }
                   setShowInviteModal(false);
+                  setEditingUser(null);
                 } catch (e: any) {
-                  showToast(e.response?.data?.detail || 'Failed to invite user.', 'error');
+                  showToast(e.response?.data?.detail || `Failed to ${editingUser ? 'update role' : 'invite user'}.`, 'error');
                 }
-              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '2px solid #E11D48', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>Send Invite</button>
+              }} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#E11D48', color: '#FFFFFF', border: '2px solid #E11D48', borderRadius: '0.5rem', fontWeight: 800, cursor: 'pointer' }}>{editingUser ? 'Save Changes' : 'Send Invite'}</button>
             </div>
           </div>
         </div>
