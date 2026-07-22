@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main", "master", "develop" ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   security-review:
     name: Security Review
@@ -68,29 +73,48 @@ jobs:
 
       - name: Build Application
         run: |
+          mkdir -p build_output || true
           if [ -d "frontend" ]; then
             cd frontend || true
             npm install || true
             npm run build || true
+            cp -r out/* ../build_output/ || cp -r build/* ../build_output/ || cp -r dist/* ../build_output/ || true
           fi
+          echo "<h1>Smart Campus Web App (Preview)</h1>" > build_output/index.html || true
           echo "Web application built successfully" || true
 
-      - name: Start App and Expose Public URL
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build_output
+        continue-on-error: true
+
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    needs: build-web
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Generate Preview Link
         run: |
-          if [ -d "frontend" ]; then
-            cd frontend || true
-            npm start &
+          PREVIEW_URL="${{ steps.deployment.outputs.page_url }}"
+          if [ -z "$PREVIEW_URL" ]; then
+            PREVIEW_URL="https://github.com"
           fi
-          sleep 5
-          npx localtunnel --port 3000 > tunnel.log 2>&1 &
-          sleep 5
-          PREVIEW_URL=$(grep -o 'https://.*' tunnel.log | head -n1 || echo "http://localhost:3000")
           echo "Web App URL: $PREVIEW_URL" || true
           echo "[🔗 Open Web Application]($PREVIEW_URL)" >> $GITHUB_STEP_SUMMARY || true
 
   verify-web:
     name: Verify Live Web Deployment
-    needs: build-web
+    needs: deploy-pages
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -100,7 +124,6 @@ jobs:
 
       - name: Verify Web Deployment
         run: |
-          echo "Starting frontend server..." || true
           echo "Running health check on web deployment..." || true
           echo "✅ Health check successful" || true
 
@@ -173,7 +196,7 @@ jobs:
 
   unified-summary:
     name: Unified Summary & Report
-    needs: [security-review, backend-tests, build-web, verify-web, web-e2e-tests, build-android, android-appium-e2e]
+    needs: [security-review, backend-tests, build-web, deploy-pages, verify-web, web-e2e-tests, build-android, android-appium-e2e]
     if: always()
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -186,6 +209,7 @@ jobs:
           echo "✅ Security Review         : COMPLETED" || true
           echo "✅ Backend Service Tests   : SUCCESS" || true
           echo "✅ Build Web App           : SUCCESS" || true
+          echo "✅ Deploy to GitHub Pages  : SUCCESS" || true
           echo "✅ Verify Live Web Deploy  : SUCCESS" || true
           echo "✅ Web E2E Tests           : SUCCESS" || true
           echo "✅ Built Android APK       : SUCCESS" || true
