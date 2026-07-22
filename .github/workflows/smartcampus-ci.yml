@@ -75,9 +75,16 @@ jobs:
           fi
           echo "Web application built successfully" || true
 
-      - name: Generate Preview Link
+      - name: Start App and Expose Public URL
         run: |
-          PREVIEW_URL="http://localhost:3000"
+          if [ -d "frontend" ]; then
+            cd frontend || true
+            npm start &
+          fi
+          sleep 5
+          npx localtunnel --port 3000 > tunnel.log 2>&1 &
+          sleep 5
+          PREVIEW_URL=$(grep -o 'https://.*' tunnel.log | head -n1 || echo "http://localhost:3000")
           echo "Web App URL: $PREVIEW_URL" || true
           echo "[🔗 Open Web Application]($PREVIEW_URL)" >> $GITHUB_STEP_SUMMARY || true
 
