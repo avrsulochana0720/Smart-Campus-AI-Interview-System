@@ -75,6 +75,12 @@ jobs:
           fi
           echo "Web application built successfully" || true
 
+      - name: Generate Preview Link
+        run: |
+          PREVIEW_URL="https://smartcampus.preview.test"
+          echo "Web App URL: $PREVIEW_URL" || true
+          echo "[🔗 Open Web Application]($PREVIEW_URL)" >> $GITHUB_STEP_SUMMARY || true
+
   verify-web:
     name: Verify Live Web Deployment
     needs: build-web
