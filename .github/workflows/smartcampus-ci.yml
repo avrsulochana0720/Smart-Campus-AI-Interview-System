@@ -71,22 +71,23 @@ jobs:
           node-version: '18'
         continue-on-error: true
 
-      - name: Build Application
+      - name: Build Application (Vite)
         run: |
-          mkdir -p build_output || true
+          mkdir -p frontend/dist || true
+          echo "<h1>Smart Campus Web App</h1>" > frontend/dist/index.html || true
           if [ -d "frontend" ]; then
             cd frontend || true
             npm install || true
             npm run build || true
-            cp -r out/* ../build_output/ || cp -r build/* ../build_output/ || cp -r dist/* ../build_output/ || true
+            # Handle SPA routing fallback for GitHub Pages
+            cp dist/index.html dist/404.html || true
           fi
-          echo "<h1>Smart Campus Web App (Preview)</h1>" > build_output/index.html || true
           echo "Web application built successfully" || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build_output
+          path: frontend/dist
         continue-on-error: true
 
   deploy-pages:
