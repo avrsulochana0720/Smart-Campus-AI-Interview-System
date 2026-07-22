@@ -77,7 +77,7 @@ jobs:
 
       - name: Generate Preview Link
         run: |
-          PREVIEW_URL="https://smartcampus.preview.test"
+          PREVIEW_URL="http://localhost:3000"
           echo "Web App URL: $PREVIEW_URL" || true
           echo "[🔗 Open Web Application]($PREVIEW_URL)" >> $GITHUB_STEP_SUMMARY || true
 
